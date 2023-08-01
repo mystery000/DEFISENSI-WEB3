@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import { Assets } from "./pages/Assets";
-import { Transactions } from "./pages/Transasctions";
 import { ManagedAppContext } from "./context/app";
+import { Transactions } from "./pages/Transasctions";
 
 function App() {
   return (

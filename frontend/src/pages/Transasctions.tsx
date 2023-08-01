@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
-import { TransactionCard } from "../components/transactions/TransactionCard";
-import AppLayout from "../layouts/AppLayout";
-import { Token, Transaction, Wallet } from "../types/transaction";
-import { findWalletTransactions, findTokenTransactions } from "../lib/api";
-import { useAppContext } from "../context/app";
-import {
-  BrowserView,
-  MobileView,
-  isBrowser,
-  isMobile,
-} from "react-device-detect";
+
 import classNames from "classnames";
+import AppLayout from "../layouts/AppLayout";
+import { useAppContext } from "../context/app";
+import { Token, Wallet } from "../types/transaction";
+import { BrowserView, MobileView } from "react-device-detect";
+import { findWalletTransactions, findTokenTransactions } from "../lib/api";
+import { TransactionCard } from "../components/transactions/TransactionCard";
 
 export const Transactions = () => {
   // This is the wallet address of the current user
@@ -52,10 +48,10 @@ export const Transactions = () => {
       <AppLayout>
         <div className='p-4'>
           <BrowserView>
-            <div className='flex w-full 2xl:w-2/3  mx-auto mt-4 flex-wrap flex-row justify-center 2xl:justify-around gap-2'>
+            <div className='flex w-full 2xl:w-2/3 mx-auto mt-4 flex-wrap flex-row justify-center 2xl:justify-around gap-2'>
               <div>
                 <div className='items-center'>
-                  <div className='mb-4 text-2xl font-mono'>Wallets</div>
+                  <div className='mb-4 font-sora text-[32px]'>Wallets</div>
                   {wallets.map((wallet) => (
                     <TransactionCard data={wallet} key={wallet.address} />
                   ))}
@@ -63,7 +59,7 @@ export const Transactions = () => {
               </div>
               <div>
                 <div className='items-center'>
-                  <div className='mb-4 text-2xl font-mono'>Tokens</div>
+                  <div className='mb-4 font-sora text-[32px]'>Tokens</div>
                   {tokens.map((token) => (
                     <TransactionCard data={token} key={token.address} />
                   ))}
@@ -71,7 +67,7 @@ export const Transactions = () => {
               </div>
               <div>
                 <div className='items-center'>
-                  <div className='mb-4 text-2xl font-mono'>NFTs</div>
+                  <div className='mb-4 font-sora text-[32px]'>NFTs</div>
                   {tokens.map((token) => (
                     <TransactionCard data={token} key={token.address} />
                   ))}
@@ -80,7 +76,7 @@ export const Transactions = () => {
             </div>
           </BrowserView>
           <MobileView>
-            <div className='flex font-mono text-3xl justify-around'>
+            <div className='flex font-sora text-[32px] justify-around'>
               <span
                 onClick={() => setActiveTab("wallets")}
                 className={classNames("cursor-pointer", {

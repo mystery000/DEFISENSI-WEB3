@@ -3,7 +3,6 @@ import cn from "classnames";
 import { Card, Tag } from "antd";
 import { TransactionType } from "../../types/enums";
 import { Transaction } from "../../types/transaction";
-import { Minus, MoveLeft, MoveRight } from "lucide-react";
 import {
   converBaseUnit,
   convertHex,
@@ -12,8 +11,12 @@ import {
 } from "../../lib/utils";
 import {
   ChatBubbleSolid,
+  ReceiveIcon,
+  SwapIcon,
+  SendIcon,
   ThumbsDownSolid,
   ThumbsUpSolid,
+  TokenIcon,
 } from "../icons/defisensi-icons";
 import { useAppContext } from "../../context/app";
 
@@ -43,52 +46,21 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
     <>
       <Card bordered={false} style={{ width: 392 }} className='font-inter my-2'>
         <div className='flex justify-between text-sm font-inter'>
-          <Tag color='#FFD25F'>
-            <span className='text-black font-bold'>TOKEN</span>
-            <div className='relative'>
-              <div className='absolute bottom-full left-1/2 ml-[-5px] border-t-2 border-black'>
-                <svg
-                  className='absolute h-2 w-full left-0 text-black fill-current'
-                  viewBox='0 0 3 1'
-                >
-                  <polygon points='1.5,0 3,1 0,1' />
-                </svg>
-              </div>
-            </div>
-          </Tag>
+          <TokenIcon />
           <span>{age}</span>
         </div>
         <div className='flex justify-between items-center'>
-          <div className='flex gap-1'>
+          <div className='flex gap-1 items-center'>
             <span className='font-bold'>
               {convertHex(transaction.details.from).substring(0, 5)}
             </span>
             <span>
-              {transaction.details.type !== TransactionType.SEND ? (
-                <MoveLeft />
-              ) : (
-                <Minus />
-              )}
-            </span>
-            <span>
-              <Tag
-                className={cn("text-white rounded-md py-0.5 px-1.5", {
-                  "bg-[#139433]":
-                    transaction.details.type === TransactionType.RECEIVE,
-                  "bg-[#7353F2]":
-                    transaction.details.type === TransactionType.SWAP,
-                  "bg-[#0048D4]":
-                    transaction.details.type === TransactionType.SEND,
-                })}
-              >
-                {transaction.details.type}
-              </Tag>
-            </span>
-            <span>
               {transaction.details.type === TransactionType.RECEIVE ? (
-                <Minus />
+                <ReceiveIcon />
+              ) : transaction.details.type === TransactionType.SEND ? (
+                <SendIcon />
               ) : (
-                <MoveRight />
+                <SwapIcon />
               )}
             </span>
             <span className='font-bold'>
@@ -105,6 +77,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
               width={32}
               height={32}
               className='rounded-full border'
+              alt='platform_icon'
             ></img>
           </div>
         </div>
@@ -115,6 +88,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
                 src={`./images/tokens/${transaction.details.token0.symbol.toLowerCase()}.png`}
                 width={24}
                 height={24}
+                alt='token-icon'
               />
             </span>
             <span>
@@ -128,13 +102,14 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
             )} USD`}</span>
           </div>
         )}
-        {transaction.details.token1 ? (
+        {transaction.details.token1 && (
           <div className='flex items-center'>
             <span className='pr-2'>
               <img
                 src={`./images/tokens/${transaction.details.token1.symbol.toLowerCase()}.png`}
                 width={24}
                 height={24}
+                alt='token-icon'
               />
             </span>
             <span>{`${converBaseUnit(
@@ -145,30 +120,49 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
               2
             )} USD`}</span>
           </div>
-        ) : (
-          <div className='h-[24px]'></div>
         )}
         <div className='flex justify-around mt-4 text-center text-sm'>
-          <div className='flex items-center hover:cursor-pointer'>
+          <div className='flex items-center hover:cursor-pointer gap-[3px]'>
             <ThumbsUpSolid
               className='w-5 h-5 scale-x-[-1]'
               fill={likes.includes(user._id) ? "#FF5D29" : "#8E98B0"}
             />
-            <span>{standardUnit(likes.length)}</span>
+            <span
+              className={cn("font-inter", {
+                "text-[#FF5D29]": likes.includes(user._id),
+                "text-[#8E98B0]": likes.includes(user._id),
+              })}
+            >
+              {standardUnit(likes.length)}
+            </span>
           </div>
-          <div className='flex items-center hover:cursor-pointer gap-1'>
+          <div className='flex items-center hover:cursor-pointer gap-[3px]'>
             <ThumbsDownSolid
               className='w-5 h-5'
               fill={dislikes.includes(user._id) ? "#FF5D29" : "#8E98B0"}
             />
-            <span>{standardUnit(dislikes.length)}</span>
+            <span
+              className={cn("font-inter", {
+                "text-[#FF5D29]": dislikes.includes(user._id),
+                "text-[#8E98B0]": dislikes.includes(user._id),
+              })}
+            >
+              {standardUnit(dislikes.length)}
+            </span>
           </div>
-          <div className='flex items-center hover:cursor-pointer'>
+          <div className='flex items-center hover:cursor-pointer gap-[3px]'>
             <ChatBubbleSolid
               className='w-5 h-5'
               fill={comments.includes(user._id) ? "#FF5D29" : "#8E98B0"}
             />
-            <span>{standardUnit(comments.length)}</span>
+            <span
+              className={cn("font-inter", {
+                "text-[#FF5D29]": comments.includes(user._id),
+                "text-[#8E98B0]": comments.includes(user._id),
+              })}
+            >
+              {standardUnit(comments.length)}
+            </span>
           </div>
         </div>
       </Card>

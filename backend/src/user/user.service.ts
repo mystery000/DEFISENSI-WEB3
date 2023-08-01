@@ -51,10 +51,12 @@ export class UserService {
       path: 'followingWallets',
       select: ['address', 'likes', 'dislikes', 'comments', 'transactions'],
     });
+
     const wallets = user.followingWallets.map((wallet) => {
       const processedTransactions = wallet.transactions
-        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
-        .filter((transaction) => transaction.details);
+        .filter((transaction) => transaction.details)
+        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber));
+
       if (processedTransactions.length > 4) {
         return {
           address: wallet.address,
