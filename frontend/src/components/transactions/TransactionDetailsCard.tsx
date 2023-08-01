@@ -33,7 +33,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
   const { user } = useAppContext();
   if (!transaction.details) {
     return (
-      <Card bordered={false} style={{ width: 400 }} className='font-inter my-2'>
+      <Card bordered={false} style={{ width: 392 }} className='font-inter my-2'>
         Processing...
       </Card>
     );
@@ -41,7 +41,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
   const age = getAge(Number(transaction.details.created));
   return (
     <>
-      <Card bordered={false} style={{ width: 400 }} className='font-inter my-2'>
+      <Card bordered={false} style={{ width: 392 }} className='font-inter my-2'>
         <div className='flex justify-between text-sm font-inter'>
           <Tag color='#FFD25F'>
             <span className='text-black font-bold'>TOKEN</span>

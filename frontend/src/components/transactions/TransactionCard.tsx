@@ -12,6 +12,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ data }) => {
     <div className='flex flex-col'>
       {data.transactions.map((transaction) => (
         <TransactionDetailsCard
+          key={transaction.txhash}
           transaction={transaction}
           likes={data.likes}
           dislikes={data.dislikes}

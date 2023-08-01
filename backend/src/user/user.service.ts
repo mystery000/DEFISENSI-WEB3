@@ -52,13 +52,16 @@ export class UserService {
       select: ['address', 'likes', 'dislikes', 'comments', 'transactions'],
     });
     const wallets = user.followingWallets.map((wallet) => {
-      if (wallet.transactions.length > 4) {
+      const processedTransactions = wallet.transactions
+        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
+        .filter((transaction) => transaction.details);
+      if (processedTransactions.length > 4) {
         return {
           address: wallet.address,
           comments: wallet.comments,
           likes: wallet.likes,
           dislikes: wallet.dislikes,
-          transactions: wallet.transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)).slice(0, 4),
+          transactions: processedTransactions.slice(0, 4),
         } as Wallet;
       }
       return {
@@ -66,7 +69,7 @@ export class UserService {
         comments: wallet.comments,
         likes: wallet.likes,
         dislikes: wallet.dislikes,
-        transactions: wallet.transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)),
+        transactions: processedTransactions,
       } as Wallet;
     });
     return wallets;
@@ -93,13 +96,16 @@ export class UserService {
     }
 
     const tokens = user.followingTokens.map((token) => {
-      if (token.transactions.length > 4) {
+      const processedTransactions = token.transactions
+        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
+        .filter((transaction) => transaction.details);
+      if (processedTransactions.length > 4) {
         return {
           address: token.address,
           comments: token.comments,
           likes: token.likes,
           dislikes: token.dislikes,
-          transactions: token.transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)).slice(0, 4),
+          transactions: processedTransactions.slice(0, 4),
         } as Token;
       }
       return {
@@ -107,7 +113,7 @@ export class UserService {
         comments: token.comments,
         likes: token.likes,
         dislikes: token.dislikes,
-        transactions: token.transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)),
+        transactions: processedTransactions,
       } as Token;
     });
     return tokens;
