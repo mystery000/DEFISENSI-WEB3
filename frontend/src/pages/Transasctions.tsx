@@ -5,7 +5,7 @@ import AppLayout from "../layouts/AppLayout";
 import { useAppContext } from "../context/app";
 import { Token, Wallet } from "../types/transaction";
 import { BrowserView, MobileView } from "react-device-detect";
-import { findWalletTransactions, findTokenTransactions } from "../lib/api";
+import { findFollowingWallets, findFollowingTokens } from "../lib/api";
 import { TransactionCard } from "../components/transactions/TransactionCard";
 
 export const Transactions = () => {
@@ -19,9 +19,9 @@ export const Transactions = () => {
   useEffect(() => {
     const getTransactions = async () => {
       try {
-        const wallets = await findWalletTransactions(user.address);
+        const wallets = await findFollowingWallets(user.address);
         setWallets(wallets || []);
-        const tokens = await findTokenTransactions(user.address);
+        const tokens = await findFollowingTokens(user.address);
         setTokens(tokens || []);
       } catch (error) {
         console.log(error);
@@ -48,7 +48,7 @@ export const Transactions = () => {
       <AppLayout>
         <div className='p-4'>
           <BrowserView>
-            <div className='flex w-full 2xl:w-2/3 mx-auto mt-4 flex-wrap flex-row justify-center 2xl:justify-around gap-2'>
+            <div className='flex w-full 2xl:w-2/3 mx-auto mt-4 flex-wrap flex-row justify-center 2xl:justify-around gap-2 h-screen'>
               <div>
                 <div className='items-center'>
                   <div className='mb-4 font-sora text-[32px]'>Wallets</div>

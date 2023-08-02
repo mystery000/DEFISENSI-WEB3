@@ -46,35 +46,39 @@ export class UserService {
     return user.followingWallets;
   }
 
-  async getFollowingWalletsTransactions(address: string): Promise<Wallet[]> {
-    const user = await this.userModel.findOne({ address }).populate({
-      path: 'followingWallets',
-      select: ['address', 'likes', 'dislikes', 'comments', 'transactions'],
-    });
+  async getFollowingWalletsTransactions1(address: string) {
+    const result = await this.userModel.aggregate([
+      { $match: { address } },
+      {
+        $lookup: {
+          from: 'wallets', // this should be the actual name of your Wallet collection
+          localField: 'followingWallets',
+          foreignField: '_id',
+          as: 'followingWalletsData',
+        },
+      },
+      { $unwind: '$followingWalletsData' },
+      { $unwind: '$followingWalletsData.transactions' },
+      { $match: { 'followingWalletsData.transactions.details': { $ne: null } } },
+      { $sort: { 'followingWalletsData.transactions.blockNumber': -1 } },
+      {
+        $group: {
+          _id: '$followingWalletsData._id',
+          address: { $first: '$followingWalletsData.address' },
+          comments: { $first: '$followingWalletsData.comments' },
+          likes: { $first: '$followingWalletsData.likes' },
+          dislikes: { $first: '$followingWalletsData.dislikes' },
+          transactions: { $push: '$followingWalletsData.transactions' },
+        },
+      },
+      { $limit: 4 },
+    ]);
 
-    const wallets = user.followingWallets.map((wallet) => {
-      const processedTransactions = wallet.transactions
-        .filter((transaction) => transaction.details)
-        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber));
+    if (!result || result.length === 0) {
+      throw new BadRequestException('Transactions not found!');
+    }
 
-      if (processedTransactions.length > 4) {
-        return {
-          address: wallet.address,
-          comments: wallet.comments,
-          likes: wallet.likes,
-          dislikes: wallet.dislikes,
-          transactions: processedTransactions.slice(0, 4),
-        } as Wallet;
-      }
-      return {
-        address: wallet.address,
-        comments: wallet.comments,
-        likes: wallet.likes,
-        dislikes: wallet.dislikes,
-        transactions: processedTransactions,
-      } as Wallet;
-    });
-    return wallets;
+    return result;
   }
 
   async getFollowingTokens(address: string): Promise<Token[]> {
@@ -88,37 +92,39 @@ export class UserService {
     return user.followingTokens;
   }
 
-  async getFollowingTokensTransactions(address: string): Promise<Token[]> {
-    const user = await this.userModel
-      .findOne({ address })
-      .populate('followingTokens', ['address', 'network', 'likes', 'dislikes', 'comments', 'transactions']);
-    if (!user) {
-      logger.error(`User not found #${address}`);
-      throw new BadRequestException(`User not found!`);
+  async getFollowingTokensTransactions(address: string) {
+    const result = await this.userModel.aggregate([
+      { $match: { address } },
+      {
+        $lookup: {
+          from: 'tokens', // this should be the actual name of your Token collection
+          localField: 'followingTokens',
+          foreignField: '_id',
+          as: 'followingTokensData',
+        },
+      },
+      { $unwind: '$followingTokensData' },
+      { $unwind: '$followingTokensData.transactions' },
+      { $match: { 'followingTokensData.transactions.details': { $ne: null } } },
+      { $sort: { 'followingTokensData.transactions.blockNumber': -1 } },
+      {
+        $group: {
+          _id: '$followingTokensData._id',
+          address: { $first: '$followingTokensData.address' },
+          comments: { $first: '$followingTokensData.comments' },
+          likes: { $first: '$followingTokensData.likes' },
+          dislikes: { $first: '$followingTokensData.dislikes' },
+          transactions: { $push: '$followingTokensData.transactions' },
+        },
+      },
+      { $limit: 4 },
+    ]);
+
+    if (!result || result.length === 0) {
+      throw new BadRequestException('Transactions not found!');
     }
 
-    const tokens = user.followingTokens.map((token) => {
-      const processedTransactions = token.transactions
-        .sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber))
-        .filter((transaction) => transaction.details);
-      if (processedTransactions.length > 4) {
-        return {
-          address: token.address,
-          comments: token.comments,
-          likes: token.likes,
-          dislikes: token.dislikes,
-          transactions: processedTransactions.slice(0, 4),
-        } as Token;
-      }
-      return {
-        address: token.address,
-        comments: token.comments,
-        likes: token.likes,
-        dislikes: token.dislikes,
-        transactions: processedTransactions,
-      } as Token;
-    });
-    return tokens;
+    return result;
   }
 
   async getFollowingNfts(address: string): Promise<Nft[]> {

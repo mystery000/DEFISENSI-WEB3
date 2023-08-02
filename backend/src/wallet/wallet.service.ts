@@ -177,11 +177,36 @@ export class WalletService {
   }
 
   async findTransactions(address: string) {
-    const foundWallet = await this.walletModel.findOne({ address });
-    if (!foundWallet) {
-      throw new BadRequestException('Wallet not found!');
+    const foundWallet = await this.walletModel.aggregate([
+      { $match: { address: address } },
+      {
+        $unwind: '$transactions',
+      },
+      {
+        $match: { 'transactions.details': { $ne: null } },
+      },
+      {
+        $sort: { 'transactions.blockNumber': -1 },
+      },
+      {
+        $limit: 4,
+      },
+      {
+        $group: {
+          _id: '$_id',
+          likes: { $first: '$likes' },
+          dislikes: { $first: '$dislikes' },
+          comments: { $first: '$comments' },
+          transactions: { $push: '$transactions' },
+        },
+      },
+    ]);
+
+    if (!foundWallet || foundWallet.length === 0) {
+      throw new BadRequestException('Transactions not found!');
     }
-    return foundWallet.transactions;
+
+    return foundWallet[0];
   }
 
   async setTransactionDetail(txhash: string, address: string) {

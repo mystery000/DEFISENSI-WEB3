@@ -7,11 +7,9 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <>
-      <div className='flex flex-col min-w-[640px]'>
-        <div>
-          <Header />
-        </div>
-        <div className='bg-slate-100'>{children}</div>
+      <div className='relative'>
+        <Header />
+        <div className='bg-[#F1F3F8]'>{children}</div>
         <div>{/* <Footer /> */}</div>
       </div>
     </>
