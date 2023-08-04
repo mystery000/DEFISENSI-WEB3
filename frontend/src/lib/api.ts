@@ -1,8 +1,8 @@
 import axios from "axios";
 
+import { Balance, BalanceHistory } from "../types/balance";
 import { API_BASE_URL } from "../config/app";
-import { Token, Transaction, Wallet } from "../types/transaction";
-import { TokenBalance } from "../types/balance";
+import { Token, Wallet } from "../types/transaction";
 
 export const findFollowingWallets = async (address: string, limit: number) => {
   try {
@@ -40,10 +40,21 @@ export const findWalletTransactions = async (
   }
 };
 
-export const GetTokenBalances = async (address: string) => {
+export const getBalance = async (address: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/wallet/${address}/balances`);
-    return res.data as TokenBalance[];
+    const res = await axios.get(`${API_BASE_URL}/wallet/${address}/balance`);
+    return res.data as Balance;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getBalanceHistory = async (address: string) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/wallet/${address}/balancehistory`
+    );
+    return res.data as BalanceHistory;
   } catch (error) {
     console.log(error);
   }

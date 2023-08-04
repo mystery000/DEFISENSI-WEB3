@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 import { Comment } from '../../comment/schema/comment.schema';
-import { Transaction } from 'src/utils/types';
+import { ApiBalance, Balance, Transaction } from 'src/utils/types';
 
 export type WalletDocument = Wallet & Document;
 
@@ -36,6 +36,12 @@ export class Wallet {
     default: [],
   })
   transactions: Transaction[];
+
+  @Prop({
+    type: ApiBalance,
+    default: {},
+  })
+  balance: Balance;
 }
 
 export const WalletSchema = SchemaFactory.createForClass(Wallet);

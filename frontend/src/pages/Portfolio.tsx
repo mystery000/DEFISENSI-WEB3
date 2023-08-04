@@ -1,45 +1,47 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import AppLayout from "../layouts/AppLayout";
 import { useAppContext } from "../context/app";
+
 import {
   FollowerIcon,
   FollowingIcon,
   NotificationOnIcon,
   TrackerView,
 } from "../components/icons/defisensi-icons";
-import { GetTokenBalances, findWalletTransactions } from "../lib/api";
-import { Transaction, Wallet } from "../types/transaction";
-import { TransactionDetailsCard } from "../components/transactions/TransactionDetailsCard";
 import { Asset } from "../components/portfolio/asset";
-import { TransactionType } from "../types/enums";
 
+import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
+import TableRow from "@mui/material/TableRow";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import { TokenBalance } from "../types/balance";
-import { converBaseUnit } from "../lib/utils";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { ExtendedTransaction } from "./Transasctions";
-
+import TableContainer from "@mui/material/TableContainer";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { Balance, BalanceHistory } from "../types/balance";
+import { TransactionDetailsCard } from "../components/transactions/TransactionDetailsCard";
+import {
+  findWalletTransactions,
+  getBalance,
+  getBalanceHistory,
+} from "../lib/api";
 interface AssetProps {
   className?: string;
 }
 export const Portfolio: FC<AssetProps> = ({ className }) => {
   const { user } = useAppContext();
-  const [transactions, setTransactions] = useState<ExtendedTransaction[]>([]);
-  const [balances, setBalances] = useState<TokenBalance[]>([]);
   const [fetchMore, setFetchMore] = useState(true);
+  const [balance, setBalance] = useState<Balance>({});
+  const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
+  const [transactions, setTransactions] = useState<ExtendedTransaction[]>([]);
 
   useEffect(() => {
     const getTransactions = async () => {
       try {
         const wallet = await findWalletTransactions(user.address, 4);
-
+        console.log(wallet);
         const txs =
           wallet?.transactions.map(
             (tx) =>
@@ -54,10 +56,14 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
 
         setTransactions(txs);
 
-        const balances = await GetTokenBalances(
+        const balance = await getBalance(
           "0xff84e63AFa449A0Fb698d6332c7398cF042348ba"
         );
-        setBalances(balances || []);
+        setBalance(balance || {});
+        const balanceHistory = await getBalanceHistory(
+          "0xff84e63AFa449A0Fb698d6332c7398cF042348ba"
+        );
+        setBalanceHistory(balanceHistory || {});
       } catch (error) {
         console.log(error);
       }
@@ -65,7 +71,7 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     getTransactions();
   }, []);
 
-  const fetchMoreTransactions = async () => {
+  const fetchMoreTransactions = useCallback(async () => {
     try {
       const wallet = await findWalletTransactions(
         user.address,
@@ -88,9 +94,33 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [user.address]);
 
   if (!transactions) return <div className='text-center'>Loading...</div>;
+
+  const EtherValues =
+    balance.ethereum?.tokens.reduce(
+      (sum, token) => sum + Number(token.usd),
+      0
+    ) || 0;
+
+  const PolygonValues =
+    balance.polygon?.tokens.reduce(
+      (sum, token) => sum + Number(token.usd),
+      0
+    ) || 0;
+
+  const BinanceValues =
+    balance.binance?.tokens.reduce(
+      (sum, token) => sum + Number(token.usd),
+      0
+    ) || 0;
+
+  const tokensOfWallet = [
+    ...(balance.binance?.tokens || []),
+    ...(balance.ethereum?.tokens || []),
+    ...(balance.polygon?.tokens || []),
+  ].filter((token) => Number(token.balance) !== 0);
 
   return (
     <AppLayout>
@@ -148,12 +178,52 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
                 </select>
               </div>
               <div className='flex flex-wrap gap-4 justify-between mt-4'>
-                <Asset blockchain='All' balance={3.12} />
-                <Asset blockchain='BNB Chain' balance={100} />
-                <Asset blockchain='ETH' balance={2.12} />
-                <Asset blockchain='Polygon' balance={90} />
+                <Asset
+                  blockchain='All'
+                  balance={EtherValues + BinanceValues + PolygonValues}
+                  history={[]}
+                />
+                <Asset
+                  blockchain='BNB Chain'
+                  balance={BinanceValues}
+                  history={
+                    balanceHistory.binance?.map(
+                      (balance) =>
+                        balance.tokens.reduce(
+                          (sum, token) => sum + Number(token.usd),
+                          0
+                        ) || 0
+                    ) || []
+                  }
+                />
+                <Asset
+                  blockchain='ETH'
+                  balance={EtherValues}
+                  history={
+                    balanceHistory.ethereum?.map(
+                      (balance) =>
+                        balance.tokens.reduce(
+                          (sum, token) => sum + Number(token.usd),
+                          0
+                        ) || 0
+                    ) || []
+                  }
+                />
+                <Asset
+                  blockchain='Polygon'
+                  balance={PolygonValues}
+                  history={
+                    balanceHistory.polygon?.map(
+                      (balance) =>
+                        balance.tokens.reduce(
+                          (sum, token) => sum + Number(token.usd),
+                          0
+                        ) || 0
+                    ) || []
+                  }
+                />
               </div>
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} className='mt-4'>
                 <Table sx={{ minWidth: 650 }} aria-label='simple table'>
                   <TableHead>
                     <TableRow>
@@ -165,7 +235,7 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {balances.map((token, id) => (
+                    {tokensOfWallet.map((token, id) => (
                       <TableRow
                         key={token.name + id}
                         sx={{
@@ -176,8 +246,9 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
                           <div className='flex items-center gap-1'>
                             <img
                               src={
-                                token.symbol === "ETH"
-                                  ? "./images/tokens/eth.png"
+                                token.symbol === "ETH" ||
+                                token.symbol === "MATIC"
+                                  ? `./images/tokens/${token.symbol.toLowerCase()}.png`
                                   : token.logo
                               }
                               width={32}
@@ -190,7 +261,9 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
                         <TableCell>
                           {Number(token.balance).toLocaleString()}
                         </TableCell>
-                        {/* <TableCell>${balance.usd.toLocaleString()}</TableCell> */}
+                        <TableCell>
+                          ${Number(token.usd).toLocaleString()}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

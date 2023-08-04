@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { Wallet } from './schemas/wallet.schema';
-import { ApiTokenBalance, ApiTransaction, TokenBalance } from 'src/utils/types';
+import { ApiBalance, ApiTokenBalance, ApiTransaction, Balance, TokenBalance } from 'src/utils/types';
 import { WalletService } from './wallet.service';
 import { User } from '../user/schemas/user.schema';
 import { FollowWalletDto } from './dto/follow.dto';
@@ -96,11 +96,19 @@ export class WalletController {
     return this.walletService.findTransactions(address, limit);
   }
 
-  @Get(':address/balances')
+  @Get(':address/balance')
   @ApiOperation({ summary: 'Get balances of tokens owned by address' })
-  @ApiOkResponse({ type: ApiTokenBalance, isArray: true })
+  @ApiOkResponse({ type: ApiBalance, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
-  getTokenBalances(@Param() { address }: FindOneParams): Promise<TokenBalance[]> {
-    return this.walletService.getTokenBalances(address);
+  getBalance(@Param() { address }: FindOneParams) {
+    return this.walletService.getBalance(address);
+  }
+
+  @Get(':address/balancehistory')
+  @ApiOperation({ summary: 'Get balances of tokens owned by address' })
+  @ApiOkResponse({ type: ApiBalance, isArray: true })
+  @ApiParam({ name: 'address', description: 'The address of wallet' })
+  getBalanceHistory(@Param() { address }: FindOneParams) {
+    return this.walletService.getBalanceHistory(address);
   }
 }

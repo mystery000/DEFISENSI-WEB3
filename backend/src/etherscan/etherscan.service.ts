@@ -12,6 +12,7 @@ import { EthereumConfig } from '../config/ethereum.config';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { convertToCoinGeckoDate } from 'src/utils/coingecko';
+import { Alchemy, Network, Utils } from 'alchemy-sdk';
 
 @Injectable()
 export class EtherscanService {
@@ -274,8 +275,14 @@ export class EtherscanService {
       this.coinGeckoCoinIds = coingecko_coins;
     }
     const coinId = this.coinGeckoCoinIds.find((coin) => coin.symbol === symbol.toLowerCase())?.id;
-    const price = this.http.get(`${COINGECKO_API}/coins/${coinId}/history?date=${date}&localization=false`);
-    return (await firstValueFrom(price)).data['market_data']['current_price'].usd;
+
+    try {
+      const price = this.http.get(`${COINGECKO_API}/coins/${coinId}/history?date=${date}&localization=false`);
+      const usd = (await firstValueFrom(price)).data['market_data']['current_price'].usd;
+      return usd;
+    } catch (error) {
+      return 0;
+    }
   }
 
   async test() {
@@ -296,5 +303,6 @@ export class EtherscanService {
     //   ),
     // );
     // return this.getPrice('bnb', convertToCoinGeckoDate(1690821573764));
+    // Setup: npm install alchemy-sdk
   }
 }

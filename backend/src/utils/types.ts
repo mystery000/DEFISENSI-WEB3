@@ -60,11 +60,13 @@ export type Transaction = {
 };
 
 export type TokenBalance = {
-  decimals: Number;
   logo: string;
   name: string;
   symbol: string;
+  contractAddress: string;
+  decimals: Number;
   balance: string;
+  usd: string;
 };
 
 export class ApiTokenBalance {
@@ -82,4 +84,51 @@ export class ApiTokenBalance {
 
   @ApiProperty()
   balance: string;
+
+  @ApiProperty()
+  usd: string;
+
+  @ApiProperty()
+  contractAddress: string;
+}
+
+export type Balance = {
+  ethereum?: [
+    {
+      date: number;
+      tokens: [TokenBalance];
+    },
+  ];
+  polygon?: [
+    {
+      date: number;
+      tokens: [TokenBalance];
+    },
+  ];
+  binance?: [
+    {
+      date: number;
+      tokens: [TokenBalance];
+    },
+  ];
+};
+
+export class ApiBalance {
+  @ApiProperty()
+  ethereum?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
+
+  @ApiProperty()
+  polygon?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
+
+  @ApiProperty()
+  binance?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
 }

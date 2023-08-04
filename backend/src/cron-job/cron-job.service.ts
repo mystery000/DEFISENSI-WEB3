@@ -4,6 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { TokenService } from 'src/token/token.service';
 import { WalletService } from 'src/wallet/wallet.service';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { WalletModule } from 'src/wallet/wallet.module';
 
 @Injectable()
 export class CronJobService {
@@ -107,6 +108,20 @@ export class CronJobService {
     transactions.forEach(async (tx) => {
       await this.tokenService.setTransactionDetail(tx.transaction.txhash as string, tx.address, tx.network);
       console.log('[Token Transaction]-Txhash: ', tx.transaction.txhash);
+    });
+  }
+
+  @Cron('0 */5 * * * *')
+  async handleWalletBalance() {
+    console.log(`(${new Date()})[cron-job]: Get tokens balance`);
+    const wallets = await this.walletService.getAll();
+    wallets.forEach(async (wallet) => {
+      console.log(`Obtaining the balances of ${wallet.address} address`);
+      try {
+        await this.walletService.getTokenBalances(wallet.address);
+      } catch (error) {
+        console.log(`Failed to get balances due to ${error}`);
+      }
     });
   }
 }
