@@ -13,7 +13,7 @@ export class CronJobService {
     private readonly tokenService: TokenService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_MINUTE)
   async handleWalletCron() {
     console.log(`(${new Date()})[cron-job]: Fetch wallet transactions`);
     const wallets = await this.walletService.getAll();
@@ -28,7 +28,7 @@ export class CronJobService {
     });
   }
 
-  @Cron('0 */10 * * * *')
+  // @Cron('0 */10 * * * *')
   async handleWallet20Cron() {
     console.log(`(${new Date()})[wallet-cron-job]: Get transaction details`);
     const wallets = await this.walletService.getAll();
@@ -61,7 +61,7 @@ export class CronJobService {
     });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_MINUTE)
   async handleTokenCron() {
     console.log(`(${new Date()})[cron-job]: Fetch token contract transactions`);
     const tokens = await this.tokenService.getAll();
@@ -76,7 +76,7 @@ export class CronJobService {
     });
   }
 
-  @Cron('0 */5 * * * *')
+  // @Cron('0 */5 * * * *')
   async handleToken20Cron() {
     console.log(`(${new Date()})[token-cron-job]: Get transaction details`);
     const tokens = await this.tokenService.getAll();

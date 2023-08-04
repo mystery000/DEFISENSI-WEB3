@@ -121,19 +121,25 @@ export class UserController {
     return this.userService.getNotifications(address);
   }
 
-  @Get('/:address/wallet/transactions')
+  @Get('/:address/wallet/transactions/:limit')
   @ApiOperation({ summary: ' Get wallet transactions for this user' })
   @ApiOkResponse({ type: Wallet, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
-  async getFollowingWalletTransactions(@Param() { address }: FindOneParams): Promise<Wallet[]> {
-    return this.userService.getFollowingWalletsTransactions(address);
+  @ApiParam({ name: 'limit', description: 'The limit of transaction count' })
+  async getFollowingWalletTransactions(
+    @Param() { address, limit }: { address: string; limit: number },
+  ): Promise<Wallet[]> {
+    return this.userService.getFollowingWalletsTransactions(address, limit);
   }
 
-  @Get('/:address/token/transactions')
+  @Get('/:address/token/transactions/:limit')
   @ApiOperation({ summary: ' Get token transactions for this user' })
   @ApiOkResponse({ type: Token, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
-  async getFollowingTokensTransactions(@Param() { address }: FindOneParams): Promise<Token[]> {
-    return this.userService.getFollowingTokensTransactions(address);
+  @ApiParam({ name: 'limit', description: 'The limit of transaction count' })
+  async getFollowingTokensTransactions(
+    @Param() { address, limit }: { address: string; limit: number },
+  ): Promise<Token[]> {
+    return this.userService.getFollowingTokensTransactions(address, limit);
   }
 }

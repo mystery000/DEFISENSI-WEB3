@@ -46,7 +46,7 @@ export class UserService {
     return user.followingWallets;
   }
 
-  async getFollowingWalletsTransactions1(address: string) {
+  async getFollowingWalletsTransactions(address: string, limit: number) {
     const result = await this.userModel.aggregate([
       { $match: { address } },
       {
@@ -61,6 +61,7 @@ export class UserService {
       { $unwind: '$followingWalletsData.transactions' },
       { $match: { 'followingWalletsData.transactions.details': { $ne: null } } },
       { $sort: { 'followingWalletsData.transactions.blockNumber': -1 } },
+      { $limit: Number(limit) },
       {
         $group: {
           _id: '$followingWalletsData._id',
@@ -71,13 +72,11 @@ export class UserService {
           transactions: { $push: '$followingWalletsData.transactions' },
         },
       },
-      { $limit: 4 },
     ]);
 
     if (!result || result.length === 0) {
       throw new BadRequestException('Transactions not found!');
     }
-
     return result;
   }
 
@@ -92,7 +91,7 @@ export class UserService {
     return user.followingTokens;
   }
 
-  async getFollowingTokensTransactions(address: string) {
+  async getFollowingTokensTransactions(address: string, limit: number) {
     const result = await this.userModel.aggregate([
       { $match: { address } },
       {
@@ -107,6 +106,7 @@ export class UserService {
       { $unwind: '$followingTokensData.transactions' },
       { $match: { 'followingTokensData.transactions.details': { $ne: null } } },
       { $sort: { 'followingTokensData.transactions.blockNumber': -1 } },
+      { $limit: Number(limit) },
       {
         $group: {
           _id: '$followingTokensData._id',
@@ -117,7 +117,6 @@ export class UserService {
           transactions: { $push: '$followingTokensData.transactions' },
         },
       },
-      { $limit: 4 },
     ]);
 
     if (!result || result.length === 0) {

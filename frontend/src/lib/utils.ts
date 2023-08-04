@@ -39,5 +39,5 @@ export const convertHex = (hex: string) => {
 };
 
 export const converBaseUnit = (amount: number, decimals: number) => {
-  return (Math.abs(amount) / 10 ** decimals).toFixed(5);
+  return (Math.abs(amount) / 10 ** decimals).toLocaleString();
 };

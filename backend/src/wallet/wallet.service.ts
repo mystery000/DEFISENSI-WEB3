@@ -2,16 +2,16 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable, forwardRef, Inject } from '@nestjs/common';
 
+import { TokenBalance, Transaction } from 'src/utils/types';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentWalletDto } from './dto/comment.dto';
+import { Alchemy, Network, Utils } from 'alchemy-sdk';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { CommentService } from '../comment/comment.service';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { Transaction } from 'src/utils/types';
-
 @Injectable()
 export class WalletService {
   constructor(
@@ -224,5 +224,48 @@ export class WalletService {
     } catch (error) {
       return new SuccessResponse(false, error.message);
     }
+  }
+
+  async getTokenBalances(address: string) {
+    const config = {
+      apiKey: process.env.ALCHEMY_API_KEY,
+      network: Network.ETH_MAINNET,
+    };
+    const alchemy = new Alchemy(config);
+    // Get balance and format in terms of ETH
+    let balance = await alchemy.core.getBalance(address, 'latest');
+
+    const tokens: TokenBalance[] = [];
+    tokens.push({
+      decimals: 0,
+      logo: '',
+      name: 'ETH',
+      symbol: 'ETH',
+      balance: Utils.formatEther(balance),
+    });
+
+    // Get token balances
+    const balances = await alchemy.core.getTokenBalances(address);
+    // Remove tokens with zero balance
+    const nonZeroBalances = balances.tokenBalances.filter((token) => {
+      return token.tokenBalance !== '0';
+    });
+
+    // Loop through all tokens with non-zero balance
+    for (let token of nonZeroBalances) {
+      // Get balance of token
+      let balance = Number(token.tokenBalance);
+
+      // Get metadata of token
+      const metadata = await alchemy.core.getTokenMetadata(token.contractAddress);
+
+      if (!metadata.logo) continue;
+
+      // Compute token balance in human-readable format
+      balance = balance / Math.pow(10, metadata.decimals);
+
+      tokens.push({ ...metadata, balance: balance.toString() });
+    }
+    return tokens;
   }
 }

@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import { Assets } from "./pages/Assets";
+import { Portfolio } from "./pages/Portfolio";
 import { ManagedAppContext } from "./context/app";
 import { Transactions } from "./pages/Transasctions";
 
@@ -9,7 +9,7 @@ function App() {
     <ManagedAppContext>
       <BrowserRouter>
         <Routes>
-          <Route path='/assets' element={<Assets />} />
+          <Route path='/portfolio' element={<Portfolio />} />
           <Route path='/transactions' element={<Transactions />} />
         </Routes>
       </BrowserRouter>

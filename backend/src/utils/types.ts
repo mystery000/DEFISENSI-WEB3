@@ -58,3 +58,28 @@ export type Transaction = {
     token1?: { symbol: String; address: String; amount: Number; decimal: Number; price: Number };
   };
 };
+
+export type TokenBalance = {
+  decimals: Number;
+  logo: string;
+  name: string;
+  symbol: string;
+  balance: string;
+};
+
+export class ApiTokenBalance {
+  @ApiProperty()
+  decimals: Number;
+
+  @ApiProperty()
+  logo: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  symbol: string;
+
+  @ApiProperty()
+  balance: string;
+}

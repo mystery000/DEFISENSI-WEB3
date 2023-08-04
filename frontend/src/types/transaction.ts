@@ -1,6 +1,6 @@
 import { TransactionType } from "./enums";
 
-export type Transaction = {
+export interface Transaction {
   txhash: string;
   blockNumber: string;
   details: {
@@ -23,7 +23,7 @@ export type Transaction = {
       price: number;
     };
   };
-};
+}
 
 export type Wallet = {
   address: string;
