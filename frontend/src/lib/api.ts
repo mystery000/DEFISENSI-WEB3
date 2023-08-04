@@ -26,10 +26,13 @@ export const findFollowingTokens = async (address: string, limit: number) => {
   }
 };
 
-export const findWalletTransactions = async (address: string) => {
+export const findWalletTransactions = async (
+  address: string,
+  limit: number
+) => {
   try {
     const res = await axios.get(
-      `${API_BASE_URL}/wallet/${address}/transactions`
+      `${API_BASE_URL}/wallet/${address}/transactions/${limit}`
     );
     return res.data as Wallet;
   } catch (error) {

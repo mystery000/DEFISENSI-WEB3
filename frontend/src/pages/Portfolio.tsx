@@ -23,20 +23,37 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { TokenBalance } from "../types/balance";
 import { converBaseUnit } from "../lib/utils";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { ExtendedTransaction } from "./Transasctions";
 
 interface AssetProps {
   className?: string;
 }
 export const Portfolio: FC<AssetProps> = ({ className }) => {
   const { user } = useAppContext();
-  const [wallet, setWallet] = useState<Wallet | undefined>();
+  const [transactions, setTransactions] = useState<ExtendedTransaction[]>([]);
   const [balances, setBalances] = useState<TokenBalance[]>([]);
+  const [fetchMore, setFetchMore] = useState(true);
 
   useEffect(() => {
     const getTransactions = async () => {
       try {
-        const wallet = await findWalletTransactions(user.address);
-        setWallet(wallet || undefined);
+        const wallet = await findWalletTransactions(user.address, 4);
+
+        const txs =
+          wallet?.transactions.map(
+            (tx) =>
+              ({
+                ...tx,
+                address: wallet.address,
+                comments: wallet.comments,
+                likes: wallet.likes,
+                dislikes: wallet.dislikes,
+              } as ExtendedTransaction)
+          ) || [];
+
+        setTransactions(txs);
+
         const balances = await GetTokenBalances(
           "0xff84e63AFa449A0Fb698d6332c7398cF042348ba"
         );
@@ -48,8 +65,33 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     getTransactions();
   }, []);
 
-  if (!wallet) return <div className='text-center'>Loading...</div>;
-  console.log(balances);
+  const fetchMoreTransactions = async () => {
+    try {
+      const wallet = await findWalletTransactions(
+        user.address,
+        transactions.length + 4
+      );
+      const txs =
+        wallet?.transactions.map(
+          (tx) =>
+            ({
+              ...tx,
+              address: wallet.address,
+              comments: wallet.comments,
+              likes: wallet.likes,
+              dislikes: wallet.dislikes,
+            } as ExtendedTransaction)
+        ) || [];
+
+      if (transactions.length === txs.length) setFetchMore(false);
+      setTimeout(() => setTransactions(txs), 1500);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  if (!transactions) return <div className='text-center'>Loading...</div>;
+
   return (
     <AppLayout>
       <div className='lg:w-2/3 w-full mx-auto h-content font-inter font-semibold min-w-[480px]'>
@@ -160,15 +202,26 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
             <span className='font-sora font-normal text-[32px] '>
               Transactions
             </span>
-            {wallet.transactions.map((transaction) => (
-              <TransactionDetailsCard
-                key={transaction.txhash}
-                transaction={transaction}
-                likes={wallet.likes}
-                dislikes={wallet.dislikes}
-                comments={wallet.comments}
-              />
-            ))}
+
+            <InfiniteScroll
+              dataLength={transactions.length}
+              next={fetchMoreTransactions}
+              hasMore={fetchMore}
+              loader={<h4 className='text-center'>Loading...</h4>}
+              endMessage={
+                <div className='text-center'>No transactions to load more</div>
+              }
+            >
+              {transactions.map((transaction) => (
+                <TransactionDetailsCard
+                  key={transaction.txhash}
+                  transaction={transaction}
+                  likes={transaction.likes}
+                  dislikes={transaction.dislikes}
+                  comments={transaction.comments}
+                />
+              ))}
+            </InfiniteScroll>
           </div>
         </div>
       </div>

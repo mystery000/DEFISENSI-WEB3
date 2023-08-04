@@ -10,7 +10,7 @@ import { findFollowingWallets, findFollowingTokens } from "../lib/api";
 import { TransactionCard } from "../components/transactions/TransactionCard";
 import { TransactionDetailsCard } from "../components/transactions/TransactionDetailsCard";
 
-type ExtendedTransaction = Transaction & {
+export type ExtendedTransaction = Transaction & {
   address: string;
   comments: any[];
   dislikes: any[];

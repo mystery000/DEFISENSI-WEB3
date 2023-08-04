@@ -87,12 +87,13 @@ export class WalletController {
     return this.walletService.getComments(address);
   }
 
-  @Get(':address/transactions')
+  @Get(':address/transactions/:limit')
   @ApiOperation({ summary: 'Get list of transactions of this token' })
   @ApiOkResponse({ type: Transaction, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
-  getWalletTransactions(@Param() { address }: FindOneParams) {
-    return this.walletService.findTransactions(address);
+  @ApiParam({ name: 'limit', description: 'The transaction numbers to fetch' })
+  getWalletTransactions(@Param() { address, limit }: { address: string; limit: number }) {
+    return this.walletService.findTransactions(address, limit);
   }
 
   @Get(':address/balances')

@@ -176,7 +176,7 @@ export class WalletService {
     return new SuccessResponse(true);
   }
 
-  async findTransactions(address: string) {
+  async findTransactions(address: string, limit: Number) {
     const foundWallet = await this.walletModel.aggregate([
       { $match: { address: address } },
       {
@@ -189,7 +189,7 @@ export class WalletService {
         $sort: { 'transactions.blockNumber': -1 },
       },
       {
-        $limit: 4,
+        $limit: Number(limit),
       },
       {
         $group: {
