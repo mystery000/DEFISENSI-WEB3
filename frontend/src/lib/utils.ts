@@ -2,7 +2,7 @@ import moment from "moment";
 
 export const getAge = (timestamp: number) => {
   const now = moment();
-  const then = moment(timestamp * 1000);
+  const then = moment(timestamp);
   const duration = moment.duration(now.diff(then));
 
   const age = {
@@ -38,6 +38,18 @@ export const convertHex = (hex: string) => {
   return parseInt(hex, 16).toString(16);
 };
 
-export const converBaseUnit = (amount: number, decimals: number) => {
+export const convertBaseUnit = (amount: number, decimals: number) => {
   return (Math.abs(amount) / 10 ** decimals).toLocaleString();
+};
+
+export const balanceFormatter = (balance: number) => {
+  if (balance >= 1e9) {
+    return (balance / 1e9).toFixed(2) + "B";
+  } else if (balance >= 1e6) {
+    return (balance / 1e6).toFixed(2) + "M";
+  } else if (balance >= 1e3) {
+    return (balance / 1e3).toFixed(2) + "K";
+  } else {
+    return balance.toFixed(2);
+  }
 };

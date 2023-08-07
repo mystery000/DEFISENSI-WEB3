@@ -5,7 +5,7 @@ import { Sparklines, SparklinesLine } from "react-sparklines";
 interface AssetProps {
   className?: string;
   blockchain: string;
-  balance: number;
+  balance: string;
   history: number[];
 }
 
@@ -22,7 +22,7 @@ export const Asset: FC<AssetProps> = ({
       </span>
       <div className='flex justify-between items-center'>
         <span className='font-sora text-[28px]'>
-          $<b>{balance.toLocaleString()}</b>
+          $<b>{balance}</b>
         </span>
         <span className='w-16'>
           <Sparklines data={history}>

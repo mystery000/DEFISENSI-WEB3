@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { logger } from 'src/utils/logger';
 import { TokenService } from 'src/token/token.service';
 import { WalletService } from 'src/wallet/wallet.service';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { WalletModule } from 'src/wallet/wallet.module';
 
 @Injectable()
 export class CronJobService {
@@ -14,24 +14,28 @@ export class CronJobService {
     private readonly tokenService: TokenService,
   ) {}
 
-  // @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron('0 */3 * * * *')
   async handleWalletCron() {
-    console.log(`(${new Date()})[cron-job]: Fetch wallet transactions`);
+    logger.log(`(${new Date()})[cron-job]: Fetch wallet transactions`);
     const wallets = await this.walletService.getAll();
-    wallets.forEach(async (wallet) => {
-      if (wallet.transactions.length > 0) {
-        const lastBlockNumber = wallet.transactions.at(-1).blockNumber || 0;
-        await this.etherscanService.updateWalletTransactions(wallet.address, Number(lastBlockNumber) + 1);
-      } else {
-        await this.etherscanService.initializeWalletTransactions(wallet.address);
-      }
-      console.log(`Wallet: ${wallet.address}`);
-    });
+    try {
+      wallets.forEach(async (wallet) => {
+        if (wallet.transactions.length > 0) {
+          const lastBlockNumber = wallet.transactions.at(-1).blockNumber || 0;
+          await this.etherscanService.updateWalletTransactions(wallet.address, Number(lastBlockNumber) + 1);
+        } else {
+          await this.etherscanService.initializeWalletTransactions(wallet.address);
+        }
+        logger.log(`Wallet: ${wallet.address}`);
+      });
+    } catch (error) {
+      logger.log(error);
+    }
   }
 
-  // @Cron('0 */10 * * * *')
+  // @Cron('0 */3 * * * *')
   async handleWallet20Cron() {
-    console.log(`(${new Date()})[wallet-cron-job]: Get transaction details`);
+    logger.log(`(${new Date()})[wallet-cron-job]: Get transaction details`);
     const wallets = await this.walletService.getAll();
     const MAX_TRANSACTIONS = 5; // Max count to process every round.
 
@@ -55,31 +59,40 @@ export class CronJobService {
         }
       });
     });
-    // Get the transaction details
-    transactions.forEach(async (tx) => {
-      await this.walletService.setTransactionDetail(tx.transaction.txhash as string, tx.address);
-      console.log('[Wallet Transaction]Txhash: ', tx.transaction.txhash);
-    });
+
+    try {
+      // Get the transaction details
+      transactions.forEach(async (tx) => {
+        await this.walletService.setTransactionDetail(tx.transaction.txhash as string, tx.address);
+        logger.log('[Wallet Transaction]Txhash: ', tx.transaction.txhash);
+      });
+    } catch (error) {
+      logger.error(error);
+    }
   }
 
-  // @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron('0 */3 * * * *')
   async handleTokenCron() {
-    console.log(`(${new Date()})[cron-job]: Fetch token contract transactions`);
+    logger.log(`(${new Date()})[cron-job]: Fetch token contract transactions`);
     const tokens = await this.tokenService.getAll();
-    tokens.forEach(async (token) => {
-      if (token.transactions.length > 0) {
-        const lastBlockNumber = token.transactions.at(-1).blockNumber || 0;
-        await this.etherscanService.updateTokenTransactions(token.address, token.network, Number(lastBlockNumber));
-      } else {
-        await this.etherscanService.initializeTokenTransactions(token.address, token.network);
-      }
-      console.log(`Token Contract: ${token.address}`);
-    });
+    try {
+      tokens.forEach(async (token) => {
+        if (token.transactions.length > 0) {
+          const lastBlockNumber = token.transactions.at(-1).blockNumber || 0;
+          await this.etherscanService.updateTokenTransactions(token.address, token.network, Number(lastBlockNumber));
+        } else {
+          await this.etherscanService.initializeTokenTransactions(token.address, token.network);
+        }
+        logger.log(`Token Contract: ${token.address}`);
+      });
+    } catch (error) {
+      logger.log(error);
+    }
   }
 
-  // @Cron('0 */5 * * * *')
+  // @Cron('0 */3 * * * *')
   async handleToken20Cron() {
-    console.log(`(${new Date()})[token-cron-job]: Get transaction details`);
+    logger.log(`(${new Date()})[token-cron-job]: Get transaction details`);
     const tokens = await this.tokenService.getAll();
     const MAX_TRANSACTIONS = 5; // Max count to process every round.
 
@@ -103,24 +116,27 @@ export class CronJobService {
         }
       });
     });
-
-    // Get the transaction details
-    transactions.forEach(async (tx) => {
-      await this.tokenService.setTransactionDetail(tx.transaction.txhash as string, tx.address, tx.network);
-      console.log('[Token Transaction]-Txhash: ', tx.transaction.txhash);
-    });
+    try {
+      // Get the transaction details
+      transactions.forEach(async (tx) => {
+        await this.tokenService.setTransactionDetail(tx.transaction.txhash as string, tx.address, tx.network);
+        logger.log('[Token Transaction]-Txhash: ', tx.transaction.txhash);
+      });
+    } catch (error) {
+      logger.log(error);
+    }
   }
 
   @Cron('0 */5 * * * *')
   async handleWalletBalance() {
-    console.log(`(${new Date()})[cron-job]: Get tokens balance`);
+    logger.log(`(${new Date()})[cron-job]: Get tokens balance`);
     const wallets = await this.walletService.getAll();
     wallets.forEach(async (wallet) => {
-      console.log(`Obtaining the balances of ${wallet.address} address`);
+      logger.log(`Obtaining the balances of ${wallet.address} address`);
       try {
         await this.walletService.getTokenBalances(wallet.address);
       } catch (error) {
-        console.log(`Failed to get balances due to ${error}`);
+        logger.log(`Failed to get balances due to ${error}`);
       }
     });
   }

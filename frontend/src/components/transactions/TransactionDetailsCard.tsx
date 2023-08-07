@@ -4,7 +4,7 @@ import { Card, Tag } from "antd";
 import { TransactionType } from "../../types/enums";
 import { Transaction } from "../../types/transaction";
 import {
-  converBaseUnit,
+  convertBaseUnit,
   convertHex,
   getAge,
   standardUnit,
@@ -91,7 +91,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
             />
           </span>
           <span>
-            {`${converBaseUnit(
+            {`${convertBaseUnit(
               transaction.details.token0.amount,
               transaction.details.token0.decimals
             )} ${transaction.details.token0.symbol}`}
@@ -109,7 +109,7 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
               alt='token-icon'
             />
           </span>
-          <span>{`${converBaseUnit(
+          <span>{`${convertBaseUnit(
             transaction.details.token1.amount,
             transaction.details.token1.decimals
           )} ${transaction.details.token1.symbol}`}</span>

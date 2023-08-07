@@ -12,8 +12,6 @@ import { CommentService } from '../comment/comment.service';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { convertToCoinGeckoDate } from 'src/utils/coingecko';
-import { NetworkType } from 'src/utils/enums/network.enum';
 @Injectable()
 export class WalletService {
   constructor(
@@ -229,16 +227,24 @@ export class WalletService {
   }
 
   async getTokenBalances(address: string) {
-    const ethereumAlchemy = new Alchemy({ apiKey: process.env.ALCHEMY_API_KEY, network: Network.ETH_MAINNET });
-    const polygonAlchemy = new Alchemy({ apiKey: process.env.ALCHEMY_API_KEY, network: Network.MATIC_MAINNET });
+    const ethereumAlchemy = new Alchemy({
+      apiKey: process.env.ALCHEMY_ETH_MAINNET_API_KEY,
+      network: Network.ETH_MAINNET,
+    });
+    const polygonAlchemy = new Alchemy({
+      apiKey: process.env.ALCHEMY_MATIC_MAINNET_API_KEY,
+      network: Network.MATIC_MAINNET,
+    });
 
     // Get balance and format in terms of ETH or MATIC
     let ether_balance = await ethereumAlchemy.core.getBalance(address, 'latest');
     let matic_balance = await polygonAlchemy.core.getBalance(address, 'latest');
 
+    console.log(ether_balance, matic_balance);
     const now = new Date().getTime();
-    const ether_price = (await this.etherscanService.getPrice('eth', convertToCoinGeckoDate(now))) as number;
-    const matic_price = (await this.etherscanService.getPrice('matic', convertToCoinGeckoDate(now))) as number;
+    const ether_price = (await this.etherscanService.getPrice('eth', now)) as number;
+    const matic_price = (await this.etherscanService.getPrice('matic', now)) as number;
+    console.log('PRICES: ', ether_price, matic_price);
 
     const ethereum_tokens: TokenBalance[] = [];
     const polygon_tokens: TokenBalance[] = [];
@@ -267,6 +273,7 @@ export class WalletService {
     let ethereum_erc20_balances = await ethereumAlchemy.core.getTokenBalances(address);
     let polygon_erc20_balances = await polygonAlchemy.core.getTokenBalances(address);
 
+    console.log('ERC20 BALANCES', ethereum_erc20_balances, polygon_erc20_balances);
     // Loop through all tokens with non-zero balance
     for (let token of ethereum_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
       // Get balance of token
@@ -279,7 +286,7 @@ export class WalletService {
 
       // Compute token balance in human-readable format
       balance = balance / Math.pow(10, metadata.decimals);
-      const price = (await this.etherscanService.getPrice(metadata.symbol, convertToCoinGeckoDate(now))) as number;
+      const price = (await this.etherscanService.getPrice(metadata.symbol, now)) as number;
 
       ethereum_tokens.push({
         ...metadata,
@@ -301,7 +308,7 @@ export class WalletService {
 
       // Compute token balance in human-readable format
       balance = balance / Math.pow(10, metadata.decimals);
-      const price = (await this.etherscanService.getPrice(metadata.symbol, convertToCoinGeckoDate(now))) as number;
+      const price = (await this.etherscanService.getPrice(metadata.symbol, now)) as number;
 
       polygon_tokens.push({
         ...metadata,
@@ -310,6 +317,12 @@ export class WalletService {
         contractAddress: token.contractAddress,
       });
     }
+
+    // return {
+    //   ethereum: { date: now, tokens: ethereum_tokens },
+    //   polygon: { date: now, tokens: polygon_tokens },
+    //   binance: { date: now, tokens: [] as TokenBalance[] },
+    // };
 
     try {
       await this.walletModel.updateOne(

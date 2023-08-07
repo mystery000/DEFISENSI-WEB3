@@ -18,7 +18,7 @@ export const AppContext = createContext(initialState);
 AppContext.displayName = 'AppContext';
 
 const AppContextProvider = ({ children }) => {
-    const [user, setUser] = useLocalStorage('user', { _id: '64c7d274e3e3fc5d2ec9b7c0', address: '0xDe10E8d03b9E293A332A248a114F6ae37eADB6Ce' });
+    const [user, setUser] = useLocalStorage('user', { _id: '64cd1ecea799c9d828b5d6c3', address: '0x98dC5C7fB775C01cab30D3f71e31d6606972Bd57' });
 
     return (
         <AppContext.Provider value={{ user, setUser }}>

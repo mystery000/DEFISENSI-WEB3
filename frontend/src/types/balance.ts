@@ -1,11 +1,11 @@
-export type TokenBalance = {
+export interface TokenBalance {
   decimals: Number;
   logo: string;
   name: string;
   symbol: string;
   balance: string;
   usd: string;
-};
+}
 
 export type BalanceHistory = {
   ethereum?: [

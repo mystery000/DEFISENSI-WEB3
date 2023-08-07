@@ -99,12 +99,14 @@ export type Balance = {
       tokens: [TokenBalance];
     },
   ];
+
   polygon?: [
     {
       date: number;
       tokens: [TokenBalance];
     },
   ];
+
   binance?: [
     {
       date: number;
@@ -112,6 +114,32 @@ export type Balance = {
     },
   ];
 };
+
+export class ApiBalanceHistory {
+  @ApiProperty()
+  ethereum?: [
+    {
+      date: number;
+      tokens: [ApiTokenBalance];
+    },
+  ];
+
+  @ApiProperty()
+  polygon?: [
+    {
+      date: number;
+      tokens: [ApiTokenBalance];
+    },
+  ];
+
+  @ApiProperty()
+  binance?: [
+    {
+      date: number;
+      tokens: [ApiTokenBalance];
+    },
+  ];
+}
 
 export class ApiBalance {
   @ApiProperty()

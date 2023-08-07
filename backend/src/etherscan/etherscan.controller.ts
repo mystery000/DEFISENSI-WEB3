@@ -9,8 +9,7 @@ export class EtherscanController {
   constructor(private readonly etherscanService: EtherscanService) {}
 
   @Get('/test')
-  @ApiOperation({ summary: ' Get token transactions for this user' })
-  async getFollowingTokensTransactions() {
+  async test() {
     return this.etherscanService.test();
   }
 }

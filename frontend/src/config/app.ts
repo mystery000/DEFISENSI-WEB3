@@ -1,1 +1,3 @@
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+export const CLOUD_WALLETCONNECT_PROJECT_ID =
+  process.env.REACT_APP_CLOUD_WALLETCONNECT_PROJECT_ID || "";

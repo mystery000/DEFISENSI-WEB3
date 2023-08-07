@@ -1,14 +1,16 @@
 import { registerAs } from '@nestjs/config';
 
 export interface EthereumConfig {
-  provider: string;
+  network: string;
+  infura_api_key: string;
   etherscanApiKey: string;
 }
 
 export default registerAs(
   'ethereum',
   (): EthereumConfig => ({
-    provider: process.env.ETHEREUM_PROVIDER,
-    etherscanApiKey: process.env.MAINNET_ETHERSCAN_API_KEY,
+    network: process.env.ETHEREUM_NETWORK,
+    infura_api_key: process.env.INFURA_API_KEY,
+    etherscanApiKey: process.env.ETHERSCAN_API_KEY,
   }),
 );

@@ -4,5 +4,6 @@ import openApiConfig from './open-api.config';
 import databaseConfig from './database.config';
 import ethereumConfig from './ethereum.config';
 import httpClientConfig from './http-client.config';
+import polygonConfig from './polygon.config';
 
-export default [appConfig, databaseConfig, httpClientConfig, openApiConfig, authConfig, ethereumConfig];
+export default [appConfig, databaseConfig, httpClientConfig, openApiConfig, authConfig, ethereumConfig, polygonConfig];

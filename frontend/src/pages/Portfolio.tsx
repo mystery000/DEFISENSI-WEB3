@@ -1,4 +1,13 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  FC,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import * as Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
 
 import AppLayout from "../layouts/AppLayout";
 import { useAppContext } from "../context/app";
@@ -7,7 +16,6 @@ import {
   FollowerIcon,
   FollowingIcon,
   NotificationOnIcon,
-  TrackerView,
 } from "../components/icons/defisensi-icons";
 import { Asset } from "../components/portfolio/asset";
 
@@ -20,28 +28,154 @@ import TableHead from "@mui/material/TableHead";
 import { ExtendedTransaction } from "./Transasctions";
 import TableContainer from "@mui/material/TableContainer";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { Balance, BalanceHistory } from "../types/balance";
+import { Balance, BalanceHistory, TokenBalance } from "../types/balance";
 import { TransactionDetailsCard } from "../components/transactions/TransactionDetailsCard";
 import {
   findWalletTransactions,
   getBalance,
   getBalanceHistory,
 } from "../lib/api";
+import { balanceFormatter } from "../lib/utils";
 interface AssetProps {
   className?: string;
 }
+
 export const Portfolio: FC<AssetProps> = ({ className }) => {
   const { user } = useAppContext();
+  const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+
   const [fetchMore, setFetchMore] = useState(true);
   const [balance, setBalance] = useState<Balance>({});
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
   const [transactions, setTransactions] = useState<ExtendedTransaction[]>([]);
+  const defaultOption: Highcharts.Options = {
+    // title: {
+    //   text: "Balance History",
+    //   style: {
+    //     fontFamily: "Sora",
+    //     fontSize: "24px",
+    //     fontWeight: "600",
+    //     fontColor: "#000",
+    //   },
+    //   align: "left",
+    // },
+    title: { text: "" },
+    legend: {
+      enabled: false, // Set this to false to disable the legend
+    },
+    credits: {
+      enabled: false, // Set this to false to disable the credits
+    },
+    xAxis: {
+      type: "datetime",
+      lineColor: "#F0F0F0",
+      tickColor: "#F0F0F0",
+      labels: {
+        style: {
+          color: "#33323A",
+          fontSize: "14px",
+          fontWeight: "600",
+        },
+      },
+    },
+    yAxis: {
+      opposite: true,
+      title: {
+        text: "",
+      },
+      labels: {
+        style: {
+          color: "#77838F",
+          fontSize: "14px",
+          fontWeight: "400",
+        },
+        formatter: function () {
+          let value = Number(this.value);
+          if (value >= 1e9) {
+            return "$" + value / 1e9 + "B";
+          } else if (value >= 1e6) {
+            return "$" + value / 1e6 + "M";
+          } else if (value >= 1e3) {
+            return "$" + value / 1e3 + "K";
+          } else {
+            return "$" + value;
+          }
+        },
+      },
+    },
+
+    tooltip: {
+      backgroundColor: "black",
+      borderWidth: 0,
+      borderRadius: 0,
+      shadow: false,
+      style: {
+        fontFamily: "Sora",
+        fontSize: "12px",
+        fontWeight: "400",
+        lineHeight: "12px",
+        letterSpacing: "-0.02em",
+        textAlign: "right",
+        color: "white",
+      },
+      shape: "callout", // Use the callout shape (custom SVG path)
+      positioner: function (width, height, point) {
+        const chart = this.chart;
+        const tooltipX = point.plotX + chart.plotLeft - width - 10; // Adjust tooltipX to move it leftward
+        const tooltipY = point.plotY + chart.plotTop - 50; // Adjust tooltipY to move it upward
+        return { x: tooltipX, y: tooltipY };
+      },
+      formatter: function () {
+        let yValue: string | number = Number(this.y);
+        if (yValue >= 1e9) {
+          yValue = "$" + yValue / 1e9 + "B";
+        } else if (yValue >= 1e6) {
+          yValue = "$" + yValue / 1e6 + "M";
+        } else if (yValue >= 1e3) {
+          yValue = "$" + yValue / 1e3 + "K";
+        } else {
+          yValue = "$" + yValue;
+        }
+        const xValue = Highcharts.dateFormat("%e %b %Y", Number(this.x));
+        // Format the tooltip with x and y values
+        return `<span style=" font-size: 12px; ">${yValue}</span><br/><span>${xValue}</span>`;
+      },
+    },
+    chart: {
+      zooming: {
+        type: "x",
+        mouseWheel: true,
+      },
+    },
+    series: [
+      {
+        type: "area",
+        color: {
+          linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
+          stops: [
+            [0, "#ffffff"],
+            [1, "#3354F4"],
+          ],
+        },
+        lineColor: "#3354F4",
+        data: [],
+      },
+    ],
+  };
+  const [chartOptions, setChartOptions] = useState(defaultOption);
+
+  const [selectedToken, setSelectedToken] = useState<
+    TokenBalance & { network: string }
+  >();
+
+  const [tokensOfWallet, setTokensOfWallet] = useState<
+    (TokenBalance & { network: string })[]
+  >([]);
 
   useEffect(() => {
     const getTransactions = async () => {
       try {
         const wallet = await findWalletTransactions(user.address, 4);
-        console.log(wallet);
         const txs =
           wallet?.transactions.map(
             (tx) =>
@@ -56,13 +190,28 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
 
         setTransactions(txs);
 
-        const balance = await getBalance(
-          "0xff84e63AFa449A0Fb698d6332c7398cF042348ba"
-        );
+        const balance = await getBalance(user.address);
         setBalance(balance || {});
-        const balanceHistory = await getBalanceHistory(
-          "0xff84e63AFa449A0Fb698d6332c7398cF042348ba"
-        );
+
+        const tokens = [
+          ...(balance?.binance?.tokens.map((token) => ({
+            ...token,
+            network: "binance",
+          })) || []),
+          ...(balance?.ethereum?.tokens.map((token) => ({
+            ...token,
+            network: "ethereum",
+          })) || []),
+          ...(balance?.polygon?.tokens.map((token) => ({
+            ...token,
+            network: "polygon",
+          })) || []),
+        ].filter((token) => Number(token.balance) !== 0);
+
+        setTokensOfWallet(tokens);
+        setSelectedToken(tokens[0]);
+
+        const balanceHistory = await getBalanceHistory(user.address);
         setBalanceHistory(balanceHistory || {});
       } catch (error) {
         console.log(error);
@@ -71,12 +220,54 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     getTransactions();
   }, []);
 
+  useEffect(() => {
+    if (!selectedToken) return;
+    setChartOptions((prev) => {
+      if (Object.hasOwn(balanceHistory, selectedToken.network)) {
+        let data: any[] = [];
+
+        for (const [key, value] of Object.entries(balanceHistory)) {
+          if (key === selectedToken.network) {
+            data = value.map((history) => {
+              const foundToken = history.tokens.find(
+                (token) =>
+                  token.symbol.toLowerCase() ===
+                  selectedToken.symbol.toLowerCase()
+              );
+              return [Number(history.date), Number(foundToken?.usd)];
+            });
+          }
+        }
+        return {
+          ...defaultOption,
+          series: [
+            {
+              type: "area",
+              color: {
+                linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
+                stops: [
+                  [0, "#ffffff"],
+                  [1, "#3354F4"],
+                ],
+              },
+              lineColor: "#3354F4",
+              data: data,
+            },
+          ],
+        };
+      } else {
+        return defaultOption;
+      }
+    });
+  }, [balanceHistory, selectedToken]);
+
   const fetchMoreTransactions = useCallback(async () => {
     try {
       const wallet = await findWalletTransactions(
         user.address,
         transactions.length + 4
       );
+
       const txs =
         wallet?.transactions.map(
           (tx) =>
@@ -94,7 +285,7 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     } catch (error) {
       console.log(error);
     }
-  }, [user.address]);
+  }, [user.address, transactions]);
 
   if (!transactions) return <div className='text-center'>Loading...</div>;
 
@@ -116,11 +307,27 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
       0
     ) || 0;
 
-  const tokensOfWallet = [
-    ...(balance.binance?.tokens || []),
-    ...(balance.ethereum?.tokens || []),
-    ...(balance.polygon?.tokens || []),
-  ].filter((token) => Number(token.balance) !== 0);
+  const BinanceSparkLineData =
+    balanceHistory.binance?.map(
+      (balance) =>
+        balance.tokens.reduce((sum, token) => sum + Number(token.usd), 0) || 0
+    ) || [];
+
+  const EthereumSparkLineData =
+    balanceHistory.ethereum?.map(
+      (balance) =>
+        balance.tokens.reduce((sum, token) => sum + Number(token.usd), 0) || 0
+    ) || [];
+
+  const PolygonSparkLineData =
+    balanceHistory.polygon?.map(
+      (balance) =>
+        balance.tokens.reduce((sum, token) => sum + Number(token.usd), 0) || 0
+    ) || [];
+
+  const AllSparkLineData = EthereumSparkLineData.map(
+    (val, i) => val + PolygonSparkLineData[i] + BinanceSparkLineData[i]
+  );
 
   return (
     <AppLayout>
@@ -161,11 +368,38 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
             <NotificationOnIcon />
           </div>
         </div>
-        <div className='flex lg:flex-row flex-col justify-center gap-4'>
+        <div className='flex lg:flex-row flex-col justify-center gap-4 mt-2'>
           <div className='lg:grow lg:mx-0 mx-4 w-full'>
             <span className='font-sora font-normal text-[32px]'>Portfolio</span>
-            <div className='mb-4 '>
-              <TrackerView />
+            <div className='mb-4 p-5'>
+              <div className='flex justify-between bg-white p-4'>
+                <span className='font-sora font-semibold text-2xl'>
+                  Balance History
+                </span>
+                <select
+                  className='border rounded px-2 py-1 text-center'
+                  defaultValue={tokensOfWallet[0]?.symbol}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                    const foundToken = tokensOfWallet.find(
+                      (token) => token.symbol.toLowerCase() === e.target.value
+                    );
+                    setSelectedToken(foundToken);
+                  }}
+                >
+                  {tokensOfWallet.map((token) => (
+                    <option value={token.symbol.toLowerCase()}>
+                      <span className='font-inter text-lg'>
+                        {token.symbol.toUpperCase()}
+                      </span>
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={chartOptions}
+                ref={chartComponentRef}
+              />
             </div>
             <div className='bg-white p-3'>
               <div className='flex justify-between'>
@@ -180,47 +414,25 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
               <div className='flex flex-wrap gap-4 justify-between mt-4'>
                 <Asset
                   blockchain='All'
-                  balance={EtherValues + BinanceValues + PolygonValues}
-                  history={[]}
+                  balance={balanceFormatter(
+                    EtherValues + BinanceValues + PolygonValues
+                  )}
+                  history={AllSparkLineData}
                 />
                 <Asset
                   blockchain='BNB Chain'
-                  balance={BinanceValues}
-                  history={
-                    balanceHistory.binance?.map(
-                      (balance) =>
-                        balance.tokens.reduce(
-                          (sum, token) => sum + Number(token.usd),
-                          0
-                        ) || 0
-                    ) || []
-                  }
+                  balance={balanceFormatter(BinanceValues)}
+                  history={BinanceSparkLineData}
                 />
                 <Asset
                   blockchain='ETH'
-                  balance={EtherValues}
-                  history={
-                    balanceHistory.ethereum?.map(
-                      (balance) =>
-                        balance.tokens.reduce(
-                          (sum, token) => sum + Number(token.usd),
-                          0
-                        ) || 0
-                    ) || []
-                  }
+                  balance={balanceFormatter(EtherValues)}
+                  history={EthereumSparkLineData}
                 />
                 <Asset
                   blockchain='Polygon'
-                  balance={PolygonValues}
-                  history={
-                    balanceHistory.polygon?.map(
-                      (balance) =>
-                        balance.tokens.reduce(
-                          (sum, token) => sum + Number(token.usd),
-                          0
-                        ) || 0
-                    ) || []
-                  }
+                  balance={balanceFormatter(PolygonValues)}
+                  history={PolygonSparkLineData}
                 />
               </div>
               <TableContainer component={Paper} className='mt-4'>
