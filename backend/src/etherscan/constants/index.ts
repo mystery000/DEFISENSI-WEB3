@@ -11,3 +11,5 @@ export const ETHEREUM_SWAP_TOPICS = {
     abi: UNISWAP_V3_POOL_ABI,
   }, //  Uniswap V3, MetaMask
 };
+
+export const MIN_BLOCK_NUMBER = 15000000;

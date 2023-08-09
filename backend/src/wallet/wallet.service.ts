@@ -6,12 +6,11 @@ import { TokenBalance, Transaction } from 'src/utils/types';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentWalletDto } from './dto/comment.dto';
-import { Alchemy, Network, Utils } from 'alchemy-sdk';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { CommentService } from '../comment/comment.service';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { logger } from 'src/utils/logger';
 @Injectable()
 export class WalletService {
   constructor(
@@ -19,8 +18,6 @@ export class WalletService {
     private readonly walletModel: Model<WalletDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
-    @Inject(forwardRef(() => EtherscanService))
-    private readonly etherscanService: EtherscanService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
@@ -144,22 +141,7 @@ export class WalletService {
     return foundWallet.comments;
   }
 
-  async initializeTransactions(address: string, transactions: [Transaction]) {
-    try {
-      const foundWallet = await this.walletModel.findOne({ address });
-      if (!foundWallet) {
-        throw new BadRequestException('Wallet not found!');
-      }
-      await foundWallet.updateOne({
-        $set: { transactions: transactions },
-      });
-    } catch (error) {
-      return new SuccessResponse(false, error.message);
-    }
-    return new SuccessResponse(true);
-  }
-
-  async updateTransactions(address: string, transactions: [Transaction]) {
+  async setTransactions(address: string, transactions: [Transaction]) {
     try {
       const foundWallet = await this.walletModel.findOne({ address });
       if (!foundWallet) {
@@ -176,7 +158,7 @@ export class WalletService {
     return new SuccessResponse(true);
   }
 
-  async findTransactions(address: string, limit: Number) {
+  async getTransactions(address: string, limit: Number = 10) {
     const foundWallet = await this.walletModel.aggregate([
       { $match: { address: address } },
       {
@@ -209,16 +191,15 @@ export class WalletService {
     return foundWallet[0];
   }
 
-  async setTransactionDetail(txhash: string, address: string) {
+  async setTransactionDetail(address: string, tx: Transaction) {
     try {
-      const transactionDetails = await this.etherscanService.getTransactionDetail(txhash, address);
       const foundWallet = await this.walletModel.findOne({ address });
       if (!foundWallet) {
         throw new BadRequestException('Wallet not found!');
       }
       await this.walletModel.updateOne(
-        { address: address, 'transactions.txhash': txhash },
-        { $set: { 'transactions.$.details': transactionDetails } },
+        { address: address, 'transactions.txhash': tx.txhash },
+        { $set: { 'transactions.$.details': tx.details } },
       );
       return new SuccessResponse(true);
     } catch (error) {
@@ -226,125 +207,119 @@ export class WalletService {
     }
   }
 
-  async getTokenBalances(address: string) {
-    const ethereumAlchemy = new Alchemy({
-      apiKey: process.env.ALCHEMY_ETH_MAINNET_API_KEY,
-      network: Network.ETH_MAINNET,
-    });
-    const polygonAlchemy = new Alchemy({
-      apiKey: process.env.ALCHEMY_MATIC_MAINNET_API_KEY,
-      network: Network.MATIC_MAINNET,
-    });
+  // Get balance of tokens owned by this wallet at current timestamp
+  // async getTokenBalances(address: string) {
+  //   const ethereumAlchemy = new Alchemy({
+  //     apiKey: process.env.ALCHEMY_ETH_MAINNET_API_KEY,
+  //     network: Network.ETH_MAINNET,
+  //   });
+  //   const polygonAlchemy = new Alchemy({
+  //     apiKey: process.env.ALCHEMY_MATIC_MAINNET_API_KEY,
+  //     network: Network.MATIC_MAINNET,
+  //   });
 
-    // Get balance and format in terms of ETH or MATIC
-    let ether_balance = await ethereumAlchemy.core.getBalance(address, 'latest');
-    let matic_balance = await polygonAlchemy.core.getBalance(address, 'latest');
+  //   try {
+  //     // Get balance and format in terms of ETH or MATIC
+  //     let ether_balance = await ethereumAlchemy.core.getBalance(address, 'latest');
+  //     let matic_balance = await polygonAlchemy.core.getBalance(address, 'latest');
 
-    console.log(ether_balance, matic_balance);
-    const now = new Date().getTime();
-    const ether_price = (await this.etherscanService.getPrice('eth', now)) as number;
-    const matic_price = (await this.etherscanService.getPrice('matic', now)) as number;
-    console.log('PRICES: ', ether_price, matic_price);
+  //     const now = new Date().getTime();
+  //     const ether_price = (await this.coinGeckoService.getPrice('eth', now)) as number;
+  //     const matic_price = (await this.coinGeckoService.getPrice('matic', now)) as number;
 
-    const ethereum_tokens: TokenBalance[] = [];
-    const polygon_tokens: TokenBalance[] = [];
+  //     const ethereum_tokens: TokenBalance[] = [];
+  //     const polygon_tokens: TokenBalance[] = [];
 
-    ethereum_tokens.push({
-      logo: '',
-      name: 'ETH',
-      symbol: 'ETH',
-      decimals: 18,
-      balance: Utils.formatEther(ether_balance),
-      usd: (Number(Utils.formatEther(ether_balance)) * ether_price).toString(),
-      contractAddress: 'Ethereum Native Coin',
-    });
+  //     ethereum_tokens.push({
+  //       logo: '',
+  //       name: 'ETH',
+  //       symbol: 'ETH',
+  //       decimals: 18,
+  //       balance: Utils.formatEther(ether_balance),
+  //       usd: (Number(Utils.formatEther(ether_balance)) * ether_price).toString(),
+  //       contractAddress: 'Ethereum Native Coin',
+  //     });
 
-    polygon_tokens.push({
-      logo: '',
-      name: 'MATIC',
-      symbol: 'MATIC',
-      decimals: 18,
-      balance: Utils.formatEther(matic_balance),
-      usd: (Number(Utils.formatEther(matic_balance)) * matic_price).toString(),
-      contractAddress: 'Polygon Native Coin',
-    });
+  //     polygon_tokens.push({
+  //       logo: '',
+  //       name: 'MATIC',
+  //       symbol: 'MATIC',
+  //       decimals: 18,
+  //       balance: Utils.formatEther(matic_balance),
+  //       usd: (Number(Utils.formatEther(matic_balance)) * matic_price).toString(),
+  //       contractAddress: 'Polygon Native Coin',
+  //     });
 
-    // Get token balances
-    let ethereum_erc20_balances = await ethereumAlchemy.core.getTokenBalances(address);
-    let polygon_erc20_balances = await polygonAlchemy.core.getTokenBalances(address);
+  //     // Get token balances
+  //     let ethereum_erc20_balances = await ethereumAlchemy.core.getTokenBalances(address);
+  //     let polygon_erc20_balances = await polygonAlchemy.core.getTokenBalances(address);
 
-    console.log('ERC20 BALANCES', ethereum_erc20_balances, polygon_erc20_balances);
-    // Loop through all tokens with non-zero balance
-    for (let token of ethereum_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
-      // Get balance of token
-      let balance = Number(token.tokenBalance);
+  //     console.log('ERC20 BALANCES', ethereum_erc20_balances, polygon_erc20_balances);
+  //     // Loop through all tokens with non-zero balance
+  //     for (let token of ethereum_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
+  //       // Get balance of token
+  //       let balance = Number(token.tokenBalance);
 
-      // Get metadata of token
-      const metadata = await ethereumAlchemy.core.getTokenMetadata(token.contractAddress);
+  //       // Get metadata of token
+  //       const metadata = await ethereumAlchemy.core.getTokenMetadata(token.contractAddress);
 
-      if (!metadata.logo || balance === 0) continue;
+  //       if (!metadata.logo || balance === 0) continue;
 
-      // Compute token balance in human-readable format
-      balance = balance / Math.pow(10, metadata.decimals);
-      const price = (await this.etherscanService.getPrice(metadata.symbol, now)) as number;
+  //       // Compute token balance in human-readable format
+  //       balance = balance / Math.pow(10, metadata.decimals);
+  //       const price = (await this.coinGeckoService.getPrice(metadata.symbol, now)) as number;
 
-      ethereum_tokens.push({
-        ...metadata,
-        balance: balance.toString(),
-        usd: (balance * price).toString(),
-        contractAddress: token.contractAddress,
-      });
-    }
+  //       ethereum_tokens.push({
+  //         ...metadata,
+  //         balance: balance.toString(),
+  //         usd: (balance * price).toString(),
+  //         contractAddress: token.contractAddress,
+  //       });
+  //     }
 
-    // Loop through all tokens with non-zero balance
-    for (let token of polygon_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
-      // Get balance of token
-      let balance = Number(token.tokenBalance);
+  //     // Loop through all tokens with non-zero balance
+  //     for (let token of polygon_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
+  //       // Get balance of token
+  //       let balance = Number(token.tokenBalance);
 
-      // Get metadata of token
-      const metadata = await polygonAlchemy.core.getTokenMetadata(token.contractAddress);
+  //       // Get metadata of token
+  //       const metadata = await polygonAlchemy.core.getTokenMetadata(token.contractAddress);
 
-      if (!metadata.logo || balance === 0) continue;
+  //       if (!metadata.logo || balance === 0) continue;
 
-      // Compute token balance in human-readable format
-      balance = balance / Math.pow(10, metadata.decimals);
-      const price = (await this.etherscanService.getPrice(metadata.symbol, now)) as number;
+  //       // Compute token balance in human-readable format
+  //       balance = balance / Math.pow(10, metadata.decimals);
+  //       const price = (await this.coinGeckoService.getPrice(metadata.symbol, now)) as number;
 
-      polygon_tokens.push({
-        ...metadata,
-        balance: balance.toString(),
-        usd: (balance * price).toString(),
-        contractAddress: token.contractAddress,
-      });
-    }
+  //       polygon_tokens.push({
+  //         ...metadata,
+  //         balance: balance.toString(),
+  //         usd: (balance * price).toString(),
+  //         contractAddress: token.contractAddress,
+  //       });
+  //     }
 
-    // return {
-    //   ethereum: { date: now, tokens: ethereum_tokens },
-    //   polygon: { date: now, tokens: polygon_tokens },
-    //   binance: { date: now, tokens: [] as TokenBalance[] },
-    // };
+  //     await this.walletModel.updateOne(
+  //       { address },
+  //       { $push: { 'balance.ethereum': { date: now, tokens: ethereum_tokens } } },
+  //     );
 
-    try {
-      await this.walletModel.updateOne(
-        { address },
-        { $push: { 'balance.ethereum': { date: now, tokens: ethereum_tokens } } },
-      );
+  //     await this.walletModel.updateOne(
+  //       { address },
+  //       { $push: { 'balance.polygon': { date: now, tokens: polygon_tokens } } },
+  //     );
 
-      await this.walletModel.updateOne(
-        { address },
-        { $push: { 'balance.polygon': { date: now, tokens: polygon_tokens } } },
-      );
+  //     await this.walletModel.updateOne(
+  //       { address },
+  //       { $push: { 'balance.binance': { date: now, tokens: [] as TokenBalance[] } } },
+  //     );
+  //   } catch (error) {
+  //     logger.error(error);
+  //     throw new BadRequestException(`There was no wallet with ${address} found!`);
+  //   }
+  // }
 
-      await this.walletModel.updateOne(
-        { address },
-        { $push: { 'balance.binance': { date: now, tokens: [] as TokenBalance[] } } },
-      );
-    } catch (error) {
-      console.log(error);
-      throw new BadRequestException(`There was no wallet with ${address} found!`);
-    }
-  }
-
+  // Get latest balance of tokens owned by this wallet
   async getBalance(address: string) {
     try {
       const result = await this.walletModel.aggregate([
@@ -364,11 +339,12 @@ export class WalletService {
 
       return result[0];
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       throw new BadRequestException('An error occurred while fetching the balance!');
     }
   }
 
+  // Get balance history of this wallet
   async getBalanceHistory(address: string) {
     const foundWallet = await this.walletModel.findOne({ address });
     if (!foundWallet) {

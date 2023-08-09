@@ -1,12 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import { Login } from "./pages/Login";
 import { Portfolio } from "./pages/Portfolio";
 import { ManagedAppContext } from "./context/app";
 import { Transactions } from "./pages/Transasctions";
-import { Login } from "./pages/Login";
 
 import { Web3Modal } from "@web3modal/react";
-import { arbitrum, mainnet, polygon, bsc } from "wagmi/chains";
+import { mainnet, polygon, bsc } from "wagmi/chains";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 
 import {

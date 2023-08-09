@@ -1,26 +1,23 @@
-import { TransactionType } from "./enums";
-
 export interface Transaction {
   txhash: string;
   blockNumber: string;
   details: {
     from: string;
     to: string;
-    type: TransactionType;
-    created: number;
+    timestamp: number;
     token0: {
+      contractAddress: string;
       symbol: string;
-      address: string;
-      amount: number;
       decimals: number;
-      price: number;
+      amount: number;
+      usd: number;
     };
     token1?: {
+      contractAddress: string;
       symbol: string;
-      address: string;
-      amount: number;
       decimals: number;
-      price: number;
+      amount: number;
+      usd: number;
     };
   };
 }

@@ -1,18 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TransactionType } from 'src/utils/enums/transaction.enum';
 
 export class ApiTokenType {
+  @ApiProperty({ description: 'The name of token' })
+  name: String;
+
   @ApiProperty({ description: 'The symbol of token' })
   symbol: String;
 
-  @ApiProperty({ description: 'The  address of the token contract' })
-  address: String;
+  @ApiProperty({ description: 'The logo of token' })
+  logo: String;
+
+  @ApiProperty({ description: 'The contract address of the token contract' })
+  contractAddress?: String;
 
   @ApiProperty({ description: 'The processed amount during payment' })
-  amount: Number;
+  value: String;
 
   @ApiProperty({ description: 'The decimals of the contract' })
-  decimals: Number;
+  decimals: String;
+
+  @ApiProperty({ description: 'USD value of this token' })
+  usdPrice: String;
 }
 
 export class ApiTransactionDetails {
@@ -22,17 +30,14 @@ export class ApiTransactionDetails {
   @ApiProperty({ description: 'The wallet address of the receiver' })
   to: String;
 
-  @ApiProperty({ description: 'The address of the wallet' })
-  type: String;
-
-  @ApiProperty({ description: 'The creation timestamp of the transaction' })
-  created: Number;
-
   @ApiProperty({ description: 'The type of token0' })
   token0: ApiTokenType;
 
   @ApiProperty({ description: 'The type of token1' })
   token1?: ApiTokenType;
+
+  @ApiProperty({ description: 'The creation timestamp of the transaction' })
+  timestamp: Number;
 }
 
 export class ApiTransaction {
@@ -46,51 +51,37 @@ export class ApiTransaction {
   details: ApiTransactionDetails;
 }
 
+export type Token = {
+  name: string;
+  symbol: string;
+  logo?: string;
+  decimals: string;
+  contractAddress?: string;
+  value: string;
+  usdPrice: string;
+};
+
 export type Transaction = {
-  txhash: String;
-  blockNumber: String;
+  txhash: string;
+  blockNumber: string;
   details: {
-    from: String;
-    to: String;
-    created: Number;
-    type: TransactionType;
-    token0: { symbol: String; address: String; amount: Number; decimal: Number; price: Number };
-    token1?: { symbol: String; address: String; amount: Number; decimal: Number; price: Number };
+    from: string;
+    to: string;
+    token0: Token;
+    token1?: Token;
+    timestamp: number;
   };
 };
 
 export type TokenBalance = {
-  logo: string;
+  logo?: string;
   name: string;
   symbol: string;
   contractAddress: string;
-  decimals: Number;
+  decimals: string;
   balance: string;
-  usd: string;
+  usdPrice: string;
 };
-
-export class ApiTokenBalance {
-  @ApiProperty()
-  decimals: Number;
-
-  @ApiProperty()
-  logo: string;
-
-  @ApiProperty()
-  name: string;
-
-  @ApiProperty()
-  symbol: string;
-
-  @ApiProperty()
-  balance: string;
-
-  @ApiProperty()
-  usd: string;
-
-  @ApiProperty()
-  contractAddress: string;
-}
 
 export type Balance = {
   ethereum?: [
@@ -114,6 +105,49 @@ export type Balance = {
     },
   ];
 };
+
+export class ApiTokenBalance {
+  @ApiProperty()
+  decimals: string;
+
+  @ApiProperty()
+  logo?: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  symbol: string;
+
+  @ApiProperty()
+  value: string;
+
+  @ApiProperty()
+  usdPrice: string;
+
+  @ApiProperty()
+  contractAddress: string;
+}
+
+export class ApiBalance {
+  @ApiProperty()
+  ethereum?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
+
+  @ApiProperty()
+  polygon?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
+
+  @ApiProperty()
+  binance?: {
+    date: number;
+    tokens: [ApiTokenBalance];
+  };
+}
 
 export class ApiBalanceHistory {
   @ApiProperty()
@@ -139,24 +173,4 @@ export class ApiBalanceHistory {
       tokens: [ApiTokenBalance];
     },
   ];
-}
-
-export class ApiBalance {
-  @ApiProperty()
-  ethereum?: {
-    date: number;
-    tokens: [ApiTokenBalance];
-  };
-
-  @ApiProperty()
-  polygon?: {
-    date: number;
-    tokens: [ApiTokenBalance];
-  };
-
-  @ApiProperty()
-  binance?: {
-    date: number;
-    tokens: [ApiTokenBalance];
-  };
 }

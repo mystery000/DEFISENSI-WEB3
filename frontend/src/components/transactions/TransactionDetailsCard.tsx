@@ -1,6 +1,6 @@
 import { FC } from "react";
 import cn from "classnames";
-import { Card, Tag } from "antd";
+import { Card } from "antd";
 import { TransactionType } from "../../types/enums";
 import { Transaction } from "../../types/transaction";
 import {
@@ -41,7 +41,8 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
       </Card>
     );
   }
-  const age = getAge(Number(transaction.details.created));
+  const age = getAge(Number(transaction.details.timestamp));
+
   return (
     <Card bordered={false} style={{ width: 392 }} className='font-inter mb-2'>
       <div className='flex justify-between text-sm font-inter'>
@@ -122,12 +123,12 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
         <div className='flex items-center hover:cursor-pointer gap-[3px]'>
           <ThumbsUpSolid
             className='w-5 h-5 scale-x-[-1]'
-            fill={likes.includes(user._id) ? "#FF5D29" : "#8E98B0"}
+            fill={likes.includes(user) ? "#FF5D29" : "#8E98B0"}
           />
           <span
             className={cn("font-inter", {
-              "text-[#FF5D29]": likes.includes(user._id),
-              "text-[#8E98B0]": likes.includes(user._id),
+              "text-[#FF5D29]": likes.includes(user),
+              "text-[#8E98B0]": likes.includes(user),
             })}
           >
             {standardUnit(likes.length)}
@@ -136,12 +137,12 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
         <div className='flex items-center hover:cursor-pointer gap-[3px]'>
           <ThumbsDownSolid
             className='w-5 h-5'
-            fill={dislikes.includes(user._id) ? "#FF5D29" : "#8E98B0"}
+            fill={dislikes.includes(user) ? "#FF5D29" : "#8E98B0"}
           />
           <span
             className={cn("font-inter", {
-              "text-[#FF5D29]": dislikes.includes(user._id),
-              "text-[#8E98B0]": dislikes.includes(user._id),
+              "text-[#FF5D29]": dislikes.includes(user),
+              "text-[#8E98B0]": dislikes.includes(user),
             })}
           >
             {standardUnit(dislikes.length)}
@@ -150,12 +151,12 @@ export const TransactionDetailsCard: FC<TransactionCardProps> = ({
         <div className='flex items-center hover:cursor-pointer gap-[3px]'>
           <ChatBubbleSolid
             className='w-5 h-5'
-            fill={comments.includes(user._id) ? "#FF5D29" : "#8E98B0"}
+            fill={comments.includes(user) ? "#FF5D29" : "#8E98B0"}
           />
           <span
             className={cn("font-inter", {
-              "text-[#FF5D29]": comments.includes(user._id),
-              "text-[#8E98B0]": comments.includes(user._id),
+              "text-[#FF5D29]": comments.includes(user),
+              "text-[#8E98B0]": comments.includes(user),
             })}
           >
             {standardUnit(comments.length)}

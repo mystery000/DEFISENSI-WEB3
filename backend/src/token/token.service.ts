@@ -1,7 +1,8 @@
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
+import { Transaction } from 'src/utils/types';
 import { FollowTokenDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentTokenDto } from './dto/comment.dto';
@@ -10,9 +11,6 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { CommentService } from '../comment/comment.service';
 import { Token, TokenDocument } from './schemas/token.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { Transaction } from 'src/utils/types';
-import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class TokenService {
@@ -21,7 +19,6 @@ export class TokenService {
     private readonly tokenModel: Model<TokenDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
-    private readonly etherscanService: EtherscanService,
   ) {}
 
   async create(token: CreateTokenDto): Promise<Token> {
@@ -143,14 +140,14 @@ export class TokenService {
     return foundToken.comments;
   }
 
-  async initializeTransactions(address: string, network: string, transactions: [Transaction]) {
+  async setTransactions(contractAddress: string, network: string, transactions: [Transaction]) {
     try {
-      const foundToken = await this.tokenModel.findOne({ address, network });
+      const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
       if (!foundToken) {
         throw new BadRequestException('Wallet not found!');
       }
       await foundToken.updateOne({
-        $set: { transactions: transactions },
+        $push: { transactions: { $each: transactions } },
       });
     } catch (error) {
       return new SuccessResponse(false, error.message);
@@ -158,45 +155,52 @@ export class TokenService {
     return new SuccessResponse(true);
   }
 
-  async updateTransactions(address: string, network: string, transactions: [Transaction]) {
-    try {
-      const foundToken = await this.tokenModel.findOne({ address, network });
-      if (!foundToken) {
-        throw new BadRequestException('Wallet not found!');
-      }
-      if (transactions.length > 0) {
-        await foundToken.updateOne({
-          $push: { transactions: { $each: transactions } },
-        });
-      }
-    } catch (error) {
-      return new SuccessResponse(false, error.message);
+  async getTransactions(contractAddress: string, network: string, limit: Number = 10) {
+    const foundToken = await this.tokenModel.aggregate([
+      { $match: { address: contractAddress, network } },
+      {
+        $unwind: '$transactions',
+      },
+      {
+        $match: { 'transactions.details': { $ne: null } },
+      },
+      {
+        $sort: { 'transactions.blockNumber': -1 },
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $group: {
+          _id: '$_id',
+          likes: { $first: '$likes' },
+          dislikes: { $first: '$dislikes' },
+          comments: { $first: '$comments' },
+          transactions: { $push: '$transactions' },
+        },
+      },
+    ]);
+
+    if (!foundToken || foundToken.length === 0) {
+      throw new BadRequestException('Transactions not found!');
     }
-    return new SuccessResponse(true);
+
+    return foundToken[0];
   }
 
-  async setTransactionDetail(txhash: string, address: string, network: string) {
+  async setTransactionDetail(contractAddress: string, network: string, tx: Transaction) {
     try {
-      const transactionDetails = await this.etherscanService.getTransactionDetail(txhash, address, network);
-      const foundToken = await this.tokenModel.findOne({ address, network });
+      const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
       if (!foundToken) {
         throw new BadRequestException('Wallet not found!');
       }
       await this.tokenModel.updateOne(
-        { address: address, network: network, 'transactions.txhash': txhash },
-        { $set: { 'transactions.$.details': transactionDetails } },
+        { address: contractAddress, network: network, 'transactions.txhash': tx.txhash },
+        { $set: { 'transactions.$.details': tx.details } },
       );
       return new SuccessResponse(true);
     } catch (error) {
       return new SuccessResponse(false, error.message);
     }
-  }
-
-  async findTransactions({ address, network }: FindOneParams) {
-    const foundToken = await this.tokenModel.findOne({ address, network });
-    if (!foundToken) {
-      throw new BadRequestException('Wallet not found!');
-    }
-    return foundToken.transactions;
   }
 }

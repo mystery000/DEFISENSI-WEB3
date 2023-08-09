@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 
-import classNames from "classnames";
 import AppLayout from "../layouts/AppLayout";
 import { useAppContext } from "../context/app";
-import { Token, Transaction, Wallet } from "../types/transaction";
+import { Transaction } from "../types/transaction";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { BrowserView, MobileView } from "react-device-detect";
 import { findFollowingWallets, findFollowingTokens } from "../lib/api";
-import { TransactionCard } from "../components/transactions/TransactionCard";
 import { TransactionDetailsCard } from "../components/transactions/TransactionDetailsCard";
 
 export type ExtendedTransaction = Transaction & {
@@ -19,7 +16,7 @@ export type ExtendedTransaction = Transaction & {
 
 export const Transactions = () => {
   // This is the wallet address of the current user
-  const { user, setUser } = useAppContext();
+  const { user } = useAppContext();
   const [walletTransations, setWalletTransactions] = useState<
     ExtendedTransaction[]
   >([]);
@@ -29,7 +26,6 @@ export const Transactions = () => {
     ExtendedTransaction[]
   >([]);
   const [error, setError] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("wallets");
 
   useEffect(() => {
     const getTransactions = async () => {

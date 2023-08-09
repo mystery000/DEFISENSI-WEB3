@@ -88,13 +88,4 @@ export class TokenController {
   getComments(@Param() query: FindOneParams): Promise<Comment[]> {
     return this.tokenService.getComments(query);
   }
-
-  @Get('transactions/:network/:address')
-  @ApiOperation({ summary: 'Get transactions of this token' })
-  @ApiOkResponse({ type: ApiTransaction, isArray: true })
-  @ApiParam({ name: 'network', description: 'The token network' })
-  @ApiParam({ name: 'address', description: 'Get followers for token' })
-  getTransactions(@Param() query: FindOneParams): Promise<Transaction[]> {
-    return this.tokenService.findTransactions(query);
-  }
 }

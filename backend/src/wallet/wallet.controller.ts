@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { Wallet } from './schemas/wallet.schema';
-import { ApiBalance, ApiBalanceHistory, ApiTokenBalance, ApiTransaction, Balance, TokenBalance } from 'src/utils/types';
+import { ApiBalance, ApiBalanceHistory, ApiTransaction } from 'src/utils/types';
 import { WalletService } from './wallet.service';
 import { User } from '../user/schemas/user.schema';
 import { FollowWalletDto } from './dto/follow.dto';
@@ -11,7 +11,6 @@ import { CreateWalletDto } from './dto/create-wallet.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { Transaction } from 'src/etherscan/schemas/transaction.schema';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -89,11 +88,11 @@ export class WalletController {
 
   @Get(':address/transactions/:limit')
   @ApiOperation({ summary: 'Get list of transactions of this token' })
-  @ApiOkResponse({ type: Transaction, isArray: true })
+  @ApiOkResponse({ type: ApiTransaction, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
-  @ApiParam({ name: 'limit', description: 'The transaction numbers to fetch' })
+  @ApiParam({ name: 'limit', description: 'The transaction count to fetch' })
   getWalletTransactions(@Param() { address, limit }: { address: string; limit: number }) {
-    return this.walletService.findTransactions(address, limit);
+    return this.walletService.getTransactions(address, limit);
   }
 
   @Get(':address/balance')

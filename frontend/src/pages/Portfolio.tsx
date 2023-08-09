@@ -285,7 +285,7 @@ export const Portfolio: FC<AssetProps> = ({ className }) => {
     } catch (error) {
       console.log(error);
     }
-  }, [user.address, transactions]);
+  }, [transactions]);
 
   if (!transactions) return <div className='text-center'>Loading...</div>;
 
