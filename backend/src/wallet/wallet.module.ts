@@ -12,7 +12,7 @@ import { EtherscanModule } from 'src/etherscan/etherscan.module';
   imports: [
     UserModule,
     CommentModule,
-    forwardRef(() => EtherscanModule),
+    EtherscanModule,
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
   ],
   controllers: [WalletController],

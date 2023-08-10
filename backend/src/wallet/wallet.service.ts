@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable, forwardRef, Inject } from '@nestjs/common';
 
 import { TokenBalance, Transaction } from 'src/utils/types';
+import { logger } from 'src/utils/logger';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentWalletDto } from './dto/comment.dto';
@@ -10,7 +11,7 @@ import { CreateWalletDto } from './dto/create-wallet.dto';
 import { CommentService } from '../comment/comment.service';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { logger } from 'src/utils/logger';
+import { EtherscanService } from 'src/etherscan/etherscan.service';
 @Injectable()
 export class WalletService {
   constructor(
@@ -18,17 +19,27 @@ export class WalletService {
     private readonly walletModel: Model<WalletDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
+    private readonly etherscanService: EtherscanService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
     const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    return this.walletModel.findOneAndUpdate({ address: wallet.address }, { address: wallet.address }, options);
+    const newWallet = await this.walletModel.findOneAndUpdate(
+      { address: wallet.address },
+      { address: wallet.address },
+      options,
+    );
+    // Fetch latest 4 transactions when a new wallet is created
+    await this.initializeTransactions(wallet.address);
+    return newWallet;
   }
 
   async getOrCreate(address: string) {
     let foundWallet = await this.walletModel.findOne({ address });
     if (!foundWallet) {
       foundWallet = await this.walletModel.create({ address });
+      // Fetch latest 4 transactions when wallet is created
+      await this.initializeTransactions(address);
     }
     return foundWallet;
   }
@@ -141,7 +152,7 @@ export class WalletService {
     return foundWallet.comments;
   }
 
-  async setTransactions(address: string, transactions: [Transaction]) {
+  async setTransactions(address: string, transactions: Transaction[]) {
     try {
       const foundWallet = await this.walletModel.findOne({ address });
       if (!foundWallet) {
@@ -158,52 +169,65 @@ export class WalletService {
     return new SuccessResponse(true);
   }
 
-  async getTransactions(address: string, limit: Number = 10) {
-    const foundWallet = await this.walletModel.aggregate([
-      { $match: { address: address } },
-      {
-        $unwind: '$transactions',
-      },
-      {
-        $match: { 'transactions.details': { $ne: null } },
-      },
-      {
-        $sort: { 'transactions.blockNumber': -1 },
-      },
-      {
-        $limit: Number(limit),
-      },
-      {
-        $group: {
-          _id: '$_id',
-          likes: { $first: '$likes' },
-          dislikes: { $first: '$dislikes' },
-          comments: { $first: '$comments' },
-          transactions: { $push: '$transactions' },
-        },
-      },
-    ]);
-
-    if (!foundWallet || foundWallet.length === 0) {
-      throw new BadRequestException('Transactions not found!');
-    }
-
-    return foundWallet[0];
-  }
-
-  async setTransactionDetail(address: string, tx: Transaction) {
+  async getTransactions(address: string, limit: Number = 4) {
     try {
-      const foundWallet = await this.walletModel.findOne({ address });
-      if (!foundWallet) {
+      const foundWallet = await this.walletModel.aggregate([
+        { $match: { address: address } },
+        {
+          $unwind: '$transactions',
+        },
+        {
+          $match: { 'transactions.details': { $ne: null } },
+        },
+        {
+          $sort: { 'transactions.blockNumber': -1 },
+        },
+        {
+          $limit: Number(limit),
+        },
+        {
+          $group: {
+            _id: '$_id',
+            likes: { $first: '$likes' },
+            dislikes: { $first: '$dislikes' },
+            comments: { $first: '$comments' },
+            transactions: { $push: '$transactions' },
+          },
+        },
+      ]);
+
+      if (!foundWallet || foundWallet.length === 0) {
         throw new BadRequestException('Wallet not found!');
       }
-      await this.walletModel.updateOne(
-        { address: address, 'transactions.txhash': tx.txhash },
-        { $set: { 'transactions.$.details': tx.details } },
-      );
-      return new SuccessResponse(true);
+      return foundWallet[0];
     } catch (error) {
-      return new SuccessResponse(false, error.message);
+      logger.log(error);
+      return null;
+    }
+  }
+
+  async updateTransactions(address: string) {
+    try {
+      let latestBlockNumber = 0;
+
+      const wallet = await this.walletModel.findOne({ address: address });
+
+      if (wallet && wallet.transactions && wallet.transactions.length > 0)
+        latestBlockNumber = Number(wallet.transactions.at(-1).blockNumber);
+
+      const txs = await this.etherscanService.getTransactionsByWallet(address, latestBlockNumber + 1);
+      await this.setTransactions(address, txs);
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+
+  async initializeTransactions(address: string) {
+    try {
+      const txs = await this.etherscanService.getTransactionsByWallet(address);
+      await this.setTransactions(address, txs);
+    } catch (err) {
+      logger.error(err);
     }
   }
 

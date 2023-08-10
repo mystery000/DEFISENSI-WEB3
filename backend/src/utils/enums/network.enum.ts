@@ -1,4 +1,4 @@
 export enum NetworkType {
-  Polygon = 'Polygon',
-  Ethereum = 'Ethereum',
+  Polygon = 'polygon',
+  Ethereum = 'ethereum',
 }

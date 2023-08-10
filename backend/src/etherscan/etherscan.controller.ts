@@ -8,6 +8,9 @@ import { EtherscanService } from './etherscan.service';
 export class EtherscanController {
   constructor(private readonly etherscanService: EtherscanService) {}
 
+  @Get('/webhook/transaction')
+  async getTransactionByWebhook() {}
+
   @Get('/test')
   async test() {
     return this.etherscanService.test();

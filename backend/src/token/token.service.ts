@@ -11,6 +11,9 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { CommentService } from '../comment/comment.service';
 import { Token, TokenDocument } from './schemas/token.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
+import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { logger } from 'src/utils/logger';
+import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class TokenService {
@@ -19,17 +22,23 @@ export class TokenService {
     private readonly tokenModel: Model<TokenDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
+    private readonly etherscanService: EtherscanService,
   ) {}
 
   async create(token: CreateTokenDto): Promise<Token> {
     const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    return this.tokenModel.findOneAndUpdate(token, token, options);
+    const newToken = await this.tokenModel.findOneAndUpdate(token, token, options);
+    // Fetch latest 4 transactions when a new ERC20 token is created
+    await this.initializeTransactions(token.address, token.network);
+    return newToken;
   }
 
   async getOrCreate(address: string, network: string) {
     let foundToken = await this.tokenModel.findOne({ address, network });
     if (!foundToken) {
       foundToken = await this.tokenModel.create({ address, network });
+      // Fetch latest 4 transactions when a new ERC20 token is created
+      await this.initializeTransactions(address, network);
     }
     return foundToken;
   }
@@ -140,7 +149,7 @@ export class TokenService {
     return foundToken.comments;
   }
 
-  async setTransactions(contractAddress: string, network: string, transactions: [Transaction]) {
+  async setTransactions(contractAddress: string, network: string, transactions: Transaction[]) {
     try {
       const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
       if (!foundToken) {
@@ -155,52 +164,75 @@ export class TokenService {
     return new SuccessResponse(true);
   }
 
-  async getTransactions(contractAddress: string, network: string, limit: Number = 10) {
-    const foundToken = await this.tokenModel.aggregate([
-      { $match: { address: contractAddress, network } },
-      {
-        $unwind: '$transactions',
-      },
-      {
-        $match: { 'transactions.details': { $ne: null } },
-      },
-      {
-        $sort: { 'transactions.blockNumber': -1 },
-      },
-      {
-        $limit: Number(limit),
-      },
-      {
-        $group: {
-          _id: '$_id',
-          likes: { $first: '$likes' },
-          dislikes: { $first: '$dislikes' },
-          comments: { $first: '$comments' },
-          transactions: { $push: '$transactions' },
+  async getTransactions(contractAddress: string, network: string, limit: Number = 4) {
+    try {
+      const foundToken = await this.tokenModel.aggregate([
+        { $match: { address: contractAddress, network } },
+        {
+          $unwind: '$transactions',
         },
-      },
-    ]);
+        {
+          $match: { 'transactions.details': { $ne: null } },
+        },
+        {
+          $sort: { 'transactions.blockNumber': -1 },
+        },
+        {
+          $limit: Number(limit),
+        },
+        {
+          $group: {
+            _id: '$_id',
+            likes: { $first: '$likes' },
+            dislikes: { $first: '$dislikes' },
+            comments: { $first: '$comments' },
+            transactions: { $push: '$transactions' },
+          },
+        },
+      ]);
 
-    if (!foundToken || foundToken.length === 0) {
-      throw new BadRequestException('Transactions not found!');
+      if (!foundToken || foundToken.length === 0) {
+        throw new BadRequestException('Transactions not found!');
+      }
+
+      return foundToken[0];
+    } catch (err) {
+      logger.error(err);
     }
-
-    return foundToken[0];
   }
 
-  async setTransactionDetail(contractAddress: string, network: string, tx: Transaction) {
+  async updateTransactions(contractAddress: string, network: string) {
     try {
-      const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
-      if (!foundToken) {
-        throw new BadRequestException('Wallet not found!');
+      if (network === NetworkType.Ethereum) {
+        // Ethereum network
+        let latestBlockNumber = 0;
+        const token = await this.tokenModel.findOne({ address: contractAddress, network: network });
+
+        if (token && token.transactions && token.transactions.length > 0)
+          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
+
+        console.log(latestBlockNumber);
+        const txs = await this.etherscanService.getTransactionByToken(contractAddress, latestBlockNumber + 1);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.Polygon) {
+        // Polygon network
       }
-      await this.tokenModel.updateOne(
-        { address: contractAddress, network: network, 'transactions.txhash': tx.txhash },
-        { $set: { 'transactions.$.details': tx.details } },
-      );
-      return new SuccessResponse(true);
-    } catch (error) {
-      return new SuccessResponse(false, error.message);
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+
+  async initializeTransactions(contractAddress: string, network: string) {
+    try {
+      if (network === NetworkType.Ethereum) {
+        // Ethereum network
+        const txs = await this.etherscanService.getTransactionByToken(contractAddress);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.Polygon) {
+        // Polygon network
+      }
+    } catch (err) {
+      logger.error(err);
     }
   }
 }
