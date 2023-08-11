@@ -236,117 +236,20 @@ export class WalletService {
     }
   }
 
-  // Get balance of tokens owned by this wallet at current timestamp
-  // async getTokenBalances(address: string) {
-  //   const ethereumAlchemy = new Alchemy({
-  //     apiKey: process.env.ALCHEMY_ETH_MAINNET_API_KEY,
-  //     network: Network.ETH_MAINNET,
-  //   });
-  //   const polygonAlchemy = new Alchemy({
-  //     apiKey: process.env.ALCHEMY_MATIC_MAINNET_API_KEY,
-  //     network: Network.MATIC_MAINNET,
-  //   });
+  // Update the balance of this wallet
+  async updateBalance(address: string) {
+    try {
+      // Get balances on Ethereum network
+      const etherBalance = await this.etherscanService.getBalances(address);
+      await this.walletModel.updateOne({ address }, { $push: { 'balance.ethereum': { ...etherBalance } } });
 
-  //   try {
-  //     // Get balance and format in terms of ETH or MATIC
-  //     let ether_balance = await ethereumAlchemy.core.getBalance(address, 'latest');
-  //     let matic_balance = await polygonAlchemy.core.getBalance(address, 'latest');
-
-  //     const now = new Date().getTime();
-  //     const ether_price = (await this.coinGeckoService.getPrice('eth', now)) as number;
-  //     const matic_price = (await this.coinGeckoService.getPrice('matic', now)) as number;
-
-  //     const ethereum_tokens: TokenBalance[] = [];
-  //     const polygon_tokens: TokenBalance[] = [];
-
-  //     ethereum_tokens.push({
-  //       logo: '',
-  //       name: 'ETH',
-  //       symbol: 'ETH',
-  //       decimals: 18,
-  //       balance: Utils.formatEther(ether_balance),
-  //       usd: (Number(Utils.formatEther(ether_balance)) * ether_price).toString(),
-  //       contractAddress: 'Ethereum Native Coin',
-  //     });
-
-  //     polygon_tokens.push({
-  //       logo: '',
-  //       name: 'MATIC',
-  //       symbol: 'MATIC',
-  //       decimals: 18,
-  //       balance: Utils.formatEther(matic_balance),
-  //       usd: (Number(Utils.formatEther(matic_balance)) * matic_price).toString(),
-  //       contractAddress: 'Polygon Native Coin',
-  //     });
-
-  //     // Get token balances
-  //     let ethereum_erc20_balances = await ethereumAlchemy.core.getTokenBalances(address);
-  //     let polygon_erc20_balances = await polygonAlchemy.core.getTokenBalances(address);
-
-  //     console.log('ERC20 BALANCES', ethereum_erc20_balances, polygon_erc20_balances);
-  //     // Loop through all tokens with non-zero balance
-  //     for (let token of ethereum_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
-  //       // Get balance of token
-  //       let balance = Number(token.tokenBalance);
-
-  //       // Get metadata of token
-  //       const metadata = await ethereumAlchemy.core.getTokenMetadata(token.contractAddress);
-
-  //       if (!metadata.logo || balance === 0) continue;
-
-  //       // Compute token balance in human-readable format
-  //       balance = balance / Math.pow(10, metadata.decimals);
-  //       const price = (await this.coinGeckoService.getPrice(metadata.symbol, now)) as number;
-
-  //       ethereum_tokens.push({
-  //         ...metadata,
-  //         balance: balance.toString(),
-  //         usd: (balance * price).toString(),
-  //         contractAddress: token.contractAddress,
-  //       });
-  //     }
-
-  //     // Loop through all tokens with non-zero balance
-  //     for (let token of polygon_erc20_balances.tokenBalances.filter((token) => token.tokenBalance !== '0')) {
-  //       // Get balance of token
-  //       let balance = Number(token.tokenBalance);
-
-  //       // Get metadata of token
-  //       const metadata = await polygonAlchemy.core.getTokenMetadata(token.contractAddress);
-
-  //       if (!metadata.logo || balance === 0) continue;
-
-  //       // Compute token balance in human-readable format
-  //       balance = balance / Math.pow(10, metadata.decimals);
-  //       const price = (await this.coinGeckoService.getPrice(metadata.symbol, now)) as number;
-
-  //       polygon_tokens.push({
-  //         ...metadata,
-  //         balance: balance.toString(),
-  //         usd: (balance * price).toString(),
-  //         contractAddress: token.contractAddress,
-  //       });
-  //     }
-
-  //     await this.walletModel.updateOne(
-  //       { address },
-  //       { $push: { 'balance.ethereum': { date: now, tokens: ethereum_tokens } } },
-  //     );
-
-  //     await this.walletModel.updateOne(
-  //       { address },
-  //       { $push: { 'balance.polygon': { date: now, tokens: polygon_tokens } } },
-  //     );
-
-  //     await this.walletModel.updateOne(
-  //       { address },
-  //       { $push: { 'balance.binance': { date: now, tokens: [] as TokenBalance[] } } },
-  //     );
-  //   } catch (error) {
-  //     logger.error(error);
-  //     throw new BadRequestException(`There was no wallet with ${address} found!`);
-  //   }
-  // }
+      // Get balances on Polygon network
+      const polygonBalance = await this.polygonscanService.getBalances(address);
+      await this.walletModel.updateOne({ address }, { $push: { 'balance.polygon': { ...polygonBalance } } });
+    } catch (error) {
+      logger.error(error);
+    }
+  }
 
   // Get latest balance of tokens owned by this wallet
   async getBalance(address: string) {

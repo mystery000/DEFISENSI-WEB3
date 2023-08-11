@@ -78,38 +78,35 @@ export type TokenBalance = {
   name: string;
   symbol: string;
   contractAddress: string;
-  decimals: string;
-  balance: string;
+  decimals: number;
+  value: string;
   usdPrice: string;
 };
 
 export type Balance = {
   ethereum?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     },
   ];
 
   polygon?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     },
   ];
 
   binance?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     },
   ];
 };
 
 export class ApiTokenBalance {
-  @ApiProperty()
-  decimals: string;
-
   @ApiProperty()
   logo?: string;
 
@@ -120,31 +117,34 @@ export class ApiTokenBalance {
   symbol: string;
 
   @ApiProperty()
+  contractAddress: string;
+
+  @ApiProperty()
+  decimals: number;
+
+  @ApiProperty()
   value: string;
 
   @ApiProperty()
   usdPrice: string;
-
-  @ApiProperty()
-  contractAddress: string;
 }
 
 export class ApiBalance {
   @ApiProperty()
   ethereum?: {
-    date: number;
+    timestamp: number;
     tokens: [ApiTokenBalance];
   };
 
   @ApiProperty()
   polygon?: {
-    date: number;
+    timestamp: number;
     tokens: [ApiTokenBalance];
   };
 
   @ApiProperty()
   binance?: {
-    date: number;
+    timestamp: number;
     tokens: [ApiTokenBalance];
   };
 }
@@ -153,7 +153,7 @@ export class ApiBalanceHistory {
   @ApiProperty()
   ethereum?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [ApiTokenBalance];
     },
   ];
@@ -161,7 +161,7 @@ export class ApiBalanceHistory {
   @ApiProperty()
   polygon?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [ApiTokenBalance];
     },
   ];
@@ -169,7 +169,7 @@ export class ApiBalanceHistory {
   @ApiProperty()
   binance?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [ApiTokenBalance];
     },
   ];

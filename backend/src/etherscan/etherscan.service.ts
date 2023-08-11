@@ -3,24 +3,21 @@ import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
 import Moralis from 'moralis';
-import { Transaction } from 'src/utils/types';
+import * as moment from 'moment';
+import { UNISWAP_ABI } from './abi';
 import { ConfigService } from '@nestjs/config';
 import { MoralisConfig } from 'src/config/moralis.config';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
+import { TokenBalance, Transaction } from 'src/utils/types';
 import { EthereumConfig } from 'src/config/ethereum.config';
-import { UNISWAP_ABI } from './abi';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
-
-Moralis.start({
-  apiKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImQ0ODk2NzY0LWQ3MzEtNGZiNC04M2Q3LTRlMThkM2MxOWE1NiIsIm9yZ0lkIjoiMzUyMTEwIiwidXNlcklkIjoiMzYxOTA5IiwidHlwZUlkIjoiZmE3NTFjNDktMDZjNi00NTU2LWJhOGEtZDkzYzU5ZGZmYWYyIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE2OTE1MDE1ODksImV4cCI6NDg0NzI2MTU4OX0.w5pET1PkW95oGG6x9mfn4JFI0MjyiN-zh5LGcHuZAys',
-});
 
 @Injectable()
 export class EtherscanService {
   private readonly web3: Web3;
   private readonly moralisConfig: MoralisConfig;
   private readonly ethereumConfig: EthereumConfig;
+  private readonly WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; // Wrapped Ether address
 
   constructor(private readonly http: HttpService, private readonly configService: ConfigService) {
     this.moralisConfig = this.configService.get<MoralisConfig>('moralis');
@@ -39,14 +36,12 @@ export class EtherscanService {
 
     const transactions: Transaction[] = [];
 
-    const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-
     for (const tx of response.toJSON().result) {
       // Native token transaction
       if (tx.logs.length == 0 && tx.value != '0') {
         const response = await Moralis.EvmApi.token.getTokenPrice({
           chain: EvmChain.ETHEREUM,
-          address: WETH_ADDRESS,
+          address: this.WETH_ADDRESS,
           toBlock: Number(tx.block_number),
         });
 
@@ -150,7 +145,7 @@ export class EtherscanService {
                   value: amount0.toString(),
                   usdPrice: (
                     (token0Contract.toJSON().usdPrice * amount0) /
-                    Math.pow(10, Number(token0Contract.toJSON().tokenDecimals))
+                    10 ** Number(token0Contract.toJSON().tokenDecimals)
                   ).toString(),
                 },
                 token1: {
@@ -162,7 +157,7 @@ export class EtherscanService {
                   value: amount1.toString(),
                   usdPrice: (
                     (token1Contract.toJSON().usdPrice * amount1) /
-                    Math.pow(10, Number(token1Contract.toJSON().tokenDecimals))
+                    10 ** Number(token1Contract.toJSON().tokenDecimals)
                   ).toString(),
                 },
               },
@@ -242,7 +237,7 @@ export class EtherscanService {
               value: amountIn.toString(),
               usdPrice: (
                 (tokenInContract.toJSON().usdPrice * amountIn) /
-                Math.pow(10, Number(tokenInContract.toJSON().tokenDecimals))
+                10 ** Number(tokenInContract.toJSON().tokenDecimals)
               ).toString(),
             },
             token1: {
@@ -254,7 +249,7 @@ export class EtherscanService {
               value: amountOut.toString(),
               usdPrice: (
                 (tokenOutContract.toJSON().usdPrice * amountOut) /
-                Math.pow(10, Number(tokenOutContract.toJSON().tokenDecimals))
+                10 ** Number(tokenOutContract.toJSON().tokenDecimals)
               ).toString(),
             },
           },
@@ -295,7 +290,7 @@ export class EtherscanService {
               value: tranfer_value,
               usdPrice: (
                 (erc20Token.toJSON().usdPrice * Number(tranfer_value)) /
-                Math.pow(10, Number(erc20Token.toJSON().tokenDecimals))
+                10 ** Number(erc20Token.toJSON().tokenDecimals)
               ).toString(),
             },
           },
@@ -410,7 +405,7 @@ export class EtherscanService {
                   value: amount0.toString(),
                   usdPrice: (
                     (token0Contract.toJSON().usdPrice * amount0) /
-                    Math.pow(10, Number(token0Contract.toJSON().tokenDecimals))
+                    10 ** Number(token0Contract.toJSON().tokenDecimals)
                   ).toString(),
                 },
                 token1: {
@@ -422,7 +417,7 @@ export class EtherscanService {
                   value: amount1.toString(),
                   usdPrice: (
                     (token1Contract.toJSON().usdPrice * amount1) /
-                    Math.pow(10, Number(token1Contract.toJSON().tokenDecimals))
+                    10 ** Number(token1Contract.toJSON().tokenDecimals)
                   ).toString(),
                 },
               },
@@ -502,7 +497,7 @@ export class EtherscanService {
               value: amountIn.toString(),
               usdPrice: (
                 (tokenInContract.toJSON().usdPrice * amountIn) /
-                Math.pow(10, Number(tokenInContract.toJSON().tokenDecimals))
+                10 ** Number(tokenInContract.toJSON().tokenDecimals)
               ).toString(),
             },
             token1: {
@@ -514,7 +509,7 @@ export class EtherscanService {
               value: amountOut.toString(),
               usdPrice: (
                 (tokenOutContract.toJSON().usdPrice * amountOut) /
-                Math.pow(10, Number(tokenOutContract.toJSON().tokenDecimals))
+                10 ** Number(tokenOutContract.toJSON().tokenDecimals)
               ).toString(),
             },
           },
@@ -555,7 +550,7 @@ export class EtherscanService {
               value: tranfer_value,
               usdPrice: (
                 (erc20Token.toJSON().usdPrice * Number(tranfer_value)) /
-                Math.pow(10, Number(erc20Token.toJSON().tokenDecimals))
+                10 ** Number(erc20Token.toJSON().tokenDecimals)
               ).toString(),
             },
           },
@@ -567,6 +562,78 @@ export class EtherscanService {
   }
 
   async getTransactionByNFT(contractAddress: string, startBlock?: number) {}
+
+  // Get the current block's token balances (native token and ERC20 tokens)
+  async getBalances(address: string) {
+    let tokens: TokenBalance[] = [];
+
+    // Get the latest block number
+    const now = moment();
+    const response = await Moralis.EvmApi.block.getDateToBlock({
+      chain: EvmChain.ETHEREUM,
+      date: now.toString(),
+    });
+
+    const latestBlockNumber = response.toJSON().block;
+    const timestamp = response.toJSON().block_timestamp;
+
+    // Get native balance by wallet
+    const nativeToken = await Moralis.EvmApi.balance.getNativeBalance({
+      chain: EvmChain.ETHEREUM,
+      address: address,
+      toBlock: latestBlockNumber,
+    });
+
+    const nativePrice = await Moralis.EvmApi.token.getTokenPrice({
+      chain: EvmChain.ETHEREUM,
+      address: this.WETH_ADDRESS,
+      toBlock: latestBlockNumber,
+    });
+
+    tokens.push({
+      logo: null,
+      name: 'Ether',
+      symbol: 'ETH',
+      contractAddress: this.WETH_ADDRESS,
+      decimals: 18,
+      value: nativeToken.toJSON().balance,
+      usdPrice: ((nativePrice.toJSON().usdPrice * Number(nativeToken.toJSON().balance)) / 1e18).toFixed(2),
+    });
+
+    // Get ERC20 token balance by wallet
+    const erc20Tokens = await Moralis.EvmApi.token.getWalletTokenBalances({
+      chain: EvmChain.ETHEREUM,
+      address,
+      toBlock: latestBlockNumber,
+    });
+
+    for (const token of erc20Tokens.toJSON()) {
+      let price = 0;
+      if (!token.possible_spam) {
+        try {
+          const response = await Moralis.EvmApi.token.getTokenPrice({
+            chain: EvmChain.ETHEREUM,
+            address: token.token_address,
+            toBlock: latestBlockNumber,
+          });
+          price = response.toJSON().usdPrice;
+        } catch (error) {
+          // logger.error(error);
+        }
+      }
+      tokens.push({
+        logo: token.logo,
+        name: token.name,
+        symbol: token.symbol,
+        contractAddress: token.token_address,
+        decimals: token.decimals,
+        value: token.balance,
+        usdPrice: ((price * Number(token.balance)) / 10 ** token.decimals).toFixed(2),
+      });
+    }
+
+    return { timestamp, tokens };
+  }
 
   async test() {
     /*
@@ -581,6 +648,8 @@ export class EtherscanService {
       address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', Tether USDT
       address: '0x50327c6c5a14DCaDE707ABad2E27eB517df87AB5', TRON (TRX)
     */
-    return this.getTransactionByToken('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+    // return this.getTransactionByToken('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+
+    return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
   }
 }

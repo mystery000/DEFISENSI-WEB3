@@ -39,7 +39,7 @@ export class Wallet {
 
   @Prop({
     type: ApiBalance,
-    default: {},
+    default: { ethereum: [], polygon: [], binance: [] },
   })
   balance: Balance;
 }

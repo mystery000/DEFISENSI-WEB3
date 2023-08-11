@@ -3,11 +3,13 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
 import Moralis from 'moralis';
+import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
-import { Transaction } from 'src/utils/types';
+import { TokenBalance, Transaction } from 'src/utils/types';
 
 @Injectable()
 export class PolygonscanService {
+  private readonly MATIC_ADDRESS = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
   constructor(private readonly http: HttpService) {}
 
   async getTransactionsByWallet(address: string, fromBlock: number = 0) {
@@ -105,11 +107,84 @@ export class PolygonscanService {
 
   async getTransactionsByERC1155(contractAddress: string, fromBlock: number = 0) {}
 
+  async getBalances(address: string) {
+    let tokens: TokenBalance[] = [];
+
+    // Get the latest block number
+    const now = moment();
+    const response = await Moralis.EvmApi.block.getDateToBlock({
+      chain: EvmChain.POLYGON,
+      date: now.toString(),
+    });
+
+    const latestBlockNumber = response.toJSON().block;
+    const timestamp = response.toJSON().block_timestamp;
+
+    // Get native balance by wallet
+    const nativeToken = await Moralis.EvmApi.balance.getNativeBalance({
+      chain: EvmChain.POLYGON,
+      address,
+      toBlock: latestBlockNumber,
+    });
+
+    const nativePrice = await Moralis.EvmApi.token.getTokenPrice({
+      chain: EvmChain.POLYGON,
+      address: this.MATIC_ADDRESS,
+      toBlock: latestBlockNumber,
+    });
+
+    tokens.push({
+      logo: null,
+      name: 'MATIC',
+      symbol: 'MATIC',
+      contractAddress: this.MATIC_ADDRESS,
+      decimals: 18,
+      value: nativeToken.toJSON().balance,
+      usdPrice: ((nativePrice.toJSON().usdPrice * Number(nativeToken.toJSON().balance)) / 1e18).toFixed(2),
+    });
+
+    // Get ERC20 token balance by wallet
+    const erc20Tokens = await Moralis.EvmApi.token.getWalletTokenBalances({
+      chain: EvmChain.POLYGON,
+      address,
+      toBlock: latestBlockNumber,
+    });
+
+    for (const token of erc20Tokens.toJSON()) {
+      let price = 0;
+      if (!token.possible_spam) {
+        try {
+          const response = await Moralis.EvmApi.token.getTokenPrice({
+            chain: EvmChain.POLYGON,
+            address: token.token_address,
+            toBlock: latestBlockNumber,
+          });
+          price = response.toJSON().usdPrice;
+        } catch (error) {
+          // logger.error(error);
+        }
+      }
+      tokens.push({
+        logo: token.logo,
+        name: token.name,
+        symbol: token.symbol,
+        contractAddress: token.token_address,
+        decimals: token.decimals,
+        value: token.balance,
+        usdPrice: ((price * Number(token.balance)) / 10 ** token.decimals).toFixed(2),
+      });
+    }
+
+    return { timestamp, tokens };
+  }
+
   async test() {
     /*
       Examples of wallet address
       address: '0x71956a1Cd5a4233177F7Bf9a2d5778851e201934',
     */
-    return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
+    // return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
+
+    return this.getBalances('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
   }
 }
