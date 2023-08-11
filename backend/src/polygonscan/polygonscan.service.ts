@@ -6,6 +6,7 @@ import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
 import { TokenBalance, Transaction } from 'src/utils/types';
+import { TransactionType } from 'src/utils/enums/transaction.enum';
 
 @Injectable()
 export class PolygonscanService {
@@ -37,6 +38,7 @@ export class PolygonscanService {
         transactions.push({
           txhash: txn.hash,
           blockNumber: txn.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: txn.from_address,
             to: txn.to_address,
@@ -78,6 +80,7 @@ export class PolygonscanService {
         transactions.push({
           txhash: txn.transaction_hash,
           blockNumber: txn.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: txn.from_address,
             to: txn.to_address,

@@ -11,6 +11,7 @@ import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { TokenBalance, Transaction } from 'src/utils/types';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
+import { TransactionType } from 'src/utils/enums/transaction.enum';
 
 @Injectable()
 export class EtherscanService {
@@ -48,6 +49,7 @@ export class EtherscanService {
         transactions.push({
           txhash: tx.hash,
           blockNumber: tx.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: tx.from_address,
             to: tx.to_address,
@@ -132,6 +134,7 @@ export class EtherscanService {
             transactions.push({
               txhash: tx.hash,
               blockNumber: tx.block_number,
+              type: TransactionType.TOKEN,
               details: {
                 from: tx.from_address,
                 to: toAddress,
@@ -224,6 +227,7 @@ export class EtherscanService {
         transactions.push({
           txhash: tx.hash,
           blockNumber: tx.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: tx.from_address,
             to: to,
@@ -277,6 +281,7 @@ export class EtherscanService {
         transactions.push({
           txhash: tx.hash,
           blockNumber: tx.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: tx.from_address,
             to: transfer_to,
@@ -392,6 +397,7 @@ export class EtherscanService {
             transactions.push({
               txhash: tx.hash,
               blockNumber: tx.block_number,
+              type: TransactionType.TOKEN,
               details: {
                 from: tx.from_address,
                 to: toAddress,
@@ -484,6 +490,7 @@ export class EtherscanService {
         transactions.push({
           txhash: tx.hash,
           blockNumber: tx.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: tx.from_address,
             to: to,
@@ -537,6 +544,7 @@ export class EtherscanService {
         transactions.push({
           txhash: tx.hash,
           blockNumber: tx.block_number,
+          type: TransactionType.TOKEN,
           details: {
             from: tx.from_address,
             to: transfer_to,

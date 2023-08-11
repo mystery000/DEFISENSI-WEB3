@@ -1,4 +1,6 @@
-import moment from "moment";
+import moment from 'moment';
+import { Transaction } from '../types/transaction';
+import { TransferType } from '../types';
 
 export const getAge = (timestamp: number) => {
   const now = moment();
@@ -14,7 +16,7 @@ export const getAge = (timestamp: number) => {
     seconds: duration.seconds(),
   };
 
-  let formattedAge = "";
+  let formattedAge = '';
   let count = 0;
   const precise = 2;
   // Get and print both keys and values
@@ -26,7 +28,18 @@ export const getAge = (timestamp: number) => {
     }
   });
 
-  return formattedAge.length > 0 ? formattedAge : "Just now";
+  return formattedAge.length > 0 ? formattedAge : 'Just now';
+};
+
+export const getTransferType = (tx: Transaction) => {
+  // SWAP transaction
+  if (tx.details.token1) {
+    return TransferType.SWAP;
+  }
+  // Normal transaction
+  if (!tx.details.token1) {
+    return TransferType.SEND;
+  }
 };
 
 export const standardUnit = (count: number) => {
@@ -38,17 +51,17 @@ export const convertHex = (hex: string) => {
   return parseInt(hex, 16).toString(16);
 };
 
-export const convertBaseUnit = (amount: number, decimals: number) => {
-  return (Math.abs(amount) / 10 ** decimals).toLocaleString();
+export const convertDecimals = (value: string, decimals: string) => {
+  return (Number(value) / 10 ** Number(decimals)).toFixed(2);
 };
 
 export const balanceFormatter = (balance: number) => {
   if (balance >= 1e9) {
-    return (balance / 1e9).toFixed(2) + "B";
+    return (balance / 1e9).toFixed(2) + 'B';
   } else if (balance >= 1e6) {
-    return (balance / 1e6).toFixed(2) + "M";
+    return (balance / 1e6).toFixed(2) + 'M';
   } else if (balance >= 1e3) {
-    return (balance / 1e3).toFixed(2) + "K";
+    return (balance / 1e3).toFixed(2) + 'K';
   } else {
     return balance.toFixed(2);
   }

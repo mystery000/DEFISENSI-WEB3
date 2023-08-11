@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { TransactionType } from './enums/transaction.enum';
 
 export class ApiTokenType {
   @ApiProperty({ description: 'The name of token' })
@@ -47,6 +48,9 @@ export class ApiTransaction {
   @ApiProperty({ description: 'The block number of the transaction' })
   blockNumber: String;
 
+  @ApiProperty({ description: 'The type of the transaction' })
+  type: TransactionType;
+
   @ApiProperty({ description: 'The details of the transactions' })
   details: ApiTransactionDetails;
 }
@@ -56,7 +60,7 @@ export type Token = {
   symbol: string;
   logo?: string;
   decimals: string;
-  contractAddress?: string;
+  contractAddress: string;
   value: string;
   usdPrice: string;
 };
@@ -64,6 +68,7 @@ export type Token = {
 export type Transaction = {
   txhash: string;
   blockNumber: string;
+  type: TransactionType;
   details: {
     from: string;
     to: string;

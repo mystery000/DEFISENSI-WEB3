@@ -1,12 +1,13 @@
-import { ReactNode, createContext, useContext } from "react";
-import useLocalStorage from "../lib/hooks/useLocalStroage";
+import { ReactNode, createContext, useContext } from 'react';
+import useLocalStorage from '../lib/hooks/useLocalStroage';
 
 export type User = {
+  id: string;
   address: string;
 };
 
 const initialState: { user: User; setUser: (user: User) => void } = {
-  user: { address: "" },
+  user: { id: '', address: '' },
   setUser: () => {},
 };
 
@@ -19,10 +20,13 @@ export const useAppContext = () => {
 };
 
 export const AppContext = createContext(initialState);
-AppContext.displayName = "AppContext";
+AppContext.displayName = 'AppContext';
 
 const AppContextProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useLocalStorage<User>("user", { address: "" });
+  const [user, setUser] = useLocalStorage<User>('user', {
+    id: '',
+    address: '',
+  });
 
   return (
     <AppContext.Provider value={{ user, setUser }}>

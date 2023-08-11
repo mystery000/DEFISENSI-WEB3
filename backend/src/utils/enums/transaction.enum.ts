@@ -1,5 +1,4 @@
 export enum TransactionType {
-  SEND = 'Send',
-  SWAP = 'Swap',
-  RECEIVE = 'Receive',
+  TOKEN = 'token',
+  NFT = 'nft',
 }

@@ -1,44 +1,45 @@
 export interface TokenBalance {
-  decimals: Number;
-  logo: string;
+  logo?: string;
   name: string;
   symbol: string;
-  balance: string;
-  usd: string;
+  contractAddress: string;
+  decimals: number;
+  value: string;
+  usdPrice: string;
 }
+
+export type Balance = {
+  ethereum?: {
+    timestamp: number;
+    tokens: [TokenBalance];
+  };
+  polygon?: {
+    timestamp: number;
+    tokens: [TokenBalance];
+  };
+  binance?: {
+    timestamp: number;
+    tokens: [TokenBalance];
+  };
+};
 
 export type BalanceHistory = {
   ethereum?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     }
   ];
   polygon?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     }
   ];
   binance?: [
     {
-      date: number;
+      timestamp: number;
       tokens: [TokenBalance];
     }
   ];
-};
-
-export type Balance = {
-  ethereum?: {
-    date: number;
-    tokens: [TokenBalance];
-  };
-  polygon?: {
-    date: number;
-    tokens: [TokenBalance];
-  };
-  binance?: {
-    date: number;
-    tokens: [TokenBalance];
-  };
 };
