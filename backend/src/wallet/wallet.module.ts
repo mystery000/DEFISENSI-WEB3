@@ -7,12 +7,14 @@ import { WalletController } from './wallet.controller';
 import { CommentModule } from '../comment/comment.module';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
+import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
 
 @Module({
   imports: [
     UserModule,
     CommentModule,
     EtherscanModule,
+    PolygonscanModule,
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
   ],
   controllers: [WalletController],

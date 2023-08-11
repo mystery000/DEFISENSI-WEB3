@@ -9,6 +9,6 @@ export class PolygonscanController {
 
   @Get('/test')
   async test() {
-    // return this.polygonscanService.test();
+    return this.polygonscanService.test();
   }
 }

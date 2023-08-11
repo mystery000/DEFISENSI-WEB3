@@ -1,94 +1,115 @@
+import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
-import { firstValueFrom } from 'rxjs';
+import Moralis from 'moralis';
+import { logger } from 'src/utils/logger';
 import { Transaction } from 'src/utils/types';
 
 @Injectable()
 export class PolygonscanService {
   constructor(private readonly http: HttpService) {}
 
-  // // async getTransactionsByWallet(address: string, startBlock: number = 0) {
-  // //   const latestBlockNumber = await this.alchemy.core.getBlockNumber();
-  // //   try {
-  // //     const res = this.http.get(
-  // //       `${this.polygonscanApiBaseUrl}?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${latestBlockNumber}&sort=asc&apikey=${this.config.polygonscanApiKey}`,
-  // //     );
-  // //     const txs = ((await firstValueFrom(res)).data.result || []) as any[];
+  async getTransactionsByWallet(address: string, fromBlock: number = 0) {
+    const transactions: Transaction[] = [];
+    try {
+      // Get native transactions by wallet
+      const nativeTxns = await Moralis.EvmApi.transaction.getWalletTransactions({
+        chain: EvmChain.POLYGON,
+        address,
+        limit: 3,
+        fromBlock,
+      });
 
-  // //     const transactions = txs.map((tx) => ({
-  // //       txhash: tx.hash,
-  // //       blockNumber: tx.blockNumber,
-  // //       details: null,
-  // //     })) as Transaction[];
+      for (const txn of nativeTxns.toJSON().result) {
+        if (txn.value === '0') continue;
 
-  // //     return transactions;
-  // //   } catch (error) {
-  // //     console.log(error);
-  // //   }
-  // // }
+        const matic_price = (
+          await Moralis.EvmApi.token.getTokenPrice({
+            chain: EvmChain.POLYGON,
+            address: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // Wrapped MATIC address
+            toBlock: Number(txn.block_number),
+          })
+        ).toJSON();
 
-  // // async getTransactionsByToken(contractAddress: string, startBlock: number = 0) {
-  // //   // Get latest 1000 transfers of ERC20
-  // //   const allTransfers = await this.alchemy.core.getAssetTransfers({
-  // //     fromBlock: `0x${startBlock.toString(16)}`,
-  // //     toBlock: 'latest',
-  // //     contractAddresses: [contractAddress], // You can replace with contract of your choosing
-  // //     excludeZeroValue: true,
-  // //     category: [AssetTransfersCategory.ERC20],
-  // //     maxCount: 1000,
-  // //     order: SortingOrder.DESCENDING,
-  // //   });
+        transactions.push({
+          txhash: txn.hash,
+          blockNumber: txn.block_number,
+          details: {
+            from: txn.from_address,
+            to: txn.to_address,
+            timestamp: new Date(txn.block_timestamp).getTime(),
+            token0: {
+              name: 'MATIC',
+              symbol: 'MATIC',
+              decimals: '18',
+              logo: matic_price.tokenLogo,
+              contractAddress: matic_price.tokenAddress,
+              value: txn.value,
+              usdPrice: ((matic_price.usdPrice * Number(txn.value)) / 1e18).toString(),
+            },
+          },
+        });
+      }
 
-  // //   let currerntHash = '';
-  // //   const transactions: Transaction[] = [];
+      // Get ERC20 token transfers by wallet
+      const erc20Txns = await Moralis.EvmApi.token.getWalletTokenTransfers({
+        chain: EvmChain.POLYGON,
+        address,
+        limit: 2,
+        fromBlock,
+      });
+      for (const txn of erc20Txns.toJSON().result) {
+        let tokenPrice = null;
+        try {
+          tokenPrice = (
+            await Moralis.EvmApi.token.getTokenPrice({
+              chain: EvmChain.POLYGON,
+              address: txn.address,
+              toBlock: Number(txn.block_number),
+            })
+          ).toJSON();
+        } catch (error) {
+          tokenPrice = { usdPrice: 0 };
+        }
 
-  // //   allTransfers.transfers.forEach((transfer) => {
-  // //     if (transfer.hash !== currerntHash) {
-  // //       currerntHash = transfer.hash;
-  // //       transactions.push({
-  // //         txhash: transfer.hash,
-  // //         blockNumber: parseInt(transfer.blockNum, 16).toString(),
-  // //         details: null,
-  // //       } as Transaction);
-  // //     }
-  // //   });
+        transactions.push({
+          txhash: txn.transaction_hash,
+          blockNumber: txn.block_number,
+          details: {
+            from: txn.from_address,
+            to: txn.to_address,
+            timestamp: new Date(txn.block_timestamp).getTime(),
+            token0: {
+              name: txn.token_name,
+              symbol: txn.token_symbol,
+              decimals: txn.token_decimals,
+              logo: txn.token_logo,
+              contractAddress: txn.address,
+              value: txn.value,
+              usdPrice: (tokenPrice.usdPrice * Number(txn.value_decimal)).toString(),
+            },
+          },
+        });
+      }
+    } catch (error) {
+      logger.error(error);
+      return transactions.sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
+    }
+    return transactions.sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
+  }
 
-  // //   console.log(transactions);
-  // // }
+  async getTransactionsByERC20(contractAddress: string, fromBlock: number = 0) {}
 
-  // // async getTransactionsByNFT(contractAddress: string, startBlock: number = 0) {
-  // //   // Get latest 1000 transfers of ERC721 and ERC1155
-  // //   const allTransfers = await this.alchemy.core.getAssetTransfers({
-  // //     fromBlock: `0x${startBlock.toString(16)}`,
-  // //     toBlock: 'latest',
-  // //     contractAddresses: [contractAddress], // You can replace with contract of your choosing
-  // //     excludeZeroValue: true,
-  // //     category: [AssetTransfersCategory.ERC721],
-  // //     maxCount: 1000,
-  // //     order: SortingOrder.DESCENDING,
-  // //   });
+  async getTransactionsByERC721(contractAddress: string, fromBlock: number = 0) {}
 
-  // //   let currerntHash = '';
-  // //   const transactions: Transaction[] = [];
+  async getTransactionsByERC1155(contractAddress: string, fromBlock: number = 0) {}
 
-  // //   allTransfers.transfers.forEach((transfer) => {
-  // //     if (transfer.hash !== currerntHash) {
-  // //       currerntHash = transfer.hash;
-  // //       transactions.push({
-  // //         txhash: transfer.hash,
-  // //         blockNumber: parseInt(transfer.blockNum, 16).toString(),
-  // //         details: null,
-  // //       } as Transaction);
-  // //     }
-  // //   });
-
-  // //   console.log(transactions);
-  // // }
-
-  // // async getTransactionDetails(txHash: string) {}
-
-  // async test() {
-  //   this.getTransactionsByNFT('0x141A1fb33683C304DA7C3fe6fC6a49B5C0c2dC42');
-  // }
+  async test() {
+    /*
+      Examples of wallet address
+      address: '0x71956a1Cd5a4233177F7Bf9a2d5778851e201934',
+    */
+    return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
+  }
 }

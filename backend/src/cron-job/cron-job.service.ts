@@ -25,7 +25,7 @@ export class CronJobService {
   }
 
   // Update the transactions of all ERC20 tokens every 3 minutes
-  @Cron('0 */1 * * * *')
+  // @Cron('0 */3 * * * *')
   async handleERC20Cron() {
     try {
       const tokens = await this.tokenService.getAll();

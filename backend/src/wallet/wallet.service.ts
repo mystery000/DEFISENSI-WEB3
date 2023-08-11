@@ -12,6 +12,7 @@ import { CommentService } from '../comment/comment.service';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 @Injectable()
 export class WalletService {
   constructor(
@@ -20,6 +21,7 @@ export class WalletService {
     private readonly userService: UserService,
     private readonly commentService: CommentService,
     private readonly etherscanService: EtherscanService,
+    private readonly polygonscanService: PolygonscanService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
@@ -224,8 +226,11 @@ export class WalletService {
 
   async initializeTransactions(address: string) {
     try {
-      const txs = await this.etherscanService.getTransactionsByWallet(address);
-      await this.setTransactions(address, txs);
+      const ethereumTxns = await this.etherscanService.getTransactionsByWallet(address);
+      // const polygonTxns = await this.polygonscanService.getTransactionsByWallet(address);
+      // Sort transactions by desending order
+      // const txns = [...ethereumTxns, ...polygonTxns].sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
+      await this.setTransactions(address, ethereumTxns);
     } catch (err) {
       logger.error(err);
     }
