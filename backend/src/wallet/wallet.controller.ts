@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { Wallet } from './schemas/wallet.schema';
 import { ApiBalance, ApiBalanceHistory, ApiTransaction } from 'src/utils/types';
@@ -86,12 +86,12 @@ export class WalletController {
     return this.walletService.getComments(address);
   }
 
-  @Get(':address/transactions/:limit')
-  @ApiOperation({ summary: 'Get list of transactions of this token' })
+  @Get(':address/transactions')
+  @ApiOperation({ summary: 'Get transactions of this wallet' })
   @ApiOkResponse({ type: ApiTransaction, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
-  @ApiParam({ name: 'limit', description: 'The transaction count to fetch' })
-  getWalletTransactions(@Param() { address, limit }: { address: string; limit: number }) {
+  @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
+  getWalletTransactions(@Param('address') address: string, @Query('limit') limit: number) {
     return this.walletService.getTransactions(address, limit);
   }
 

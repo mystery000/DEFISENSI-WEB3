@@ -69,7 +69,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
         </div>
         <div>
           <img
-            src="./images/platforms/uniswap.png"
+            src="../images/platforms/uni.png"
             width={32}
             height={32}
             className="rounded-full border"
@@ -82,11 +82,11 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           <span className="pr-2">
             <img
               src={
-                transaction.details.token0.symbol.toLocaleLowerCase() == 'eth'
-                  ? `./images/tokens/eth.png`
+                transaction.details.token0.symbol.toLocaleLowerCase() === 'weth'
+                  ? `../images/tokens/eth.png`
                   : transaction.details.token0.logo
                   ? transaction.details.token0.logo
-                  : `./images/tokens/empty-eth.png`
+                  : `../images/tokens/empty-eth.png`
               }
               width={24}
               height={24}
@@ -110,10 +110,10 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             <img
               src={
                 transaction.details.token1.symbol.toLocaleLowerCase() == 'weth'
-                  ? `./images/tokens/eth.png`
+                  ? `../images/tokens/eth.png`
                   : transaction.details.token1.logo
                   ? transaction.details.token1.logo
-                  : `./images/tokens/empty-eth.png`
+                  : `../images/tokens/empty-eth.png`
               }
               width={24}
               height={24}

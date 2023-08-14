@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 
 import AppLayout from '../layouts/AppLayout';
 import { useAppContext } from '../context/app';
 import { Transaction } from '../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { findFollowingWallets, findFollowingTokens } from '../lib/api';
-import { TransactionCard } from '../components/transactions/TransactionDetailsCard';
+import { TransactionCard } from '../components/transactions/TransactionCard';
 
 export const Transactions = () => {
   // This is the wallet address of the current user
@@ -119,7 +119,7 @@ export const Transactions = () => {
   }
 
   return (
-    <>
+    <Fragment>
       <AppLayout>
         <div className="p-4">
           <div className="h-content mx-auto mt-4 flex w-full flex-row flex-wrap justify-center gap-2 2xl:w-2/3 2xl:justify-around">
@@ -189,6 +189,6 @@ export const Transactions = () => {
           </div>
         </div>
       </AppLayout>
-    </>
+    </Fragment>
   );
 };

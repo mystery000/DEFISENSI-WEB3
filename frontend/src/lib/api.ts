@@ -4,10 +4,10 @@ import { Balance, BalanceHistory } from '../types/balance';
 import { API_BASE_URL } from '../config/app';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
 
-export const findFollowingWallets = async (address: string, limit: number) => {
+export const findFollowingWallets = async (address: string, limit?: number) => {
   try {
     const res = await axios.get(
-      `${API_BASE_URL}/user/${address}/wallet/transactions/${limit}`,
+      `${API_BASE_URL}/user/${address}/wallet/transactions?limit=${limit}`,
     );
     return res.data as WalletTransaction[];
   } catch (error) {
@@ -16,10 +16,10 @@ export const findFollowingWallets = async (address: string, limit: number) => {
   }
 };
 
-export const findFollowingTokens = async (address: string, limit: number) => {
+export const findFollowingTokens = async (address: string, limit?: number) => {
   try {
     const res = await axios.get(
-      `${API_BASE_URL}/user/${address}/token/transactions/${limit}`,
+      `${API_BASE_URL}/user/${address}/token/transactions?limit=${limit}`,
     );
     return res.data as TokenTransaction[];
   } catch (error) {
@@ -30,13 +30,32 @@ export const findFollowingTokens = async (address: string, limit: number) => {
 
 export const findWalletTransactions = async (
   address: string,
-  limit: number,
+  limit?: number,
 ) => {
   try {
     const res = await axios.get(
-      `${API_BASE_URL}/wallet/${address}/transactions/${limit}`,
+      `${API_BASE_URL}/wallet/${address}/transactions?limit=${
+        limit ? limit : 4
+      }`,
     );
     return res.data as WalletTransaction;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getTokenTransactions = async (
+  network: string,
+  address: string,
+  limit?: number,
+) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/token/${network}/${address}/transactions?limit=${
+        limit ? limit : 4
+      }`,
+    );
+    return res.data as TokenTransaction;
   } catch (error) {
     console.log(error);
   }

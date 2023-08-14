@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { Login } from './pages/Login';
-import { Portfolio } from './pages/Portfolio';
 import { ManagedAppContext } from './context/app';
 import { Transactions } from './pages/Transasctions';
 
@@ -16,7 +15,9 @@ import {
 } from '@web3modal/ethereum';
 
 import { CLOUD_WALLETCONNECT_PROJECT_ID } from './config/app';
-import { ProtectedRoute } from './routes/ProtectedRoute';
+import { PrivateRoute } from './routes/PrivateRoute';
+import { TokenPortfolio } from './pages/portfolio/TokenPortfolio';
+import { WalletPortfolio } from './pages/portfolio/WalletPortfolio';
 
 const chains = [mainnet, polygon, bsc];
 
@@ -38,22 +39,11 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route
-                path="/portfolio"
-                element={
-                  <ProtectedRoute>
-                    <Portfolio />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/transactions"
-                element={
-                  <ProtectedRoute>
-                    <Transactions />
-                  </ProtectedRoute>
-                }
-              />
+              <Route element={<PrivateRoute />}>
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/portfolio/wallet" element={<WalletPortfolio />} />
+                <Route path="/portfolio/token" element={<TokenPortfolio />} />
+              </Route>
             </Routes>
           </BrowserRouter>
         </ManagedAppContext>

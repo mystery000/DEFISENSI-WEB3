@@ -164,7 +164,7 @@ export class TokenService {
     return new SuccessResponse(true);
   }
 
-  async getTransactions(contractAddress: string, network: string, limit: Number = 4) {
+  async getTransactions(network: string, contractAddress: string, limit: Number = 4) {
     try {
       const foundToken = await this.tokenModel.aggregate([
         { $match: { address: contractAddress, network } },

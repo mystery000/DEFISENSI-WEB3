@@ -12,6 +12,7 @@ import { TokenBalance, Transaction } from 'src/utils/types';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
+import axios from 'axios';
 
 @Injectable()
 export class EtherscanService {

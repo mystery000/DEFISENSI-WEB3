@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { TokenService } from './token.service';
 import { Token } from './schemas/token.schema';
@@ -87,5 +87,19 @@ export class TokenController {
   @ApiParam({ name: 'address', description: 'Get followers for token' })
   getComments(@Param() query: FindOneParams): Promise<Comment[]> {
     return this.tokenService.getComments(query);
+  }
+
+  @Get('/:network/:address/transactions')
+  @ApiOperation({ summary: 'Get transactions of this token contract' })
+  @ApiOkResponse({ type: ApiTransaction, isArray: true })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'The token address' })
+  @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
+  getTokenTransactions(
+    @Param('network') network: string,
+    @Param('address') address: string,
+    @Query('limit') limit: number,
+  ) {
+    return this.tokenService.getTransactions(network, address, limit);
   }
 }

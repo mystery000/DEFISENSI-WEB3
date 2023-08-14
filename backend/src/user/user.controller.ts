@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { User } from './schemas/user.schema';
 import { UserService } from './user.service';
@@ -121,24 +121,26 @@ export class UserController {
     return this.userService.getNotifications(address);
   }
 
-  @Get('/:address/wallet/transactions/:limit')
-  @ApiOperation({ summary: ' Get wallet transactions for this user' })
+  @Get('/:address/wallet/transactions')
+  @ApiOperation({ summary: ' Get transactions of following wallets' })
   @ApiOkResponse({ type: Wallet, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
-  @ApiParam({ name: 'limit', description: 'The limit of transaction count' })
+  @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
   async getFollowingWalletTransactions(
-    @Param() { address, limit }: { address: string; limit: number },
+    @Param('address') address: string,
+    @Query('limit') limit: number,
   ): Promise<Wallet[]> {
     return this.userService.getFollowingWalletsTransactions(address, limit);
   }
 
-  @Get('/:address/token/transactions/:limit')
-  @ApiOperation({ summary: ' Get token transactions for this user' })
+  @Get('/:address/token/transactions')
+  @ApiOperation({ summary: ' Get transactions of following tokens' })
   @ApiOkResponse({ type: Token, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
-  @ApiParam({ name: 'limit', description: 'The limit of transaction count' })
+  @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
   async getFollowingTokensTransactions(
-    @Param() { address, limit }: { address: string; limit: number },
+    @Param('address') address: string,
+    @Query('limit') limit: number,
   ): Promise<Token[]> {
     return this.userService.getFollowingTokensTransactions(address, limit);
   }

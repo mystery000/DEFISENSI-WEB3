@@ -28,18 +28,18 @@ export type BalanceHistory = {
     {
       timestamp: number;
       tokens: [TokenBalance];
-    }
+    },
   ];
   polygon?: [
     {
       timestamp: number;
       tokens: [TokenBalance];
-    }
+    },
   ];
   binance?: [
     {
       timestamp: number;
       tokens: [TokenBalance];
-    }
+    },
   ];
 };
