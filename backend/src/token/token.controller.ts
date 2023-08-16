@@ -102,4 +102,13 @@ export class TokenController {
   ) {
     return this.tokenService.getTransactions(network, address, limit);
   }
+
+  @Get(':network/:address/price')
+  @ApiOperation({ summary: 'Get current price of this token' })
+  @ApiOkResponse({ type: Comment, isArray: true })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'The contract address of this token' })
+  getUSDPrice(@Param('network') network: string, @Param('address') address: string) {
+    return this.tokenService.getPrice(network, address);
+  }
 }

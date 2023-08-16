@@ -7,12 +7,14 @@ import { TokenController } from './token.controller';
 import { CommentModule } from '../comment/comment.module';
 import { Token, TokenSchema } from './schemas/token.schema';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
+import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
 
 @Module({
   imports: [
     UserModule,
     CommentModule,
     EtherscanModule,
+    PolygonscanModule,
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
   ],
   controllers: [TokenController],

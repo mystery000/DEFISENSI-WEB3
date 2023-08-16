@@ -18,6 +18,9 @@ import { CLOUD_WALLETCONNECT_PROJECT_ID } from './config/app';
 import { PrivateRoute } from './routes/PrivateRoute';
 import { TokenPortfolio } from './pages/portfolio/TokenPortfolio';
 import { WalletPortfolio } from './pages/portfolio/WalletPortfolio';
+import { WalletDiscover } from './pages/discover/WalletDiscover';
+import { TokenDiscover } from './pages/discover/TokenDiscover';
+import { NFTDiscover } from './pages/discover/NFTDiscover';
 
 const chains = [mainnet, polygon, bsc];
 
@@ -43,6 +46,9 @@ function App() {
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/portfolio/wallet" element={<WalletPortfolio />} />
                 <Route path="/portfolio/token" element={<TokenPortfolio />} />
+                <Route path="/discover/wallet" element={<WalletDiscover />} />
+                <Route path="/discover/token" element={<TokenDiscover />} />
+                <Route path="/discover/nft" element={<NFTDiscover />} />
               </Route>
             </Routes>
           </BrowserRouter>

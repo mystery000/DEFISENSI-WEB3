@@ -461,7 +461,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
                   history={PolygonSparkLineData}
                 />
               </div>
-              <TableContainer component={Paper} className="mt-4">
+              <TableContainer className="mt-4">
                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                   <TableHead>
                     <TableRow>

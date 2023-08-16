@@ -6,9 +6,9 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <>
-      <div className="relative">
+      <div className="relative min-w-[430px]">
         <Header />
-        <div className="bg-[#F1F3F8]">{children}</div>
+        <div className="bg-catskill-50">{children}</div>
       </div>
     </>
   );

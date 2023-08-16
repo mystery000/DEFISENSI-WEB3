@@ -14,6 +14,7 @@ import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { logger } from 'src/utils/logger';
 import { NetworkType } from 'src/utils/enums/network.enum';
+import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 
 @Injectable()
 export class TokenService {
@@ -22,6 +23,7 @@ export class TokenService {
     private readonly tokenModel: Model<TokenDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
+    private readonly polygonService: PolygonscanService,
     private readonly etherscanService: EtherscanService,
   ) {}
 
@@ -234,5 +236,14 @@ export class TokenService {
     } catch (err) {
       logger.error(err);
     }
+  }
+
+  async getPrice(network: string, contractAddress: string) {
+    if (network === NetworkType.Ethereum) {
+      return this.etherscanService.getPriceByContract(contractAddress);
+    } else if (network === NetworkType.Polygon) {
+      return this.polygonService.getPriceByERC20(contractAddress);
+    }
+    return null;
   }
 }

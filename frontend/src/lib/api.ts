@@ -4,7 +4,10 @@ import { Balance, BalanceHistory } from '../types/balance';
 import { API_BASE_URL } from '../config/app';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
 
-export const findFollowingWallets = async (address: string, limit?: number) => {
+export const findFollowingWallets = async (
+  address: string,
+  limit: number = 4,
+) => {
   try {
     const res = await axios.get(
       `${API_BASE_URL}/user/${address}/wallet/transactions?limit=${limit}`,
@@ -16,7 +19,10 @@ export const findFollowingWallets = async (address: string, limit?: number) => {
   }
 };
 
-export const findFollowingTokens = async (address: string, limit?: number) => {
+export const findFollowingTokens = async (
+  address: string,
+  limit: number = 4,
+) => {
   try {
     const res = await axios.get(
       `${API_BASE_URL}/user/${address}/token/transactions?limit=${limit}`,

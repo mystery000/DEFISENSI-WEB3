@@ -181,6 +181,19 @@ export class PolygonscanService {
     return { timestamp, tokens };
   }
 
+  async getPriceByERC20(contractAddress: string) {
+    return {
+      name: 'HEX',
+      symbol: 'HEX',
+      logo: null,
+      contractAddress,
+      uniswap: 3122210,
+      binance: 34883,
+      kucoin: 3234,
+      coinbase: 39548,
+    };
+  }
+
   async test() {
     /*
       Examples of wallet address

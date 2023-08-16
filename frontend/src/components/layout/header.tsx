@@ -3,7 +3,7 @@ import { DefiLogo } from '../icons/defisensi-icons';
 
 const Header = () => {
   return (
-    <div className="sticky flex w-full min-w-[480px] justify-between px-5 py-4 shadow-[0px_5px_4px_-3px_#8E98B066]">
+    <div className="sticky flex w-full justify-between px-5 py-4 shadow-[0px_5px_4px_-3px_#8E98B066]">
       <DefiLogo />
       <AlignJustifyIcon />
     </div>
