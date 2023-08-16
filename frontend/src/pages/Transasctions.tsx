@@ -148,7 +148,7 @@ export const Transactions = () => {
                   selected !== ContentType.ALL,
               })}
             >
-              <div className="hidden font-sora text-[32px] xl:block">
+              <div className="mb-4 hidden font-sora text-[32px] xl:block">
                 Wallets
               </div>
               <InfiniteScroll
@@ -175,7 +175,7 @@ export const Transactions = () => {
                   selected !== ContentType.ALL,
               })}
             >
-              <div className="hidden font-sora text-[32px] xl:block">
+              <div className="mb-4 hidden font-sora text-[32px] xl:block">
                 Tokens
               </div>
               <InfiniteScroll
@@ -201,7 +201,9 @@ export const Transactions = () => {
                   selected !== ContentType.NFT && selected !== ContentType.ALL,
               })}
             >
-              <div className="hidden font-sora text-[32px] xl:block">NFTs</div>
+              <div className="mb-4 hidden font-sora text-[32px] xl:block">
+                NFTs
+              </div>
               <InfiniteScroll
                 dataLength={tokenTxns.length}
                 next={fetchMoreTokenTxns}
