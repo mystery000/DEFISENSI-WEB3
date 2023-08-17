@@ -9,54 +9,52 @@ import { Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import Select from 'react-select';
 
-const topWallets = [
+const topTokens = [
   {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
+    tokenName: 'USDT',
+    price: 1636077,
+    change: 3122,
     followers: 77522,
   },
   {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
+    tokenName: 'BNB',
+    price: 1636077,
+    change: 3122,
     followers: 77522,
   },
   {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
+    tokenName: 'USDC',
+    price: 1636077,
+    change: 3122,
     followers: 77522,
   },
   {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
+    tokenName: 'MATIC',
+    price: 1636077,
+    change: 3122,
     followers: 77522,
   },
   {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
+    tokenName: 'DAI',
+    price: 1636077,
+    change: 3122,
     followers: 77522,
   },
 ];
 
 const options = [
-  { name: 'ethereum', label: 'ETH', logo: '../images/tokens/eth.png' },
-  { name: 'polygon', label: 'POLYGON', logo: '../images/tokens/eth.png' },
+  {
+    value: 'ethereum',
+    name: 'ethereum',
+    label: 'ETH',
+    logo: '../images/tokens/eth.png',
+  },
+  {
+    value: 'polygon',
+    name: 'polygon',
+    label: 'POLYGON',
+    logo: '../images/tokens/eth.png',
+  },
 ];
 
 const formatOptionLabel = ({
@@ -72,27 +70,29 @@ const formatOptionLabel = ({
   </div>
 );
 
-export const WalletDiscover = () => {
+export const TopTokens = () => {
   return (
     <AppLayout>
-      <div className="mx-auto h-screen w-full min-w-[480px] font-inter font-semibold lg:w-2/3">
+      <div className="w-full font-inter md:mx-auto md:w-2/3">
         <div
-          className="w-full min-w-[480px] p-4 text-center"
+          className="p-6 text-center"
           style={{
             background:
               'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
-          <div className="font-sora text-[36px]">Discover Top Wallets</div>
-          <div className="align-center mt-8 flex items-center justify-center gap-4">
-            <span>Chain</span>
+          <div className="font-sora text-[32px] font-semibold">
+            Discover Top Tokens
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-4">
+            <span className="font-sora text-base font-semibold">Chain</span>
             <Select
               defaultValue={options[0]}
               formatOptionLabel={formatOptionLabel}
               options={options}
             />
             <Input
-              placeholder="Search Wallet"
+              placeholder="Search Token"
               suffix={<SearchOutlined />}
               className="w-48"
               size={'large'}
@@ -100,27 +100,35 @@ export const WalletDiscover = () => {
           </div>
         </div>
         <TableContainer className="mt-4 bg-white px-3">
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <Table sx={{ minWidth: 400 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 600 }}>Wallet</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>AUM</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>ID</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>Followers</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Token
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Price
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Change
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Followers
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {topWallets.map((wallet, id) => (
+              {topTokens.map((token, id) => (
                 <TableRow
-                  key={wallet.address + id}
+                  key={id}
                   sx={{
                     '&:last-child td, &:last-child th': { border: 0 },
                   }}
                 >
-                  <TableCell>{wallet.address}</TableCell>
-                  <TableCell>{wallet.amount}</TableCell>
+                  <TableCell>{token.tokenName}</TableCell>
+                  <TableCell>{token.price}</TableCell>
                   <TableCell>
-                    ${wallet.ID}
+                    ${token.change}
                     <span
                       className={id % 3 ? 'text-[#FF5D29]' : 'text-[#00D455]'}
                     >
@@ -128,7 +136,7 @@ export const WalletDiscover = () => {
                       +2%
                     </span>
                   </TableCell>
-                  <TableCell>{wallet.followers}</TableCell>
+                  <TableCell>{token.followers}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

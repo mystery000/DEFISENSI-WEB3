@@ -49,8 +49,18 @@ const topNFTs = [
 ];
 
 const options = [
-  { name: 'ethereum', label: 'ETH', logo: '../images/tokens/eth.png' },
-  { name: 'polygon', label: 'POLYGON', logo: '../images/tokens/eth.png' },
+  {
+    value: 'ethereum',
+    name: 'ethereum',
+    label: 'ETH',
+    logo: '../images/tokens/eth.png',
+  },
+  {
+    value: 'polygon',
+    name: 'polygon',
+    label: 'POLYGON',
+    logo: '../images/tokens/eth.png',
+  },
 ];
 
 const formatOptionLabel = ({
@@ -66,20 +76,22 @@ const formatOptionLabel = ({
   </div>
 );
 
-export const NFTDiscover = () => {
+export const TopNFTs = () => {
   return (
     <AppLayout>
-      <div className="mx-auto h-screen w-full min-w-[480px] font-inter font-semibold lg:w-2/3">
+      <div className="w-full font-inter md:mx-auto md:w-2/3">
         <div
-          className="w-full min-w-[480px] p-4 text-center"
+          className="p-6 text-center"
           style={{
             background:
               'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
-          <div className="font-sora text-[36px]">Discover Top NFTs</div>
-          <div className="align-center mt-8 flex items-center justify-center gap-4">
-            <span>Chain</span>
+          <div className="font-sora text-[32px] font-semibold">
+            Discover Top NFTs
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-4">
+            <span className="font-sora text-base font-semibold">Chain</span>
             <Select
               defaultValue={options[0]}
               formatOptionLabel={formatOptionLabel}
@@ -94,13 +106,21 @@ export const NFTDiscover = () => {
           </div>
         </div>
         <TableContainer className="mt-4 bg-white px-3">
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <Table sx={{ minWidth: 400 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 600 }}>Collection</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>Floor</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>24h Vol</TableCell>
-                <TableCell style={{ fontWeight: 600 }}>Holders</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Collection
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Floor
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  24h Vol
+                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                  Holders
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

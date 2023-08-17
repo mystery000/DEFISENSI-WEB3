@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { Login } from './pages/Login';
 import { ManagedAppContext } from './context/app';
@@ -18,9 +18,11 @@ import { CLOUD_WALLETCONNECT_PROJECT_ID } from './config/app';
 import { PrivateRoute } from './routes/PrivateRoute';
 import { TokenPortfolio } from './pages/portfolio/TokenPortfolio';
 import { WalletPortfolio } from './pages/portfolio/WalletPortfolio';
-import { WalletDiscover } from './pages/discover/WalletDiscover';
-import { TokenDiscover } from './pages/discover/TokenDiscover';
-import { NFTDiscover } from './pages/discover/NFTDiscover';
+import { TopWallets } from './pages/discover/TopWallets';
+import { TopTokens } from './pages/discover/TopTokens';
+import { TopNFTs } from './pages/discover/TopNFTs';
+import { PageNotFound } from './pages/PageNotFound';
+import { NFTPortfolio } from './pages/portfolio/NFTPortfolio';
 
 const chains = [mainnet, polygon, bsc];
 
@@ -46,9 +48,12 @@ function App() {
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/portfolio/wallet" element={<WalletPortfolio />} />
                 <Route path="/portfolio/token" element={<TokenPortfolio />} />
-                <Route path="/discover/wallet" element={<WalletDiscover />} />
-                <Route path="/discover/token" element={<TokenDiscover />} />
-                <Route path="/discover/nft" element={<NFTDiscover />} />
+                <Route path="/portfolio/nft" element={<NFTPortfolio />} />
+                <Route path="/discover/wallet" element={<TopWallets />} />
+                <Route path="/discover/token" element={<TopTokens />} />
+                <Route path="/discover/nft" element={<TopNFTs />} />
+                <Route path="/404" element={<PageNotFound />} />
+                <Route path="*" element={<Navigate to="/404" />} />
               </Route>
             </Routes>
           </BrowserRouter>

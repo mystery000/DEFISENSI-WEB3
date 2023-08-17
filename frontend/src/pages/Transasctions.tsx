@@ -21,7 +21,7 @@ export const Transactions = () => {
   const { user } = useAppContext();
 
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.WALLET);
+  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
 
   const {
     walletTxns,

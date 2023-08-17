@@ -7,19 +7,25 @@ import {
   FollowingIcon,
   NotificationOnIcon,
   PortfolioView,
-  UniswapIcon,
 } from '../../components/icons/defisensi-icons';
-import InfiniteScroll from 'react-infinite-scroll-component';
-import { Transaction } from '../../types/transaction';
-import { getTokenTransactions } from '../../lib/api';
-import { TransactionCard } from '../../components/transactions/TransactionCard';
-import Paper from '@mui/material/Paper';
+
+import cn from 'classnames';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
+import { TableContainer } from '@mui/material';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { TableContainer } from '@mui/material';
+import { getTokenTransactions } from '../../lib/api';
+import { Transaction } from '../../types/transaction';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { TransactionCard } from '../../components/transactions/TransactionCard';
+
+enum ContentType {
+  INFO = 'info',
+  ACTIVITY = 'activity',
+  ALL = 'all',
+}
 
 interface TokenPortfolioProps {
   classname?: string;
@@ -28,6 +34,9 @@ interface TokenPortfolioProps {
 export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
   // const { contractAddress } = useParams();
   const contractAddress = '0x50327c6c5a14DCaDE707ABad2E27eB517df87AB5';
+
+  const [width, setWidth] = useState(window.innerWidth);
+  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
 
   const [fetchMore, setFetchMore] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -87,75 +96,135 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
     }
   }, [transactions, contractAddress]);
 
+  // Detect whether screen is mobile or desktop size
+  useEffect(() => {
+    const breakpoint = 1536;
+    const handleWindowResize = () => {
+      if (width < breakpoint && window.innerWidth >= breakpoint) {
+        setSelected(ContentType.ALL);
+      } else if (width >= breakpoint && window.innerWidth < breakpoint) {
+        setSelected(ContentType.INFO);
+      }
+      setWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [width]);
+
   if (!contractAddress) return;
 
   return (
     <AppLayout>
-      <div className="h-content mx-auto w-full min-w-[480px] font-inter font-semibold lg:w-2/3">
+      <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
         <div
-          className="w-full min-w-[480px] p-4"
+          className="p-6 text-center"
           style={{
             background:
               'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
           <div>
-            <div className="text-center">
-              <h2 className="font-sora text-4xl">
-                <span>Hex</span>
-              </h2>
-              <span className="mt-4 text-sm font-medium">
-                {contractAddress.slice(0, 11)}.........
-                {contractAddress.slice(-13)}
+            <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
+              <span>ETH</span>
+              <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
+                <img
+                  src="../images/tokens/eth.png"
+                  width={32}
+                  height={32}
+                  alt="noicon"
+                ></img>
+                <span>on Ethereum</span>
               </span>
+            </h2>
+            <span className="mt-4 text-sm font-medium">
+              {contractAddress.slice(0, 11)}.........
+              {contractAddress.slice(-13)}
+            </span>
+          </div>
+          <div className="mt-5 flex justify-center gap-4 text-sm">
+            <div className="flex items-center gap-1">
+              <FollowingIcon />
+              <span>9</span>
+              <span className="text-bali-hai-600">Following</span>
             </div>
-            <div className="mt-5 flex justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <FollowingIcon />
-                <span>
-                  <b>9</b> <span className="text-[#8E98B0]">Following</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FollowerIcon />
-                <span>
-                  <b>143</b> <span className="text-[#8E98B0]">Followers</span>
-                </span>
-              </div>
-            </div>
-            <div className="mt-5 text-center text-white">
-              <button className="rounded bg-[#FF5D29] px-4 py-2">Follow</button>
+            <div className="flex items-center gap-1">
+              <FollowerIcon />
+              <span>143</span>
+              <span className="text-bali-hai-600">Followers</span>
             </div>
           </div>
+          <div className="mt-5 text-white">
+            <button className="rounded bg-orange-400 px-4 py-[10px]">
+              Follow
+            </button>
+          </div>
+
           <div className="flex justify-end">
             <NotificationOnIcon />
           </div>
         </div>
-        <div className="mt-2 flex flex-col justify-center gap-4 lg:flex-row">
-          <div className="mx-4 w-full lg:mx-0 lg:grow">
-            <span className="font-sora text-[32px] font-normal">Info</span>
+        <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.INFO,
+            })}
+            onClick={() => setSelected(ContentType.INFO)}
+          >
+            Info
+          </span>
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.ACTIVITY,
+            })}
+            onClick={() => setSelected(ContentType.ACTIVITY)}
+          >
+            Activity
+          </span>
+        </div>
+        <div className="mt-2 flex flex-col justify-center gap-4 2xl:flex-row 2xl:justify-between">
+          {/* Info */}
+          <div
+            className={cn('px-0 2xl:w-[808px]', {
+              hidden:
+                selected !== ContentType.INFO && selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">Info</span>
+            {/* Portfolio */}
             <div>
               <PortfolioView />
             </div>
-            <div className="mt-4 bg-white p-3">
-              <span className="text-sora text-2xl font-bold">
+            {/* Current Price on Exchanges */}
+            <div className="mt-2 bg-white p-4">
+              <span className="text-sora text-xl font-semibold">
                 Current Price on Exchanges
               </span>
               <TableContainer className="mt-4">
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <Table sx={{ minWidth: 400 }} aria-label="simple table">
                   <TableHead>
                     <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
                         Exchanges
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
-                        USD Value
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-bali-hai-600/20 flex items-center gap-2 rounded-lg px-2 py-1">
+                            <img
+                              src="../images/tokens/eth.png"
+                              width={24}
+                              height={24}
+                              alt="noicon"
+                            ></img>
+                            <span>HEX</span>
+                          </span>
+                          <span className="text-bali-hai-600">USD value</span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
                           <img
                             src="../images/platforms/uni.png"
@@ -167,12 +236,12 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                           <span>Uniswap</span>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
-                        USD value
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        $3112254546465
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
                           <img
                             src="../images/platforms/uni.png"
@@ -184,12 +253,12 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                           <span>Binance</span>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
-                        USD Value
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        $3112254546465
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
                           <img
                             src="../images/platforms/uni.png"
@@ -201,12 +270,16 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                           <span>Kucoin</span>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
-                        USD Value
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        $3112254546465
                       </TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}>
+                    <TableRow
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                      }}
+                    >
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
                           <img
                             src="../images/exchanges/coinbase.png"
@@ -218,8 +291,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                           <span>Coinbase</span>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
-                        USD Value
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        $3112254546465
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -227,9 +300,17 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
               </TableContainer>
             </div>
           </div>
-          <div className="w-full lg:w-fit">
-            <span className="font-sora text-[32px] font-normal ">Activity</span>
-
+          {/* Activity */}
+          <div
+            className={cn('mx-auto 2xl:mx-0', {
+              hidden:
+                selected !== ContentType.ACTIVITY &&
+                selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">
+              Transactions
+            </span>
             <InfiniteScroll
               dataLength={transactions.length}
               next={fetchMoreTransactions}

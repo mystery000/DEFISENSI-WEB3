@@ -34,10 +34,48 @@ import {
   getBalance,
   getBalanceHistory,
 } from '../../lib/api';
+
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { useParams } from 'react-router-dom';
+import cn from 'classnames';
+import Select from 'react-select';
+import * as Antd from 'antd';
+
+enum ContentType {
+  PORTFOLIO = 'portfolio',
+  TRANSACTIONS = 'transactions',
+  ALL = 'all',
+}
+
+const options = [
+  {
+    value: 'ethereum',
+    name: 'ethereum',
+    label: 'ETH',
+    logo: '../images/tokens/eth.png',
+  },
+  {
+    value: 'polygon',
+    name: 'polygon',
+    label: 'POLYGON',
+    logo: '../images/tokens/eth.png',
+  },
+];
+
+const formatOptionLabel = ({
+  label,
+  logo,
+}: {
+  label: string;
+  logo: string;
+}) => (
+  <div className="flex items-center gap-2">
+    <img src={logo} width={24} height={24} alt="noLogo" />
+    <div>{label}</div>
+  </div>
+);
 
 interface PortfolioProps {
   className?: string;
@@ -47,6 +85,8 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
   // const { address } = useParams();
 
   const { user } = useAppContext();
+  const [width, setWidth] = useState(window.innerWidth);
+  const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -279,6 +319,21 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
     });
   }, [balanceHistory, selectedToken]);
 
+  // Detect whether screen is mobile or desktop size
+  useEffect(() => {
+    const breakpoint = 1536;
+    const handleWindowResize = () => {
+      if (width < breakpoint && window.innerWidth >= breakpoint) {
+        setSelected(ContentType.ALL);
+      } else if (width >= breakpoint && window.innerWidth < breakpoint) {
+        setSelected(ContentType.PORTFOLIO);
+      }
+      setWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [width]);
+
   const fetchMoreTransactions = useCallback(async () => {
     try {
       const wallet = await findWalletTransactions(
@@ -357,52 +412,79 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
 
   return (
     <AppLayout>
-      <div className="h-content mx-auto w-full min-w-[480px] font-inter font-semibold lg:w-2/3">
+      <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
         <div
-          className="w-full min-w-[480px] p-4"
+          className="p-6 text-center"
           style={{
             background:
               'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
           <div>
-            <div className="text-center">
-              <h2 className="font-sora text-4xl">Aliashraf.eth</h2>
-              <span className="mt-4 text-sm font-medium">
-                {user.address.slice(0, 11)}.........{user.address.slice(-13)}
-              </span>
+            <h2 className="font-sora text-4xl font-semibold">Aliashraf.eth</h2>
+            <span className="mt-4 text-sm font-medium">
+              {user.address.slice(0, 11)}.........{user.address.slice(-13)}
+            </span>
+          </div>
+          <div className="mt-5 flex justify-center gap-4 text-sm">
+            <div className="flex items-center gap-1">
+              <FollowingIcon />
+              <span>9</span>
+              <span className="text-bali-hai-600">Following</span>
             </div>
-            <div className="mt-5 flex justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <FollowingIcon />
-                <span>
-                  <b>9</b> <span className="text-[#8E98B0]">Following</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FollowerIcon />
-                <span>
-                  <b>143</b> <span className="text-[#8E98B0]">Followers</span>
-                </span>
-              </div>
-            </div>
-            <div className="mt-5 text-center text-white">
-              <button className="rounded bg-[#FF5D29] px-4 py-2">Follow</button>
+            <div className="flex items-center gap-1">
+              <FollowerIcon />
+              <span>143</span>
+              <span className="text-bali-hai-600">Followers</span>
             </div>
           </div>
+          <div className="mt-5 text-white">
+            <button className="rounded bg-orange-400 px-4 py-[10px]">
+              Follow
+            </button>
+          </div>
+
           <div className="flex justify-end">
             <NotificationOnIcon />
           </div>
         </div>
-        <div className="mt-2 flex flex-col justify-center gap-4 lg:flex-row">
-          <div className="mx-4 w-full lg:mx-0 lg:grow">
-            <span className="font-sora text-[32px] font-normal">Portfolio</span>
-            <div className="mb-4 p-5">
+        <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.PORTFOLIO,
+            })}
+            onClick={() => setSelected(ContentType.PORTFOLIO)}
+          >
+            Portfolio
+          </span>
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.TRANSACTIONS,
+            })}
+            onClick={() => setSelected(ContentType.TRANSACTIONS)}
+          >
+            Transactions
+          </span>
+        </div>
+        <div className="mt-2 flex flex-col justify-center gap-4 2xl:flex-row 2xl:justify-between">
+          {/* Portfolio */}
+          <div
+            className={cn('px-0 2xl:w-[808px]', {
+              hidden:
+                selected !== ContentType.PORTFOLIO &&
+                selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">
+              Portfolio
+            </span>
+            {/* Balance History */}
+            <div className="w-full">
               <div className="flex justify-between bg-white p-4">
                 <span className="font-sora text-2xl font-semibold">
                   Balance History
                 </span>
-                <select
+                {/* <select
                   className="rounded border px-2 py-1 text-center"
                   defaultValue={tokensOfWallet[0]?.symbol}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -419,7 +501,12 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
                       </span>
                     </option>
                   ))}
-                </select>
+                </select> */}
+                <Select
+                  defaultValue={options[0]}
+                  formatOptionLabel={formatOptionLabel}
+                  options={options}
+                />
               </div>
               <HighchartsReact
                 highcharts={Highcharts}
@@ -427,17 +514,24 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
                 ref={chartComponentRef}
               />
             </div>
-            <div className="bg-white p-3">
+            {/* Asset Overview */}
+            <div className="mt-2 bg-white p-4">
               <div className="flex justify-between">
-                <span className="text-sora">Asset Overview</span>
-                <select
-                  className="text-inter rounded-md border px-2 py-1"
-                  defaultValue={'oneday'}
-                >
-                  <option value="oneday">1 day</option>
-                </select>
+                <span className="text-sora text-xl font-semibold">
+                  Asset Overview
+                </span>
+                <Antd.Select
+                  defaultValue="day"
+                  style={{ width: 120 }}
+                  options={[
+                    { value: 'hour', label: '1 hour' },
+                    { value: 'day', label: '1 day' },
+                    { value: 'month', label: '1 month' },
+                    { value: 'year', label: '1 year' },
+                  ]}
+                />
               </div>
-              <div className="mt-4 flex flex-wrap justify-between gap-4">
+              <div className="mt-2 flex flex-wrap justify-between gap-4">
                 <Asset
                   blockchain="All"
                   balance={balanceFormatter(
@@ -461,13 +555,17 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
                   history={PolygonSparkLineData}
                 />
               </div>
-              <TableContainer className="mt-4">
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableContainer>
+                <Table sx={{ minWidth: 400 }} aria-label="simple table">
                   <TableHead>
                     <TableRow>
-                      <TableCell style={{ fontWeight: 600 }}> Token</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>Amount</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                        Token
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                        Amount
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
                         USD Value
                       </TableCell>
                     </TableRow>
@@ -506,11 +604,17 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
               </TableContainer>
             </div>
           </div>
-          <div className="w-full lg:w-fit">
-            <span className="font-sora text-[32px] font-normal ">
+          {/* Transaction */}
+          <div
+            className={cn('mx-auto 2xl:mx-0', {
+              hidden:
+                selected !== ContentType.TRANSACTIONS &&
+                selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">
               Transactions
             </span>
-
             <InfiniteScroll
               dataLength={transactions.length}
               next={fetchMoreTransactions}

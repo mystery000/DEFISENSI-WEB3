@@ -8,7 +8,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <>
       <div className="relative min-w-[430px]">
         <Header />
-        <div className="bg-catskill-50">{children}</div>
+        <div className="bg-catskill-white-50 min-h-[calc(100vh_-_78px)] overflow-auto">
+          {children}
+        </div>
       </div>
     </>
   );

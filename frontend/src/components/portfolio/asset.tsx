@@ -16,8 +16,8 @@ export const Asset: FC<AssetProps> = ({
   history,
 }) => {
   return (
-    <div className="w-full rounded-lg border border-[#8E98B04D] p-3 lg:w-[48%]">
-      <span className="font-sora text-base font-normal text-[#8E98B0]">
+    <div className="border-bali-hai-600/30 w-full rounded-lg border p-3 2xl:w-[48%]">
+      <span className="text-bali-hai-600 font-sora text-base">
         {blockchain}
       </span>
       <div className="flex items-center justify-between">
