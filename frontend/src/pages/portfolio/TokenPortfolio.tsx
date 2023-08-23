@@ -6,7 +6,6 @@ import {
   FollowerIcon,
   FollowingIcon,
   NotificationOnIcon,
-  PortfolioView,
 } from '../../components/icons/defisensi-icons';
 
 import cn from 'classnames';

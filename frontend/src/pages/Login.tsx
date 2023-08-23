@@ -24,7 +24,7 @@ export const Login = () => {
         const user = await login(address);
         setUser({ id: user._id, address });
         setLoading(false);
-        naviate('/transactions');
+        naviate('/portfolio/wallet');
       } catch (error) {
         setLoading(false);
         console.log(error);
