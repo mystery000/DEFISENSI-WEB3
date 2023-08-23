@@ -48,7 +48,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
 
   const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
+  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 

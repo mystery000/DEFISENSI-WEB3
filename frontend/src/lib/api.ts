@@ -88,9 +88,10 @@ export const getBalanceHistory = async (address: string) => {
   }
 };
 
-export const findUserByAddress = async (address: string) => {
+export const login = async (address: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/user/${address}`);
+    const res = await axios.post(`${API_BASE_URL}/user/login`, { address });
+    await axios.post(`${API_BASE_URL}/wallet`, { address });
     return res.data;
   } catch (error) {
     console.log(error);

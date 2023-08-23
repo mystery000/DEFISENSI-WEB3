@@ -199,7 +199,7 @@ export class PolygonscanService {
       );
       return response.data.data as HistoricalPrice[];
     } catch (error) {
-      console.log(error);
+      logger.error(error);
       return [] as HistoricalPrice[];
     }
   }

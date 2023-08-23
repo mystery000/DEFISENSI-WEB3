@@ -41,7 +41,7 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
   const { network, contractAddress } = useParams();
 
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
+  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
   const { priceHistory, loading } = usePriceHistory();
   const { exchangePrice } = usePriceFromExchanges();
   const { transactions, mutateTransactions } = useTokenTransactions();

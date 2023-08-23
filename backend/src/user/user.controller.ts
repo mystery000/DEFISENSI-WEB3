@@ -144,4 +144,10 @@ export class UserController {
   ): Promise<Token[]> {
     return this.userService.getFollowingTokensTransactions(address, limit);
   }
+
+  @Post('/login')
+  @ApiOperation({ summary: 'login' })
+  async login(@Body() user: CreateUserDto): Promise<User> {
+    return this.userService.login(user.address);
+  }
 }

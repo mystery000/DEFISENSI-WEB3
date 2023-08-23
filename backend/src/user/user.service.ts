@@ -231,4 +231,14 @@ export class UserService {
     const user = await this.userModel.findOne({ address }).populate('notifications');
     return user.notifications;
   }
+
+  async login(address: string) {
+    const user = await this.userModel.findOne({ address });
+
+    if (!user) {
+      const newUser = await this.userModel.create({ address });
+      return newUser;
+    }
+    return user;
+  }
 }

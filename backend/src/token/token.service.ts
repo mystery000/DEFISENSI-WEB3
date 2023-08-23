@@ -213,7 +213,6 @@ export class TokenService {
         if (token && token.transactions && token.transactions.length > 0)
           latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
 
-        console.log(latestBlockNumber);
         const txs = await this.etherscanService.getTransactionByToken(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.Polygon) {

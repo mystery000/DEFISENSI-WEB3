@@ -26,6 +26,7 @@ import { NFTPortfolio } from './pages/portfolio/NFTPortfolio';
 import { WalletAlert } from './pages/alert/WalletAlert';
 import { TokenAlert } from './pages/alert/TokenAlert';
 import { NFTAlert } from './pages/alert/NFTAlert';
+import { Notifications } from './pages/Notifications';
 
 const chains = [mainnet, polygon, bsc];
 
@@ -46,6 +47,7 @@ function App() {
         <ManagedAppContext>
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />
@@ -61,9 +63,10 @@ function App() {
                 <Route path="/alert/wallet/create" element={<WalletAlert />} />
                 <Route path="/alert/token/create" element={<TokenAlert />} />
                 <Route path="/alert/nft/create" element={<NFTAlert />} />
-                <Route path="/404" element={<PageNotFound />} />
-                <Route path="*" element={<Navigate to="/404" />} />
+                <Route path="/notifications" element={<Notifications />} />
               </Route>
+              <Route path="/404" element={<PageNotFound />} />
+              <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
           </BrowserRouter>
         </ManagedAppContext>

@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { BadRequestException, Injectable, forwardRef, Inject } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { TokenBalance, Transaction } from 'src/utils/types';
 import { logger } from 'src/utils/logger';
@@ -25,15 +25,19 @@ export class WalletService {
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
-    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    const newWallet = await this.walletModel.findOneAndUpdate(
-      { address: wallet.address },
-      { address: wallet.address },
-      options,
-    );
-    // Fetch latest 4 transactions when a new wallet is created
-    await this.initializeTransactions(wallet.address);
-    return newWallet;
+    let foundWallet = await this.walletModel.findOne({ address: wallet.address });
+    if (!foundWallet) {
+      const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+      const newWallet = await this.walletModel.findOneAndUpdate(
+        { address: wallet.address },
+        { address: wallet.address },
+        options,
+      );
+      // Fetch latest 4 transactions when a new wallet is created
+      await this.initializeTransactions(wallet.address);
+      return newWallet;
+    }
+    return foundWallet;
   }
 
   async getOrCreate(address: string) {

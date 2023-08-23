@@ -85,7 +85,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
 
   const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
+  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 

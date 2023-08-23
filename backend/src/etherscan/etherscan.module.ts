@@ -1,5 +1,5 @@
 import { HttpModule } from '@nestjs/axios';
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
 import { EtherscanService } from './etherscan.service';
 import { EtherscanController } from './etherscan.controller';

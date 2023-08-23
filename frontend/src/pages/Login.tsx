@@ -1,12 +1,14 @@
 import { useWeb3Modal } from '@web3modal/react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useAppContext } from '../context/app';
-import { findUserByAddress } from '../lib/api';
+import { login } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export const Login = () => {
   const naviate = useNavigate();
   const { open } = useWeb3Modal();
+  const [loading, setLoading] = useState(false);
   const { user, setUser } = useAppContext();
   // const { chain, chains } = useNetwork();
 
@@ -18,10 +20,13 @@ export const Login = () => {
       if (!address) return;
 
       try {
-        const user = await findUserByAddress(address);
+        setLoading(true);
+        const user = await login(address);
         setUser({ id: user._id, address });
+        setLoading(false);
         naviate('/transactions');
       } catch (error) {
+        setLoading(false);
         console.log(error);
       }
     },
@@ -33,12 +38,16 @@ export const Login = () => {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
-      <button
-        onClick={() => open()}
-        className="rounded-lg bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-      >
-        Connect
-      </button>
+      {loading ? (
+        <div className="text-center">Loading...</div>
+      ) : (
+        <button
+          onClick={() => open()}
+          className="rounded-lg bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >
+          Connect
+        </button>
+      )}
     </div>
   );
 };
