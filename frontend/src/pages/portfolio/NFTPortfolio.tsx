@@ -48,7 +48,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
 
   const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
+  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -284,6 +284,9 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
     const breakpoint = 1536;
+    window.innerWidth >= breakpoint
+      ? setSelected(ContentType.ALL)
+      : setSelected(ContentType.INFO);
     const handleWindowResize = () => {
       if (width < breakpoint && window.innerWidth >= breakpoint) {
         setSelected(ContentType.ALL);

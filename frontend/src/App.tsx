@@ -47,16 +47,22 @@ function App() {
         <ManagedAppContext>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Transactions />} />
               <Route path="/login" element={<Login />} />
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />
-                <Route path="/portfolio/wallet" element={<WalletPortfolio />} />
                 <Route
-                  path="/portfolio/token/:network/:contractAddress"
+                  path="/portfolio/wallet/:address"
+                  element={<WalletPortfolio />}
+                />
+                <Route
+                  path="/portfolio/token/:network/:address"
                   element={<TokenPortfolio />}
                 />
-                <Route path="/portfolio/nft" element={<NFTPortfolio />} />
+                <Route
+                  path="/portfolio/nft/:network/:address"
+                  element={<NFTPortfolio />}
+                />
                 <Route path="/discover/wallet" element={<TopWallets />} />
                 <Route path="/discover/token" element={<TopTokens />} />
                 <Route path="/discover/nft" element={<TopNFTs />} />

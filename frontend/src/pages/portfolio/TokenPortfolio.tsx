@@ -37,10 +37,10 @@ interface TokenPortfolioProps {
 }
 
 export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
-  const { network, contractAddress } = useParams();
+  const { network, address } = useParams();
 
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
+  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
   const { priceHistory, loading } = usePriceHistory();
   const { exchangePrice } = usePriceFromExchanges();
   const { transactions, mutateTransactions } = useTokenTransactions();
@@ -170,11 +170,11 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
 
   const fetchMoreTransactions = useCallback(async () => {
     try {
-      if (!contractAddress) return;
+      if (!address) return;
 
       const token = await getTokenTransactions(
         'ethereum',
-        contractAddress,
+        address,
         transactions.length + 4,
       );
 
@@ -196,11 +196,14 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
     } catch (error) {
       console.log(error);
     }
-  }, [transactions, contractAddress]);
+  }, [transactions, address]);
 
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
     const breakpoint = 1536;
+    window.innerWidth >= breakpoint
+      ? setSelected(ContentType.ALL)
+      : setSelected(ContentType.INFO);
     const handleWindowResize = () => {
       if (width < breakpoint && window.innerWidth >= breakpoint) {
         setSelected(ContentType.ALL);
@@ -241,7 +244,7 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
     });
   }, [priceHistory]);
 
-  if (!contractAddress) return;
+  if (!address) return;
 
   if (!exchangePrice)
     return <div className="text-center">Invalid Token Address</div>;
@@ -270,8 +273,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
               </span>
             </h2>
             <span className="mt-4 text-sm font-medium">
-              {contractAddress.slice(0, 11)}.........
-              {contractAddress.slice(-13)}
+              {address.slice(0, 11)}.........
+              {address.slice(-13)}
             </span>
           </div>
           <div className="mt-5 flex justify-center gap-4 text-sm">

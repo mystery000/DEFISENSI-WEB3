@@ -1,22 +1,19 @@
-import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useNetwork } from 'wagmi';
-import { useAppContext } from '../context/app';
-import { login } from '../lib/api';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { login } from '../lib/api';
+import { useAccount } from 'wagmi';
+import { useAppContext } from '../context/app';
+import { useWeb3Modal } from '@web3modal/react';
 
 export const Login = () => {
   const naviate = useNavigate();
   const { open } = useWeb3Modal();
+  const { setUser } = useAppContext();
   const [loading, setLoading] = useState(false);
-  const { user, setUser } = useAppContext();
-  // const { chain, chains } = useNetwork();
 
   const account = useAccount({
     async onConnect({ address, connector, isReconnected }) {
-      // console.log("Connected", { address, connector, isReconnected });
-      // console.log(`Connected to ${chain?.name}`);
-
       if (!address) return;
 
       try {
@@ -24,7 +21,7 @@ export const Login = () => {
         const user = await login(address);
         setUser({ id: user._id, address });
         setLoading(false);
-        naviate('/portfolio/wallet');
+        setTimeout(() => naviate(`/portfolio/wallet/${address}`), 500);
       } catch (error) {
         setLoading(false);
         console.log(error);

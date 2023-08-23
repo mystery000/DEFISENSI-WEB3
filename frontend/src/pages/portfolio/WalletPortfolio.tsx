@@ -76,16 +76,11 @@ const formatOptionLabel = ({
   </div>
 );
 
-interface PortfolioProps {
-  className?: string;
-}
-
-export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
-  // const { address } = useParams();
-
+export const WalletPortfolio = () => {
+  const { address } = useParams();
   const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.ALL);
+  const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -223,9 +218,10 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
   >([]);
 
   useEffect(() => {
+    if (!address) return;
     const getTransactions = async () => {
       try {
-        const wallet = await findWalletTransactions(user.address, 4);
+        const wallet = await findWalletTransactions(address, 4);
 
         if (!wallet) return;
 
@@ -246,7 +242,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
 
         setTransactions(txns);
 
-        const balance = await getBalance(user.address);
+        const balance = await getBalance(address);
         setBalance(balance || {});
 
         const tokens = [
@@ -267,7 +263,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
         setTokensOfWallet(tokens);
         setSelectedToken(tokens[0]);
 
-        const balanceHistory = await getBalanceHistory(user.address);
+        const balanceHistory = await getBalanceHistory(address);
         setBalanceHistory(balanceHistory || {});
       } catch (error) {
         console.log(error);
@@ -323,6 +319,9 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
     const breakpoint = 1536;
+    window.innerWidth >= breakpoint
+      ? setSelected(ContentType.ALL)
+      : setSelected(ContentType.PORTFOLIO);
     const handleWindowResize = () => {
       if (width < breakpoint && window.innerWidth >= breakpoint) {
         setSelected(ContentType.ALL);
@@ -336,9 +335,10 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
   }, [width]);
 
   const fetchMoreTransactions = useCallback(async () => {
+    if (!address) return;
     try {
       const wallet = await findWalletTransactions(
-        user.address,
+        address,
         transactions.length + 4,
       );
 
@@ -424,7 +424,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
           <div>
             <h2 className="font-sora text-4xl font-semibold">Aliashraf.eth</h2>
             <span className="mt-4 text-sm font-medium">
-              {user.address.slice(0, 11)}.........{user.address.slice(-13)}
+              {address?.slice(0, 11)}.........{address?.slice(-13)}
             </span>
           </div>
           <div className="mt-5 flex justify-center gap-4 text-sm">
