@@ -24,6 +24,7 @@ import {
 
 import { useAppContext } from '../../context/app';
 import { TransferType } from '../../types';
+import { useLocation } from 'react-router-dom';
 
 type TransactionCardProps = {
   transaction: Transaction;
@@ -39,6 +40,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
   comments,
 }) => {
   const { user } = useAppContext();
+  const location = useLocation();
   const age = getAge(transaction.details.timestamp);
 
   return (
@@ -69,7 +71,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
         </div>
         <div>
           <img
-            src="../images/platforms/uni.png"
+            src={`/images/platforms/uni.png`}
             width={32}
             height={32}
             className="rounded-full border"
@@ -83,10 +85,10 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             <img
               src={
                 transaction.details.token0.symbol.toLocaleLowerCase() === 'weth'
-                  ? `../images/tokens/eth.png`
+                  ? `/images/tokens/eth.png`
                   : transaction.details.token0.logo
                   ? transaction.details.token0.logo
-                  : `../images/tokens/empty-eth.png`
+                  : `/images/tokens/empty-eth.png`
               }
               width={24}
               height={24}
@@ -110,10 +112,10 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             <img
               src={
                 transaction.details.token1.symbol.toLocaleLowerCase() == 'weth'
-                  ? `../images/tokens/eth.png`
+                  ? `/images/tokens/eth.png`
                   : transaction.details.token1.logo
                   ? transaction.details.token1.logo
-                  : `../images/tokens/empty-eth.png`
+                  : `/images/tokens/empty-eth.png`
               }
               width={24}
               height={24}

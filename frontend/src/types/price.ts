@@ -1,10 +1,21 @@
-export type Price = {
-  name: string;
+export type HistoricalPrice = {
+  price: number;
   symbol: string;
-  logo: string;
-  contractAdress: string;
-  uniswap: number;
-  binance: number;
-  kucoin: number;
-  coinbase: number;
+  decimals: number;
+  updated_at: string;
+  logo?: string;
+};
+
+export type ExchangePrice = {
+  tokenName: string;
+  tokenAddress: string;
+  tokenSymbol: string;
+  tokenLogo: string;
+  tokenDecimals: string;
+  usdPrice: {
+    uniswap?: string;
+    kucoin?: string;
+    binance?: string;
+    coinbase?: string;
+  };
 };

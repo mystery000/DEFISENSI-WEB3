@@ -238,11 +238,20 @@ export class TokenService {
     }
   }
 
-  async getPrice(network: string, contractAddress: string) {
+  async getPriceHistory(network: string, contractAddress: string) {
     if (network === NetworkType.Ethereum) {
-      return this.etherscanService.getPriceByContract(contractAddress);
+      return this.etherscanService.getPriceHistory(contractAddress);
     } else if (network === NetworkType.Polygon) {
-      return this.polygonService.getPriceByERC20(contractAddress);
+      return this.polygonService.getPriceHistory(contractAddress);
+    }
+    return null;
+  }
+
+  async getTokenPriceFromExchanges(network: string, contractAddress: string) {
+    if (network === NetworkType.Ethereum) {
+      return this.etherscanService.getPriceFromExchanges(contractAddress);
+    } else if (network === NetworkType.Polygon) {
+      // return this.polygonService.getPriceFromExchanges(contractAddress);
     }
     return null;
   }

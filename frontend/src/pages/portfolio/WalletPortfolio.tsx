@@ -19,7 +19,6 @@ import {
 } from '../../components/icons/defisensi-icons';
 import { Asset } from '../../components/portfolio/asset';
 
-import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -129,6 +128,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
       },
     },
     yAxis: {
+      type: 'logarithmic',
       opposite: true,
       title: {
         text: '',
@@ -211,6 +211,7 @@ export const WalletPortfolio: FC<PortfolioProps> = ({ className }) => {
       },
     ],
   };
+
   const [chartOptions, setChartOptions] = useState(defaultOption);
 
   const [selectedToken, setSelectedToken] = useState<

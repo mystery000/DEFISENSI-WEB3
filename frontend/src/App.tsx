@@ -23,6 +23,9 @@ import { TopTokens } from './pages/discover/TopTokens';
 import { TopNFTs } from './pages/discover/TopNFTs';
 import { PageNotFound } from './pages/PageNotFound';
 import { NFTPortfolio } from './pages/portfolio/NFTPortfolio';
+import { WalletAlert } from './pages/alert/WalletAlert';
+import { TokenAlert } from './pages/alert/TokenAlert';
+import { NFTAlert } from './pages/alert/NFTAlert';
 
 const chains = [mainnet, polygon, bsc];
 
@@ -47,11 +50,17 @@ function App() {
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/portfolio/wallet" element={<WalletPortfolio />} />
-                <Route path="/portfolio/token" element={<TokenPortfolio />} />
+                <Route
+                  path="/portfolio/token/:network/:contractAddress"
+                  element={<TokenPortfolio />}
+                />
                 <Route path="/portfolio/nft" element={<NFTPortfolio />} />
                 <Route path="/discover/wallet" element={<TopWallets />} />
                 <Route path="/discover/token" element={<TopTokens />} />
                 <Route path="/discover/nft" element={<TopNFTs />} />
+                <Route path="/alert/wallet/create" element={<WalletAlert />} />
+                <Route path="/alert/token/create" element={<TokenAlert />} />
+                <Route path="/alert/nft/create" element={<NFTAlert />} />
                 <Route path="/404" element={<PageNotFound />} />
                 <Route path="*" element={<Navigate to="/404" />} />
               </Route>

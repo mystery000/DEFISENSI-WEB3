@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-import { Balance, BalanceHistory } from '../types/balance';
+import { ExchangePrice, HistoricalPrice } from '../types/price';
 import { API_BASE_URL } from '../config/app';
+import { Balance, BalanceHistory } from '../types/balance';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
 
 export const findFollowingWallets = async (
@@ -93,5 +94,35 @@ export const findUserByAddress = async (address: string) => {
     return res.data;
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getPriceHistory = async (
+  network: string,
+  contractAddress: string,
+) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/token/${network}/${contractAddress}/price/history`,
+    );
+    return res.data as HistoricalPrice[];
+  } catch (error) {
+    console.log(error);
+    return [] as HistoricalPrice[];
+  }
+};
+
+export const getPriceFromExchanges = async (
+  network: string,
+  contractAddress: string,
+) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`,
+    );
+    return res.data as ExchangePrice;
+  } catch (error) {
+    console.log(error);
+    return;
   }
 };

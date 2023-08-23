@@ -8,11 +8,13 @@ import { UNISWAP_ABI } from './abi';
 import { ConfigService } from '@nestjs/config';
 import { MoralisConfig } from 'src/config/moralis.config';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { TokenBalance, Transaction } from 'src/utils/types';
+import { ExchangePrice, HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import axios from 'axios';
+import { contract } from 'web3/lib/commonjs/eth.exports';
+import { logger } from 'src/utils/logger';
 
 @Injectable()
 export class EtherscanService {
@@ -644,17 +646,79 @@ export class EtherscanService {
     return { timestamp, tokens };
   }
 
-  async getPriceByContract(contractAddress: string) {
-    return {
-      name: 'HEX',
-      symbol: 'HEX',
-      logo: null,
-      contractAddress,
-      uniswap: 3122210,
-      binance: 34883,
-      kucoin: 3234,
-      coinbase: 39548,
+  // Get the price history of ERC20 token for 90 days
+  async getPriceHistory(contractAddress: string) {
+    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
+    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
+    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
+    let toTimestamp = Math.round(new Date().getTime() / 1000);
+    let fromTimestamp = toTimestamp - 86400 * 90;
+
+    try {
+      const response = await axios.get(
+        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=1&contract_address=${contractAddress}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
+        {
+          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
+        },
+      );
+      return response.data.data as HistoricalPrice[];
+    } catch (error) {
+      console.log(error);
+      return [] as HistoricalPrice[];
+    }
+  }
+
+  async getPriceFromExchanges(contractAddress: string) {
+    let exchangesPrice: ExchangePrice = {
+      tokenName: '',
+      tokenAddress: '',
+      tokenSymbol: '',
+      tokenLogo: '',
+      tokenDecimals: '',
+      usdPrice: {
+        uniswap: '',
+      },
     };
+
+    try {
+      // Uniswap V3
+      const uniswap = await Moralis.EvmApi.token.getTokenPrice({
+        chain: EvmChain.ETHEREUM,
+        address: contractAddress,
+      });
+
+      if (!uniswap) return null;
+
+      exchangesPrice.tokenAddress = contractAddress;
+      exchangesPrice.tokenDecimals = uniswap.toJSON().tokenDecimals;
+      exchangesPrice.tokenLogo = uniswap.toJSON().tokenLogo;
+      exchangesPrice.tokenName = uniswap.toJSON().tokenName;
+      exchangesPrice.tokenSymbol = uniswap.toJSON().tokenSymbol;
+      exchangesPrice.usdPrice.uniswap = uniswap.toJSON().usdPrice.toString();
+
+      // Binance Exchange
+      try {
+        await axios
+          .get(`https://api.binance.com/api/v3/ticker/price?symbol=${uniswap.toJSON().tokenSymbol}USDT`)
+          .then((res) => {
+            exchangesPrice.usdPrice.binance = res.data.price;
+          });
+      } catch (error) {}
+
+      // Kucoin Exchange
+      await axios
+        .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${uniswap.toJSON().tokenSymbol}-USDT`)
+        .then((res) => {
+          exchangesPrice.usdPrice.kucoin = res.data.data?.price;
+        });
+
+      // Coinbase Exchange
+
+      return exchangesPrice;
+    } catch (error) {
+      logger.error(error);
+      return null;
+    }
   }
 
   async test() {
@@ -672,6 +736,8 @@ export class EtherscanService {
     */
     // return this.getTransactionByToken('0xdAC17F958D2ee523a2206206994597C13D831ec7');
 
-    return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
+    // return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
+    // return this.getPriceHistory('0xB8c77482e45F1F44dE1745F52C74426C631bDD52');
+    return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
   }
 }

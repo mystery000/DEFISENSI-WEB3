@@ -10,7 +10,7 @@ import { CreateTokenDto } from './dto/create-token.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { ApiTransaction, Transaction } from 'src/utils/types';
+import { ApiTransaction, ExchangePrice, Transaction } from 'src/utils/types';
 
 @ApiTags('Token')
 @Controller('token')
@@ -103,12 +103,19 @@ export class TokenController {
     return this.tokenService.getTransactions(network, address, limit);
   }
 
-  @Get(':network/:address/price')
-  @ApiOperation({ summary: 'Get current price of this token' })
-  @ApiOkResponse({ type: Comment, isArray: true })
+  @Get(':network/:address/price/history')
+  @ApiOperation({ summary: 'Get price history of ERC20 token contract' })
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'The contract address of this token' })
-  getUSDPrice(@Param('network') network: string, @Param('address') address: string) {
-    return this.tokenService.getPrice(network, address);
+  getHistoricalPrice(@Param('network') network: string, @Param('address') address: string) {
+    return this.tokenService.getPriceHistory(network, address);
+  }
+
+  @Get('/:network/:address/price/exchanges')
+  @ApiOperation({ summary: 'Get price of this token from various exchanges' })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'Token contract address' })
+  getPriceFromExchanges(@Param('network') network: string, @Param('address') address: string): Promise<ExchangePrice> {
+    return this.tokenService.getTokenPriceFromExchanges(network, address);
   }
 }

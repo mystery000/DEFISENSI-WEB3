@@ -5,8 +5,9 @@ import { Injectable } from '@nestjs/common';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
-import { TokenBalance, Transaction } from 'src/utils/types';
+import { HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
+import axios from 'axios';
 
 @Injectable()
 export class PolygonscanService {
@@ -181,17 +182,26 @@ export class PolygonscanService {
     return { timestamp, tokens };
   }
 
-  async getPriceByERC20(contractAddress: string) {
-    return {
-      name: 'HEX',
-      symbol: 'HEX',
-      logo: null,
-      contractAddress,
-      uniswap: 3122210,
-      binance: 34883,
-      kucoin: 3234,
-      coinbase: 39548,
-    };
+  async getPriceHistory(contractAddress: string) {
+    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
+    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
+    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
+
+    let toTimestamp = Math.round(new Date().getTime() / 1000);
+    let fromTimestamp = toTimestamp - 86400 * 90;
+
+    try {
+      const response = await axios.get(
+        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=137&contract_address=${contractAddress}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
+        {
+          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
+        },
+      );
+      return response.data.data as HistoricalPrice[];
+    } catch (error) {
+      console.log(error);
+      return [] as HistoricalPrice[];
+    }
   }
 
   async test() {
