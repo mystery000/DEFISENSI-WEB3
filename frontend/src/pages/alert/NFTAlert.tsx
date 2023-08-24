@@ -1,7 +1,7 @@
-import { Button, Checkbox, Input, Select } from 'antd';
-import AppLayout from '../../layouts/AppLayout';
-import TextArea from 'antd/es/input/TextArea';
 import { Plus } from 'lucide-react';
+import TextArea from 'antd/es/input/TextArea';
+import { Button, Input, Select } from 'antd';
+import AppLayout from '../../layouts/AppLayout';
 
 export const NFTAlert = () => {
   return (

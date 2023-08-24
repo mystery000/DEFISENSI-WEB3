@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { Dropdown, Menu, Space } from 'antd';
-import type { MenuProps } from 'antd';
-import { AlignJustifyIcon } from 'lucide-react';
-import { DownOutlined, MailOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+
+import { Dropdown } from 'antd';
+import { AlignJustifyIcon } from 'lucide-react';
+import { MailOutlined } from '@ant-design/icons';
 import { useAppContext } from '../../context/app';
 
 const Header = () => {

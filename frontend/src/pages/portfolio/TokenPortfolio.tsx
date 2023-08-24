@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AppLayout from '../../layouts/AppLayout';
 import {
@@ -60,123 +60,126 @@ export const TokenPortfolio = () => {
 
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 
-  const defaultOption: Highcharts.Options = {
-    // title: {
-    //   text: 'Balance History',
-    //   style: {
-    //     fontFamily: 'Sora',
-    //     fontSize: '24px',
-    //     fontWeight: '600',
-    //     fontColor: '#000',
-    //   },
-    //   align: 'left',
-    // },
-    title: { text: '' },
-    legend: {
-      enabled: false, // Set this to false to disable the legend
-    },
-    credits: {
-      enabled: false, // Set this to false to disable the credits
-    },
-    xAxis: {
-      type: 'datetime',
-      lineColor: '#F0F0F0',
-      tickColor: '#F0F0F0',
-      labels: {
-        style: {
-          color: '#33323A',
-          fontSize: '14px',
-          fontWeight: '600',
-        },
-        formatter: function () {
-          return Highcharts.dateFormat('%d/%m/%y %H:%M', Number(this.value));
+  const defaultOption: Highcharts.Options = useMemo(
+    () => ({
+      // title: {
+      //   text: 'Balance History',
+      //   style: {
+      //     fontFamily: 'Sora',
+      //     fontSize: '24px',
+      //     fontWeight: '600',
+      //     fontColor: '#000',
+      //   },
+      //   align: 'left',
+      // },
+      title: { text: '' },
+      legend: {
+        enabled: false, // Set this to false to disable the legend
+      },
+      credits: {
+        enabled: false, // Set this to false to disable the credits
+      },
+      xAxis: {
+        type: 'datetime',
+        lineColor: '#F0F0F0',
+        tickColor: '#F0F0F0',
+        labels: {
+          style: {
+            color: '#33323A',
+            fontSize: '14px',
+            fontWeight: '600',
+          },
+          formatter: function () {
+            return Highcharts.dateFormat('%d/%m/%y %H:%M', Number(this.value));
+          },
         },
       },
-    },
-    yAxis: {
-      type: 'logarithmic',
-      opposite: true,
-      title: {
-        text: '',
+      yAxis: {
+        type: 'logarithmic',
+        opposite: true,
+        title: {
+          text: '',
+        },
+        labels: {
+          style: {
+            color: '#77838F',
+            fontSize: '14px',
+            fontWeight: '400',
+          },
+          formatter: function () {
+            let value = Number(this.value);
+            if (value >= 1e9) {
+              return '$' + value / 1e9 + 'B';
+            } else if (value >= 1e6) {
+              return '$' + value / 1e6 + 'M';
+            } else if (value >= 1e3) {
+              return '$' + value / 1e3 + 'K';
+            } else {
+              return '$' + value;
+            }
+          },
+        },
       },
-      labels: {
+      tooltip: {
+        backgroundColor: 'black',
+        borderWidth: 0,
+        borderRadius: 0,
+        shadow: false,
         style: {
-          color: '#77838F',
-          fontSize: '14px',
+          fontFamily: 'Sora',
+          fontSize: '12px',
           fontWeight: '400',
+          lineHeight: '12px',
+          letterSpacing: '-0.02em',
+          textAlign: 'right',
+          color: 'white',
+        },
+        shape: 'callout', // Use the callout shape (custom SVG path)
+        positioner: function (width, height, point) {
+          const chart = this.chart;
+          const tooltipX = point.plotX + chart.plotLeft - width - 10; // Adjust tooltipX to move it leftward
+          const tooltipY = point.plotY + chart.plotTop - 50; // Adjust tooltipY to move it upward
+          return { x: tooltipX, y: tooltipY };
         },
         formatter: function () {
-          let value = Number(this.value);
-          if (value >= 1e9) {
-            return '$' + value / 1e9 + 'B';
-          } else if (value >= 1e6) {
-            return '$' + value / 1e6 + 'M';
-          } else if (value >= 1e3) {
-            return '$' + value / 1e3 + 'K';
+          let yValue: string | number = Number(this.y);
+          if (yValue >= 1e9) {
+            yValue = '$' + yValue / 1e9 + 'B';
+          } else if (yValue >= 1e6) {
+            yValue = '$' + yValue / 1e6 + 'M';
+          } else if (yValue >= 1e3) {
+            yValue = '$' + yValue / 1e3 + 'K';
           } else {
-            return '$' + value;
+            yValue = '$' + yValue;
           }
+          const xValue = Highcharts.dateFormat('%e %b %Y', Number(this.x));
+          // Format the tooltip with x and y values
+          return `<span style=" font-size: 12px; ">${yValue}</span><br/><span>${xValue}</span>`;
         },
       },
-    },
-    tooltip: {
-      backgroundColor: 'black',
-      borderWidth: 0,
-      borderRadius: 0,
-      shadow: false,
-      style: {
-        fontFamily: 'Sora',
-        fontSize: '12px',
-        fontWeight: '400',
-        lineHeight: '12px',
-        letterSpacing: '-0.02em',
-        textAlign: 'right',
-        color: 'white',
-      },
-      shape: 'callout', // Use the callout shape (custom SVG path)
-      positioner: function (width, height, point) {
-        const chart = this.chart;
-        const tooltipX = point.plotX + chart.plotLeft - width - 10; // Adjust tooltipX to move it leftward
-        const tooltipY = point.plotY + chart.plotTop - 50; // Adjust tooltipY to move it upward
-        return { x: tooltipX, y: tooltipY };
-      },
-      formatter: function () {
-        let yValue: string | number = Number(this.y);
-        if (yValue >= 1e9) {
-          yValue = '$' + yValue / 1e9 + 'B';
-        } else if (yValue >= 1e6) {
-          yValue = '$' + yValue / 1e6 + 'M';
-        } else if (yValue >= 1e3) {
-          yValue = '$' + yValue / 1e3 + 'K';
-        } else {
-          yValue = '$' + yValue;
-        }
-        const xValue = Highcharts.dateFormat('%e %b %Y', Number(this.x));
-        // Format the tooltip with x and y values
-        return `<span style=" font-size: 12px; ">${yValue}</span><br/><span>${xValue}</span>`;
-      },
-    },
-    chart: {
-      zooming: {
-        type: 'x',
-        mouseWheel: true,
-      },
-    },
-    series: [
-      {
-        type: 'area',
-        color: {
-          linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
-          stops: [
-            [0, '#ffffff'],
-            [1, '#3354F4'],
-          ],
+      chart: {
+        zooming: {
+          type: 'x',
+          mouseWheel: true,
         },
-        lineColor: '#3354F4',
-        data: [],
       },
-    ],
-  };
+      series: [
+        {
+          type: 'area',
+          color: {
+            linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
+            stops: [
+              [0, '#ffffff'],
+              [1, '#3354F4'],
+            ],
+          },
+          lineColor: '#3354F4',
+          data: [],
+        },
+      ],
+    }),
+    [],
+  );
 
   const [chartOptions, setChartOptions] = useState(defaultOption);
 
@@ -208,7 +211,7 @@ export const TokenPortfolio = () => {
     } catch (error) {
       console.log(error);
     }
-  }, [transactions, address]);
+  }, [transactions, address, mutateTransactions]);
 
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
@@ -254,7 +257,7 @@ export const TokenPortfolio = () => {
         ],
       };
     });
-  }, [priceHistory]);
+  }, [priceHistory, defaultOption]);
 
   const handleFollow = useCallback(async () => {
     if (!address || !network) return;
@@ -271,7 +274,7 @@ export const TokenPortfolio = () => {
       setFollowing(false);
       toast.error((error as any).message);
     }
-  }, [address, network, user, portfolio]);
+  }, [address, network, user, portfolio, mutatePortfolio]);
 
   if (!address) return;
 
