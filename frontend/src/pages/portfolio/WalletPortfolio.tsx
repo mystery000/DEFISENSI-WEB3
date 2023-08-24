@@ -23,6 +23,7 @@ import { Balance, BalanceHistory, TokenBalance } from '../../types/balance';
 
 import {
   findWalletTransactions,
+  followWallet,
   getBalance,
   getBalanceHistory,
 } from '../../lib/api';
@@ -30,6 +31,8 @@ import {
 import cn from 'classnames';
 import * as Antd from 'antd';
 import Select from 'react-select';
+import { toast } from 'react-toastify';
+import { useAppContext } from '../../context/app';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
 import { EmptyContainer } from '../../components/EmptyContainer';
@@ -72,15 +75,21 @@ const formatOptionLabel = ({
 
 export const WalletPortfolio = () => {
   const { address } = useParams();
-  const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
-  const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+  const { user } = useAppContext();
   const [fetchMore, setFetchMore] = useState(false);
+  const [following, setFollowing] = useState(false);
   const [balance, setBalance] = useState<Balance>({});
+  const [width, setWidth] = useState(window.innerWidth);
+  const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+  const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const { data: portfolio, loading: loadingPortfolio } = useWalletPortfolio();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const {
+    data: portfolio,
+    loading: loadingPortfolio,
+    mutate: mutatePortfolio,
+  } = useWalletPortfolio();
 
   const defaultOption: Highcharts.Options = {
     // title: {
@@ -352,6 +361,23 @@ export const WalletPortfolio = () => {
       console.log(error);
     }
   }, [transactions, address]);
+
+  const handleFollow = useCallback(async () => {
+    if (!address || !user) return;
+    try {
+      setFollowing(true);
+      await followWallet(user.address, address);
+      mutatePortfolio({
+        ...portfolio,
+        followers: [...portfolio.followers, user.id],
+      });
+      setFollowing(false);
+      toast.success('Followed!');
+    } catch (error) {
+      setFollowing(false);
+      toast.error((error as any).message);
+    }
+  }, [address, user, portfolio]);
 
   const EtherValues =
     balance.ethereum?.tokens.reduce(

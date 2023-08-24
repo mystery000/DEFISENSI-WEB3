@@ -10,6 +10,7 @@ import {
 
 import cn from 'classnames';
 import { Spin } from 'antd';
+import { toast } from 'react-toastify';
 import Table from '@mui/material/Table';
 import * as Highcharts from 'highcharts';
 import TableRow from '@mui/material/TableRow';
@@ -17,15 +18,17 @@ import { TableContainer } from '@mui/material';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { getTokenTransactions } from '../../lib/api';
+import { useAppContext } from '../../context/app';
 import { Transaction } from '../../types/transaction';
 import HighchartsReact from 'highcharts-react-official';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import usePriceHistory from '../../lib/hooks/usePriceHistory';
+import { EmptyContainer } from '../../components/EmptyContainer';
+import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
+import { followToken, getTokenTransactions } from '../../lib/api';
 import useTokenTransactions from '../../lib/hooks/useTokenTransactions';
 import usePriceFromExchanges from '../../lib/hooks/usePriceFromExchanges';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
 
 enum ContentType {
   INFO = 'info',
@@ -34,22 +37,27 @@ enum ContentType {
 }
 
 export const TokenPortfolio = () => {
-  const { address } = useParams();
+  const { user } = useAppContext();
+  const { address, network } = useParams();
+  const [following, setFollowing] = useState(false);
+  const [fetchMore, setFetchMore] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
   const { exchangePrice, loading: loadingExchangePrice } =
     usePriceFromExchanges();
   const { priceHistory, loading: loadingPriceHistory } = usePriceHistory();
-
   const {
     transactions,
     mutateTransactions,
     loading: loadingTransactions,
   } = useTokenTransactions();
 
-  const { data: portfolio, loading: loadingPortfolio } = useTokenPortfolio();
+  const {
+    data: portfolio,
+    loading: loadingPortfolio,
+    mutate: mutatePortfolio,
+  } = useTokenPortfolio();
 
-  const [fetchMore, setFetchMore] = useState(false);
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
 
   const defaultOption: Highcharts.Options = {
@@ -248,6 +256,23 @@ export const TokenPortfolio = () => {
     });
   }, [priceHistory]);
 
+  const handleFollow = useCallback(async () => {
+    if (!address || !network) return;
+    try {
+      setFollowing(true);
+      await followToken(user.address, address, network);
+      mutatePortfolio({
+        ...portfolio,
+        followers: [...portfolio.followers, user.id],
+      });
+      setFollowing(false);
+      toast.success('Followed!');
+    } catch (error) {
+      setFollowing(false);
+      toast.error((error as any).message);
+    }
+  }, [address, network, user, portfolio]);
+
   if (!address) return;
 
   if (
@@ -310,8 +335,12 @@ export const TokenPortfolio = () => {
             </div>
           </div>
           <div className="mt-5 text-white">
-            <button className="rounded bg-orange-400 px-4 py-[10px]">
-              Follow
+            <button
+              className="rounded bg-orange-400 px-4 py-[10px]"
+              onClick={handleFollow}
+              disabled={following}
+            >
+              {following ? 'Following...' : 'Follow'}
             </button>
           </div>
 
@@ -479,22 +508,26 @@ export const TokenPortfolio = () => {
             <span className="hidden font-sora text-[32px] 2xl:block">
               Transactions
             </span>
-            <InfiniteScroll
-              dataLength={transactions.length}
-              next={fetchMoreTransactions}
-              hasMore={fetchMore}
-              loader={<h4 className="text-center">Loading...</h4>}
-            >
-              {transactions.map((transaction) => (
-                <TransactionCard
-                  key={transaction.txhash}
-                  transaction={transaction}
-                  likes={transaction.likes}
-                  dislikes={transaction.dislikes}
-                  comments={transaction.comments}
-                />
-              ))}
-            </InfiniteScroll>
+            {transactions.length ? (
+              <InfiniteScroll
+                dataLength={transactions.length}
+                next={fetchMoreTransactions}
+                hasMore={fetchMore}
+                loader={<h4 className="text-center">Loading...</h4>}
+              >
+                {transactions.map((transaction) => (
+                  <TransactionCard
+                    key={transaction.txhash}
+                    transaction={transaction}
+                    likes={transaction.likes}
+                    dislikes={transaction.dislikes}
+                    comments={transaction.comments}
+                  />
+                ))}
+              </InfiniteScroll>
+            ) : (
+              <EmptyContainer />
+            )}
           </div>
         </div>
       </div>

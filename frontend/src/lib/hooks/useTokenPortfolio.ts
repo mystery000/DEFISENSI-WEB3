@@ -18,6 +18,7 @@ export default function useTokenPortfolio() {
         setError('network or address is missing now');
         return;
       }
+      setLoading(true);
       try {
         const followers = await getFollowersByToken(network, address);
         const followings = await getFollowingsByToken(network, address);
@@ -25,11 +26,13 @@ export default function useTokenPortfolio() {
           followers: followers || [],
           followings: followings || [],
         });
+        setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.log(error);
       }
     })();
   }, [network, address]);
 
-  return { data, error, loading };
+  return { data, error, loading, mutate: setData };
 }

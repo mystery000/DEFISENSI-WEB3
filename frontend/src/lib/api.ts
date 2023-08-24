@@ -173,3 +173,32 @@ export const getFollowingsByWallet = async (address: string) => {
     console.error(error);
   }
 };
+
+export const followWallet = async (address: string, walletAddress: string) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/wallet/follow`, {
+      address,
+      walletAddress,
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};
+
+export const followToken = async (
+  address: string,
+  tokenAddress: string,
+  network: string,
+) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/token/follow`, {
+      address,
+      tokenAddress,
+      network,
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};

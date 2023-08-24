@@ -18,6 +18,7 @@ export default function useWalletPortfolio() {
         setError('The address parameter is now omitted.');
         return;
       }
+      setLoading(true);
       try {
         const followers = await getFollowersByWallet(address);
         const followings = await getFollowingsByWallet(address);
@@ -25,11 +26,13 @@ export default function useWalletPortfolio() {
           followers: followers || [],
           followings: followings || [],
         });
+        setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.log(error);
       }
     })();
   }, [address]);
 
-  return { data, error, loading };
+  return { data, error, loading, mutate: setData };
 }

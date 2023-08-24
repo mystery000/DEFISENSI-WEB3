@@ -1,4 +1,4 @@
-import { Button, Modal } from 'antd';
+import { Modal } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { Mail, Send } from 'lucide-react';
 import { NFTNotification } from '../components/notifications/NFTNotification';
