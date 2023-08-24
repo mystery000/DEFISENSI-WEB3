@@ -165,9 +165,7 @@ export const getFollowersByWallet = async (address: string) => {
 
 export const getFollowingsByWallet = async (address: string) => {
   try {
-    const res = await axios.get(
-      `${API_BASE_URL}/wallet/followerings/${address}`,
-    );
+    const res = await axios.get(`${API_BASE_URL}/wallet/followings/${address}`);
     return res.data;
   } catch (error) {
     console.error(error);
