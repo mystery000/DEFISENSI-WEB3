@@ -1,9 +1,8 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import * as Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import * as Highcharts from 'highcharts';
 import AppLayout from '../../layouts/AppLayout';
-import { useAppContext } from '../../context/app';
+import HighchartsReact from 'highcharts-react-official';
 
 import {
   FollowerIcon,
@@ -12,12 +11,6 @@ import {
 } from '../../components/icons/defisensi-icons';
 import { Asset } from '../../components/portfolio/asset';
 
-import Table from '@mui/material/Table';
-import TableRow from '@mui/material/TableRow';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableContainer from '@mui/material/TableContainer';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Balance, BalanceHistory, TokenBalance } from '../../types/balance';
 
@@ -27,11 +20,11 @@ import {
   getBalanceHistory,
 } from '../../lib/api';
 
+import cn from 'classnames';
+import { useParams } from 'react-router-dom';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import { useParams } from 'react-router-dom';
-import cn from 'classnames';
 
 enum ContentType {
   INFO = 'info',
@@ -39,14 +32,9 @@ enum ContentType {
   ALL = 'all',
 }
 
-interface PortfolioProps {
-  className?: string;
-}
+export const NFTPortfolio = () => {
+  const { address } = useParams();
 
-export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
-  // const { address } = useParams();
-
-  const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
 
@@ -184,9 +172,10 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
   >([]);
 
   useEffect(() => {
+    if (!address) return;
     const getTransactions = async () => {
       try {
-        const wallet = await findWalletTransactions(user.address, 4);
+        const wallet = await findWalletTransactions(address, 4);
 
         if (!wallet) return;
 
@@ -207,7 +196,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
 
         setTransactions(txns);
 
-        const balance = await getBalance(user.address);
+        const balance = await getBalance(address);
         setBalance(balance || {});
 
         const tokens = [
@@ -228,14 +217,14 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
         setTokensOfWallet(tokens);
         setSelectedToken(tokens[0]);
 
-        const balanceHistory = await getBalanceHistory(user.address);
+        const balanceHistory = await getBalanceHistory(address);
         setBalanceHistory(balanceHistory || {});
       } catch (error) {
         console.log(error);
       }
     };
     getTransactions();
-  }, []);
+  }, [address]);
 
   useEffect(() => {
     if (!selectedToken) return;
@@ -300,9 +289,10 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
   }, [width]);
 
   const fetchMoreTransactions = useCallback(async () => {
+    if (!address) return;
     try {
       const wallet = await findWalletTransactions(
-        user.address,
+        address,
         transactions.length + 4,
       );
 
@@ -324,7 +314,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
     } catch (error) {
       console.log(error);
     }
-  }, [transactions]);
+  }, [transactions, address]);
 
   const EtherValues =
     balance.ethereum?.tokens.reduce(
@@ -375,6 +365,8 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
     (val, i) => val + PolygonSparkLineData[i] + BinanceSparkLineData[i],
   );
 
+  if (!address) return;
+
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
@@ -390,7 +382,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
               <span>AZUKI</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
                 <img
-                  src="../images/tokens/eth.png"
+                  src="/images/tokens/eth.png"
                   width={32}
                   height={32}
                   alt="noicon"
@@ -399,7 +391,7 @@ export const NFTPortfolio: FC<PortfolioProps> = ({ className }) => {
               </span>
             </h2>
             <span className="mt-4 text-sm font-medium">
-              {user.address.slice(0, 11)}.........{user.address.slice(-13)}
+              {address.slice(0, 11)}.........{address.slice(-13)}
             </span>
           </div>
           <div className="mt-5 flex justify-center gap-4 text-sm">

@@ -13,7 +13,6 @@ import {
 
 import {
   ChatBubbleSolid,
-  ReceiveIcon,
   SwapIcon,
   SendIcon,
   ThumbsDownSolid,
@@ -24,7 +23,6 @@ import {
 
 import { useAppContext } from '../../context/app';
 import { TransferType } from '../../types';
-import { useLocation } from 'react-router-dom';
 
 type TransactionCardProps = {
   transaction: Transaction;
@@ -40,7 +38,6 @@ export const TransactionCard: FC<TransactionCardProps> = ({
   comments,
 }) => {
   const { user } = useAppContext();
-  const location = useLocation();
   const age = getAge(transaction.details.timestamp);
 
   return (
@@ -111,7 +108,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           <span className="pr-2">
             <img
               src={
-                transaction.details.token1.symbol.toLocaleLowerCase() == 'weth'
+                transaction.details.token1.symbol.toLocaleLowerCase() === 'weth'
                   ? `/images/tokens/eth.png`
                   : transaction.details.token1.logo
                   ? transaction.details.token1.logo

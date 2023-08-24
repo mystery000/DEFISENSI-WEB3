@@ -75,9 +75,9 @@ export class UserService {
     ]);
 
     if (!result || result.length === 0) {
-      throw new BadRequestException('Transactions not found!');
+      logger.log('Transaction not found');
     }
-    return result;
+    return result || [];
   }
 
   async getFollowingTokens(address: string): Promise<Token[]> {
@@ -120,10 +120,10 @@ export class UserService {
     ]);
 
     if (!result || result.length === 0) {
-      throw new BadRequestException('Transactions not found!');
+      logger.log('Transactions not found');
     }
 
-    return result;
+    return result || [];
   }
 
   async getFollowingNfts(address: string): Promise<Nft[]> {

@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import AppLayout from '../../layouts/AppLayout';
 import {
@@ -9,22 +9,22 @@ import {
 } from '../../components/icons/defisensi-icons';
 
 import cn from 'classnames';
+import { Spin } from 'antd';
 import Table from '@mui/material/Table';
+import * as Highcharts from 'highcharts';
 import TableRow from '@mui/material/TableRow';
 import { TableContainer } from '@mui/material';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { getPriceHistory, getTokenTransactions } from '../../lib/api';
+import { getTokenTransactions } from '../../lib/api';
 import { Transaction } from '../../types/transaction';
-import InfiniteScroll from 'react-infinite-scroll-component';
-import { TransactionCard } from '../../components/transactions/TransactionCard';
-import * as Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { NetworkType } from '../../types';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import usePriceHistory from '../../lib/hooks/usePriceHistory';
 import useTokenTransactions from '../../lib/hooks/useTokenTransactions';
 import usePriceFromExchanges from '../../lib/hooks/usePriceFromExchanges';
+import { TransactionCard } from '../../components/transactions/TransactionCard';
 
 enum ContentType {
   INFO = 'info',
@@ -32,18 +32,18 @@ enum ContentType {
   ALL = 'all',
 }
 
-interface TokenPortfolioProps {
-  classname?: string;
-}
-
-export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
-  const { network, address } = useParams();
-
+export const TokenPortfolio = () => {
+  const { address } = useParams();
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
-  const { priceHistory, loading } = usePriceHistory();
-  const { exchangePrice } = usePriceFromExchanges();
-  const { transactions, mutateTransactions } = useTokenTransactions();
+  const { exchangePrice, loading: loadingExchangePrice } =
+    usePriceFromExchanges();
+  const { priceHistory, loading: loadingPriceHistory } = usePriceHistory();
+  const {
+    transactions,
+    mutateTransactions,
+    loading: loadingTransactions,
+  } = useTokenTransactions();
 
   const [fetchMore, setFetchMore] = useState(false);
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
@@ -246,8 +246,19 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
 
   if (!address) return;
 
-  if (!exchangePrice)
-    return <div className="text-center">Invalid Token Address</div>;
+  if (loadingExchangePrice || loadingPriceHistory || loadingTransactions)
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+
+  if (!exchangePrice?.tokenName && !priceHistory.length && !transactions.length)
+    return (
+      <div className="grid h-screen place-items-center text-2xl font-semibold text-red-600">
+        Invalid Token Address
+      </div>
+    );
 
   return (
     <AppLayout>
@@ -261,10 +272,10 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
         >
           <div>
             <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
-              <span>{exchangePrice.tokenName}</span>
+              <span>{exchangePrice?.tokenName}</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
                 <img
-                  src="../../../images/tokens/eth.png"
+                  src="/images/tokens/eth.png"
                   width={32}
                   height={32}
                   alt="noicon"
@@ -377,8 +388,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice.usdPrice.uniswap
-                          ? `$${exchangePrice.usdPrice.uniswap}`
+                        {exchangePrice?.usdPrice.uniswap
+                          ? `$${exchangePrice?.usdPrice.uniswap}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -396,8 +407,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice.usdPrice.binance
-                          ? `$${exchangePrice.usdPrice.binance}`
+                        {exchangePrice?.usdPrice.binance
+                          ? `$${exchangePrice?.usdPrice.binance}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -415,8 +426,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice.usdPrice.kucoin
-                          ? `$${exchangePrice.usdPrice.kucoin}`
+                        {exchangePrice?.usdPrice.kucoin
+                          ? `$${exchangePrice?.usdPrice.kucoin}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -438,8 +449,8 @@ export const TokenPortfolio: FC<TokenPortfolioProps> = ({ classname }) => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice.usdPrice.coinbase
-                          ? `$${exchangePrice.usdPrice.coinbase}`
+                        {exchangePrice?.usdPrice.coinbase
+                          ? `$${exchangePrice?.usdPrice.coinbase}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>

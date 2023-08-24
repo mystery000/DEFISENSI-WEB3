@@ -43,9 +43,9 @@ export default function useFollowingTransactions(address: string) {
           }
         });
 
-        if (walletTxns.length % 4 == 0) setFetchMoreWallets(true);
+        if (walletTxns.length % 4 === 0) setFetchMoreWallets(true);
         setWalletTxns(walletTxns);
-        if (tokenTxns.length % 4 == 0) setFetchMoreTokens(true);
+        if (tokenTxns.length % 4 === 0) setFetchMoreTokens(true);
         setTokenTxns(tokenTxns);
         setLoading(false);
       } catch (error) {
@@ -55,7 +55,7 @@ export default function useFollowingTransactions(address: string) {
         setTokenTxns([]);
       }
     })();
-  }, []);
+  }, [address]);
 
   return {
     walletTxns,

@@ -1,16 +1,9 @@
-import {
-  ChangeEvent,
-  FC,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import * as Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
+import { useParams } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import * as Highcharts from 'highcharts';
 import AppLayout from '../../layouts/AppLayout';
-import { useAppContext } from '../../context/app';
+import HighchartsReact from 'highcharts-react-official';
 
 import {
   FollowerIcon,
@@ -34,13 +27,12 @@ import {
   getBalanceHistory,
 } from '../../lib/api';
 
+import cn from 'classnames';
+import * as Antd from 'antd';
+import Select from 'react-select';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import { useParams } from 'react-router-dom';
-import cn from 'classnames';
-import Select from 'react-select';
-import * as Antd from 'antd';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -53,13 +45,13 @@ const options = [
     value: 'ethereum',
     name: 'ethereum',
     label: 'ETH',
-    logo: '../images/tokens/eth.png',
+    logo: '/images/tokens/eth.png',
   },
   {
     value: 'polygon',
     name: 'polygon',
     label: 'POLYGON',
-    logo: '../images/tokens/eth.png',
+    logo: '/images/tokens/eth.png',
   },
 ];
 
@@ -78,7 +70,7 @@ const formatOptionLabel = ({
 
 export const WalletPortfolio = () => {
   const { address } = useParams();
-  const { user } = useAppContext();
+  // const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
@@ -270,7 +262,7 @@ export const WalletPortfolio = () => {
       }
     };
     getTransactions();
-  }, []);
+  }, [address]);
 
   useEffect(() => {
     if (!selectedToken) return;
@@ -314,7 +306,7 @@ export const WalletPortfolio = () => {
         return defaultOption;
       }
     });
-  }, [balanceHistory, selectedToken]);
+  }, [balanceHistory, selectedToken, address]);
 
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
@@ -360,7 +352,7 @@ export const WalletPortfolio = () => {
     } catch (error) {
       console.log(error);
     }
-  }, [transactions]);
+  }, [transactions, address]);
 
   const EtherValues =
     balance.ethereum?.tokens.reduce(
@@ -583,11 +575,11 @@ export const WalletPortfolio = () => {
                           <div className="flex items-center gap-1">
                             <img
                               src={
-                                token.symbol.toLocaleLowerCase() == 'eth'
-                                  ? `../images/tokens/eth.png`
+                                token.symbol.toLocaleLowerCase() === 'eth'
+                                  ? `/images/tokens/eth.png`
                                   : token.logo
                                   ? token.logo
-                                  : `../images/tokens/empty-eth.png`
+                                  : `/images/tokens/empty-eth.png`
                               }
                               width={32}
                               height={32}

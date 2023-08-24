@@ -13,7 +13,6 @@ import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import axios from 'axios';
-import { contract } from 'web3/lib/commonjs/eth.exports';
 import { logger } from 'src/utils/logger';
 
 @Injectable()
@@ -675,9 +674,7 @@ export class EtherscanService {
       tokenSymbol: '',
       tokenLogo: '',
       tokenDecimals: '',
-      usdPrice: {
-        uniswap: '',
-      },
+      usdPrice: {},
     };
 
     try {
@@ -687,37 +684,35 @@ export class EtherscanService {
         address: contractAddress,
       });
 
-      if (!uniswap) return null;
+      if (!uniswap) return exchangesPrice;
 
-      exchangesPrice.tokenAddress = contractAddress;
-      exchangesPrice.tokenDecimals = uniswap.toJSON().tokenDecimals;
-      exchangesPrice.tokenLogo = uniswap.toJSON().tokenLogo;
-      exchangesPrice.tokenName = uniswap.toJSON().tokenName;
-      exchangesPrice.tokenSymbol = uniswap.toJSON().tokenSymbol;
-      exchangesPrice.usdPrice.uniswap = uniswap.toJSON().usdPrice.toString();
+      const { tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } = uniswap.toJSON();
 
-      // Binance Exchange
-      try {
-        await axios
-          .get(`https://api.binance.com/api/v3/ticker/price?symbol=${uniswap.toJSON().tokenSymbol}USDT`)
-          .then((res) => {
-            exchangesPrice.usdPrice.binance = res.data.price;
-          });
-      } catch (error) {}
+      exchangesPrice.tokenDecimals = tokenDecimals;
+      exchangesPrice.tokenLogo = tokenLogo;
+      exchangesPrice.tokenName = tokenName;
+      exchangesPrice.tokenSymbol = tokenSymbol;
+      exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
+      // Get prices from Binance and Kucoin in parallel
+      const [binanceResponse, kucoinResponse] = await Promise.all([
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
+        axios
+          .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
+          .catch((error) => {}),
+      ]);
 
-      // Kucoin Exchange
-      await axios
-        .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${uniswap.toJSON().tokenSymbol}-USDT`)
-        .then((res) => {
-          exchangesPrice.usdPrice.kucoin = res.data.data?.price;
-        });
+      if (binanceResponse && binanceResponse.data) {
+        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, binance: binanceResponse.data.price };
+      }
 
-      // Coinbase Exchange
+      if (kucoinResponse && kucoinResponse.data) {
+        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, kucoin: kucoinResponse.data.data?.price };
+      }
 
       return exchangesPrice;
     } catch (error) {
       logger.error(error);
-      return null;
+      return exchangesPrice;
     }
   }
 

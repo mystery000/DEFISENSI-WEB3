@@ -65,6 +65,7 @@ export const getTokenTransactions = async (
     return res.data as TokenTransaction;
   } catch (error) {
     console.log(error);
+    return null;
   }
 };
 

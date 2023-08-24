@@ -7,22 +7,23 @@ export default function usePriceHistory() {
   const [data, setData] = useState<HistoricalPrice[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const { network, contractAddress } = useParams();
+  const { network, address } = useParams();
 
   useEffect(() => {
     (async () => {
       try {
+        if (!network || !address) return;
         setLoading(true);
-        if (!network || !contractAddress) return;
-        const prices = await getPriceHistory(network, contractAddress);
+        const prices = await getPriceHistory(network, address);
         setData(prices);
         setLoading(false);
       } catch (error) {
         setError(error);
         setLoading(false);
+        console.error(error);
       }
     })();
-  }, [network, contractAddress]);
+  }, [network, address]);
 
   return { priceHistory: data, error, loading };
 }
