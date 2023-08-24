@@ -122,6 +122,14 @@ export class TokenService {
     return this.userService.getByIds(foundToken.followers);
   }
 
+  async getFollowings(dto: FindOneParams) {
+    const foundToken = await this.tokenModel.findOne(dto);
+    if (!foundToken) {
+      throw new BadRequestException('Token not found!');
+    }
+    return this.userService.getByIds(foundToken.followings);
+  }
+
   async comment(commentTokenDto: CommentTokenDto) {
     const user = await this.userService.getByAddress(commentTokenDto.address);
     const foundToken = await this.getOrCreate(commentTokenDto.tokenAddress, commentTokenDto.tokenNetwork);

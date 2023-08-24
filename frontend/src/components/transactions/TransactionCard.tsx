@@ -52,7 +52,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <span className="font-bold">
+          <span className="font-bold" title={transaction.details.from}>
             {convertHex(transaction.details.from).substring(0, 5)}
           </span>
           <span>
@@ -62,7 +62,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
               <SwapIcon />
             )}
           </span>
-          <span className="font-bold">
+          <span className="font-bold" title={transaction.details.to}>
             {convertHex(transaction.details.to).substring(0, 5)}
           </span>
         </div>
@@ -98,7 +98,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
               transaction.details.token0.decimals,
             )} ${transaction.details.token0.symbol}`}
           </span>
-          <span className="text-[#8E98B0]">{`@${Number(
+          <span className="text-bali-hai-600">{`@${Number(
             transaction.details.token0.usdPrice,
           ).toLocaleString()} USD`}</span>
         </div>
@@ -123,7 +123,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             transaction.details.token1.value,
             transaction.details.token1.decimals,
           )} ${transaction.details.token1.symbol}`}</span>
-          <span className="text-[#8E98B0]">{`@${Number(
+          <span className="text-bali-hai-600">{`@${Number(
             transaction.details.token1.usdPrice,
           ).toLocaleString()} USD`}</span>
         </div>
@@ -136,8 +136,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           />
           <span
             className={cn('font-inter', {
-              'text-[#FF5D29]': likes.includes(user.id),
-              'text-[#8E98B0]': likes.includes(user.id),
+              'text-orange-400': likes.includes(user.id),
+              'text-bali-hai-600': likes.includes(user.id),
             })}
           >
             {standardUnit(likes.length)}
@@ -150,8 +150,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           />
           <span
             className={cn('font-inter', {
-              'text-[#FF5D29]': dislikes.includes(user.id),
-              'text-[#8E98B0]': dislikes.includes(user.id),
+              'text-orange-400': dislikes.includes(user.id),
+              'text-bali-hai-600': dislikes.includes(user.id),
             })}
           >
             {standardUnit(dislikes.length)}
@@ -164,8 +164,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           />
           <span
             className={cn('font-inter', {
-              'text-[#FF5D29]': comments.includes(user.id),
-              'text-[#8E98B0]': comments.includes(user.id),
+              'text-orange-400': comments.includes(user.id),
+              'text-bali-hai-600': comments.includes(user.id),
             })}
           >
             {standardUnit(comments.length)}

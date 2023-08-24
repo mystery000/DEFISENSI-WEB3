@@ -128,3 +128,48 @@ export const getPriceFromExchanges = async (
     return;
   }
 };
+
+export const getFollowersByToken = async (network: string, address: string) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/token/followers/${network}/${address}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getFollowingsByToken = async (
+  network: string,
+  address: string,
+) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/token/followings/${network}/${address}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getFollowersByWallet = async (address: string) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/wallet/followers/${address}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getFollowingsByWallet = async (address: string) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/wallet/followerings/${address}`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+  }
+};

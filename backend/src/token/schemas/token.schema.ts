@@ -23,6 +23,10 @@ export class Token {
 
   @ApiProperty({ type: String, isArray: true })
   @Prop({ type: [String], default: [] })
+  followings: string[];
+
+  @ApiProperty({ type: String, isArray: true })
+  @Prop({ type: [String], default: [] })
   likes: string[];
 
   @ApiProperty({ type: String, isArray: true })

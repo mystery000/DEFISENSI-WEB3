@@ -73,6 +73,15 @@ export class TokenController {
     return this.tokenService.getFollowers(dto);
   }
 
+  @Get('followings/:network/:address')
+  @ApiOperation({ summary: 'Get followings of this token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'Get followers for token' })
+  getFollowings(@Param() dto: FindOneParams): Promise<User[]> {
+    return this.tokenService.getFollowings(dto);
+  }
+
   @Post('comment')
   @ApiOperation({ summary: 'Write comment on this token' })
   @ApiOkResponse({ type: SuccessResponse })

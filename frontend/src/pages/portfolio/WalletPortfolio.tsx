@@ -32,6 +32,8 @@ import * as Antd from 'antd';
 import Select from 'react-select';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
+import { EmptyContainer } from '../../components/EmptyContainer';
+import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 
 enum ContentType {
@@ -70,16 +72,15 @@ const formatOptionLabel = ({
 
 export const WalletPortfolio = () => {
   const { address } = useParams();
-  // const { user } = useAppContext();
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
-
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
-
   const [fetchMore, setFetchMore] = useState(false);
   const [balance, setBalance] = useState<Balance>({});
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const { data: portfolio, loading: loadingPortfolio } = useWalletPortfolio();
 
   const defaultOption: Highcharts.Options = {
     // title: {
@@ -200,11 +201,9 @@ export const WalletPortfolio = () => {
   };
 
   const [chartOptions, setChartOptions] = useState(defaultOption);
-
   const [selectedToken, setSelectedToken] = useState<
     TokenBalance & { network: string }
   >();
-
   const [tokensOfWallet, setTokensOfWallet] = useState<
     (TokenBalance & { network: string })[]
   >([]);
@@ -403,6 +402,14 @@ export const WalletPortfolio = () => {
     (val, i) => val + PolygonSparkLineData[i] + BinanceSparkLineData[i],
   );
 
+  if (loadingPortfolio) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Antd.Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
@@ -415,19 +422,19 @@ export const WalletPortfolio = () => {
         >
           <div>
             <h2 className="font-sora text-4xl font-semibold">Aliashraf.eth</h2>
-            <span className="mt-4 text-sm font-medium">
-              {address?.slice(0, 11)}.........{address?.slice(-13)}
+            <span className="mt-4 text-sm font-medium" title={address}>
+              {address?.slice(0, 11)}.........{address?.slice(-10)}
             </span>
           </div>
           <div className="mt-5 flex justify-center gap-4 text-sm">
             <div className="flex items-center gap-1">
               <FollowingIcon />
-              <span>9</span>
+              <span>{portfolio.followers.length}</span>
               <span className="text-bali-hai-600">Following</span>
             </div>
             <div className="flex items-center gap-1">
               <FollowerIcon />
-              <span>143</span>
+              <span>{portfolio.followings.length}</span>
               <span className="text-bali-hai-600">Followers</span>
             </div>
           </div>
@@ -499,6 +506,7 @@ export const WalletPortfolio = () => {
                   defaultValue={options[0]}
                   formatOptionLabel={formatOptionLabel}
                   options={options}
+                  onChange={(value) => console.log(value)}
                 />
               </div>
               <HighchartsReact
@@ -608,22 +616,26 @@ export const WalletPortfolio = () => {
             <span className="hidden font-sora text-[32px] 2xl:block">
               Transactions
             </span>
-            <InfiniteScroll
-              dataLength={transactions.length}
-              next={fetchMoreTransactions}
-              hasMore={fetchMore}
-              loader={<h4 className="text-center">Loading...</h4>}
-            >
-              {transactions.map((transaction) => (
-                <TransactionCard
-                  key={transaction.txhash}
-                  transaction={transaction}
-                  likes={transaction.likes}
-                  dislikes={transaction.dislikes}
-                  comments={transaction.comments}
-                />
-              ))}
-            </InfiniteScroll>
+            {transactions.length ? (
+              <InfiniteScroll
+                dataLength={transactions.length}
+                next={fetchMoreTransactions}
+                hasMore={fetchMore}
+                loader={<h4 className="text-center">Loading...</h4>}
+              >
+                {transactions.map((transaction) => (
+                  <TransactionCard
+                    key={transaction.txhash}
+                    transaction={transaction}
+                    likes={transaction.likes}
+                    dislikes={transaction.dislikes}
+                    comments={transaction.comments}
+                  />
+                ))}
+              </InfiniteScroll>
+            ) : (
+              <EmptyContainer />
+            )}
           </div>
         </div>
       </div>

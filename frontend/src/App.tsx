@@ -47,7 +47,7 @@ function App() {
         <ManagedAppContext>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Transactions />} />
+              <Route path="/" element={<Navigate to="/transactions" />} />
               <Route path="/login" element={<Login />} />
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />

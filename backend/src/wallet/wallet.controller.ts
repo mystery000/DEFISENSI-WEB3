@@ -70,12 +70,20 @@ export class WalletController {
     return this.walletService.get(address);
   }
 
-  @Get('follower/:address')
-  @ApiOperation({ summary: 'Get follower of this wallet' })
+  @Get('followers/:address')
+  @ApiOperation({ summary: 'Get followers of this wallet' })
   @ApiOkResponse({ type: User, isArray: true })
-  @ApiParam({ name: 'address', description: 'Get follower for wallet' })
+  @ApiParam({ name: 'address', description: 'Get followers for wallet' })
   getFollowers(@Param() { address }: FindOneParams): Promise<User[]> {
     return this.walletService.getFollowers(address);
+  }
+
+  @Get('followings/:address')
+  @ApiOperation({ summary: 'Get followings of this wallet' })
+  @ApiOkResponse({ type: User, isArray: true })
+  @ApiParam({ name: 'address', description: 'Get followings for wallet' })
+  getFollowings(@Param() { address }: FindOneParams): Promise<User[]> {
+    return this.walletService.getFollowings(address);
   }
 
   @Get('comments/:address')

@@ -19,6 +19,9 @@ export class Wallet {
   followers: string[];
 
   @Prop({ type: [String], default: [] })
+  followings: string[];
+
+  @Prop({ type: [String], default: [] })
   likes: string[];
 
   @Prop({ type: [String], default: [] })

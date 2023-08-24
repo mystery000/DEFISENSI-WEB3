@@ -25,6 +25,7 @@ import usePriceHistory from '../../lib/hooks/usePriceHistory';
 import useTokenTransactions from '../../lib/hooks/useTokenTransactions';
 import usePriceFromExchanges from '../../lib/hooks/usePriceFromExchanges';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
+import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
 
 enum ContentType {
   INFO = 'info',
@@ -39,11 +40,14 @@ export const TokenPortfolio = () => {
   const { exchangePrice, loading: loadingExchangePrice } =
     usePriceFromExchanges();
   const { priceHistory, loading: loadingPriceHistory } = usePriceHistory();
+
   const {
     transactions,
     mutateTransactions,
     loading: loadingTransactions,
   } = useTokenTransactions();
+
+  const { data: portfolio, loading: loadingPortfolio } = useTokenPortfolio();
 
   const [fetchMore, setFetchMore] = useState(false);
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
@@ -246,7 +250,12 @@ export const TokenPortfolio = () => {
 
   if (!address) return;
 
-  if (loadingExchangePrice || loadingPriceHistory || loadingTransactions)
+  if (
+    loadingExchangePrice ||
+    loadingPriceHistory ||
+    loadingTransactions ||
+    loadingPortfolio
+  )
     return (
       <div className="grid h-screen place-items-center">
         <Spin size="large" />
@@ -283,20 +292,20 @@ export const TokenPortfolio = () => {
                 <span>on Ethereum</span>
               </span>
             </h2>
-            <span className="mt-4 text-sm font-medium">
+            <span className="mt-4 text-sm font-medium" title={address}>
               {address.slice(0, 11)}.........
-              {address.slice(-13)}
+              {address.slice(-10)}
             </span>
           </div>
           <div className="mt-5 flex justify-center gap-4 text-sm">
             <div className="flex items-center gap-1">
               <FollowingIcon />
-              <span>9</span>
+              <span>{portfolio.followings.length}</span>
               <span className="text-bali-hai-600">Following</span>
             </div>
             <div className="flex items-center gap-1">
               <FollowerIcon />
-              <span>143</span>
+              <span>{portfolio.followers.length}</span>
               <span className="text-bali-hai-600">Followers</span>
             </div>
           </div>
@@ -366,7 +375,7 @@ export const TokenPortfolio = () => {
                               height={24}
                               alt="noicon"
                             ></img>
-                            <span>HEX</span>
+                            <span>{exchangePrice?.tokenName}</span>
                           </span>
                           <span className="text-bali-hai-600">USD value</span>
                         </div>

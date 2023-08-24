@@ -5,6 +5,7 @@ import { login } from '../lib/api';
 import { useAccount } from 'wagmi';
 import { useAppContext } from '../context/app';
 import { useWeb3Modal } from '@web3modal/react';
+import { Spin } from 'antd';
 
 export const Login = () => {
   const naviate = useNavigate();
@@ -21,7 +22,7 @@ export const Login = () => {
         const user = await login(address);
         setUser({ id: user._id, address });
         setLoading(false);
-        setTimeout(() => naviate(`/portfolio/wallet/${address}`), 500);
+        setTimeout(() => naviate(`/portfolio/wallet/${address}`), 100);
       } catch (error) {
         setLoading(false);
         console.log(error);
@@ -36,7 +37,9 @@ export const Login = () => {
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="grid h-screen place-items-center">
+          <Spin size="large" />
+        </div>
       ) : (
         <button
           onClick={() => open()}

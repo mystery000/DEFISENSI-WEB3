@@ -129,6 +129,16 @@ export class WalletService {
     return this.userService.getByIds(foundWallet.followers);
   }
 
+  async getFollowings(address: string) {
+    const foundWallet = await this.walletModel.findOne({ address });
+
+    if (!foundWallet) {
+      throw new BadRequestException('Wallet not found!');
+    }
+
+    return this.userService.getByIds(foundWallet.followings);
+  }
+
   async comment(commentWalletDto: CommentWalletDto) {
     const user = await this.userService.getByAddress(commentWalletDto.address);
     const foundWallet = await this.getOrCreate(commentWalletDto.walletAddress);
