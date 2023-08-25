@@ -1,9 +1,11 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { Modal } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { Mail, Send } from 'lucide-react';
 import { NFTNotification } from '../components/notifications/NFTNotification';
 import { WalletNotification } from '../components/notifications/WalletNotification';
-import { useState } from 'react';
 import {
   NFTAlertIcon,
   TokenAlertIcon,
@@ -11,6 +13,7 @@ import {
 } from '../components/icons/defisensi-icons';
 
 export const Notifications = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -72,7 +75,10 @@ export const Notifications = () => {
         <p className="my-2 font-sora text-2xl font-semibold">
           Create New Alert
         </p>
-        <div className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2">
+        <div
+          className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2 transition duration-300 hover:border-royal-blue-500"
+          onClick={() => navigate('/notification/wallet/create')}
+        >
           <WalletAlertIcon />
           <div>
             <div className="font-sora text-sm">Wallet Alert</div>
@@ -81,21 +87,27 @@ export const Notifications = () => {
             </div>
           </div>
         </div>
-        <div className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2">
+        <div
+          className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2 transition duration-300 hover:border-royal-blue-500"
+          onClick={() => navigate('/notification/token/create')}
+        >
           <TokenAlertIcon />
           <div>
-            <div className="font-sora text-sm">Wallet Alert</div>
+            <div className="font-sora text-sm">Token Alert</div>
             <div className="font-sora text-[10px] text-bali-hai-600">
-              Create New Alert for Wallet
+              Create New Alert for Token
             </div>
           </div>
         </div>
-        <div className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2">
+        <div
+          className="my-2 flex items-center gap-6 rounded-md border border-bali-hai-600/20 px-4 py-2 transition duration-300 hover:border-royal-blue-500"
+          onClick={() => navigate('/notification/nft/create')}
+        >
           <NFTAlertIcon />
           <div>
-            <div className="font-sora text-sm">Wallet Alert</div>
+            <div className="font-sora text-sm">NFT Alert</div>
             <div className="font-sora text-[10px] text-bali-hai-600">
-              Create New Alert for Wallet
+              Create New Alert for NFT
             </div>
           </div>
         </div>

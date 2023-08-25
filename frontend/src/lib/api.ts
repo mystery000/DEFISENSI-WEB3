@@ -4,6 +4,13 @@ import { ExchangePrice, HistoricalPrice } from '../types/price';
 import { API_BASE_URL } from '../config/app';
 import { Balance, BalanceHistory } from '../types/balance';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
+import {
+  CreateNFTNotification,
+  CreateTokenNotification,
+  CreateWalletNotification,
+  Notification,
+  NotificationType,
+} from '../types/notification';
 
 export const findFollowingWallets = async (
   address: string,
@@ -198,5 +205,35 @@ export const followToken = async (
     return res.data;
   } catch (error) {
     throw new Error((error as any).response.data.message);
+  }
+};
+
+export const createNotification = async (
+  type: NotificationType,
+  notification:
+    | CreateWalletNotification
+    | CreateTokenNotification
+    | CreateNFTNotification,
+) => {
+  try {
+    if (type === NotificationType.WALLET) {
+      const res = await axios.post(`${API_BASE_URL}/notification/wallet`, {
+        ...notification,
+      });
+      return res.data as Notification;
+    } else if (type === NotificationType.TOKEN) {
+      const res = await axios.post(`${API_BASE_URL}/notification/token`, {
+        ...notification,
+      });
+      return res.data as Notification;
+    } else if (type === NotificationType.NFT) {
+      const res = await axios.post(`${API_BASE_URL}/notification/nft`, {
+        ...notification,
+      });
+      return res.data as Notification;
+    }
+    throw new Error('The type of notification to be created is not supported');
+  } catch (error) {
+    throw error;
   }
 };

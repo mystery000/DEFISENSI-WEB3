@@ -81,6 +81,18 @@ const Header = () => {
         },
       ],
     },
+    {
+      label: (
+        <div
+          className="flex items-center gap-2"
+          onClick={() => navigate('/notifications')}
+        >
+          <MailOutlined />
+          <span>Notifications</span>
+        </div>
+      ),
+      key: 'portfolio',
+    },
   ];
 
   return (
@@ -114,6 +126,13 @@ const Header = () => {
           >
             <span>Discover</span>
           </Dropdown>
+        </div>
+        <div
+          className="flex cursor-pointer items-center gap-2"
+          onClick={() => navigate(`/notifications`)}
+        >
+          <MailOutlined />
+          <span>Notifications</span>
         </div>
       </div>
 

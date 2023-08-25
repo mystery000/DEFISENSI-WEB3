@@ -34,7 +34,7 @@ export class Notification {
 
   @ApiProperty({ description: 'Sending to' })
   @Prop({ type: [String] })
-  sendingTo: string;
+  sendingTo: string[];
 
   @ApiProperty()
   @Prop({ type: Number })

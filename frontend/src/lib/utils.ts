@@ -66,3 +66,22 @@ export const balanceFormatter = (balance: number) => {
     return balance.toFixed(2);
   }
 };
+
+export const isValid = (value: any) => {
+  if (value === null || value === undefined) return false;
+
+  // Check for strings; if empty or just whitespace, return false.
+  if (typeof value === 'string' && value.trim() === '') return false;
+
+  // Check for arrays; if empty, return false.
+  if (Array.isArray(value) && value.length === 0) return false;
+
+  // If value is an object, recursively check its properties.
+  if (typeof value === 'object') {
+    for (let key in value) {
+      if (!isValid(value[key])) return false;
+    }
+  }
+
+  return true;
+};
