@@ -3,13 +3,14 @@ import { FC, useCallback, useState } from 'react';
 import { Play } from 'lucide-react';
 import { Notification } from '../../types/notification';
 import { AlertIcon, PauseIcon } from '../icons/defisensi-icons';
-import { toast } from 'react-toastify';
 
-interface NFTNotificationProps {
+interface TokenNotificationProps {
   notification: Notification;
 }
 
-export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
+export const TokenNotification: FC<TokenNotificationProps> = ({
+  notification,
+}) => {
   const [status, setStatus] = useState(notification.status);
 
   const handleToggleAlert = useCallback(() => {
@@ -28,7 +29,7 @@ export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
       <div className="my-3 flex flex-col gap-3">
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">NFT Collection</div>
-          <span className="font-sora font-semibold">BAYC </span>
+          <span className="font-sora font-semibold">BAYC</span>
         </div>
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Daily Floor</div>

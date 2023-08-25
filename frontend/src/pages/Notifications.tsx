@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Modal, Spin } from 'antd';
-import AppLayout from '../layouts/AppLayout';
 import { Mail, Send } from 'lucide-react';
+import AppLayout from '../layouts/AppLayout';
 import { NFTNotification } from '../components/notifications/NFTNotification';
 import { WalletNotification } from '../components/notifications/WalletNotification';
+
 import {
   NFTAlertIcon,
   TokenAlertIcon,
   WalletAlertIcon,
 } from '../components/icons/defisensi-icons';
+import { NotificationType } from '../types/notification';
 import useNotifications from '../lib/hooks/useNotifications';
 import { EmptyContainer } from '../components/EmptyContainer';
-import { NotificationType } from '../types/notification';
+import { TokenNotification } from '../components/notifications/TokenNotification';
 
 export const Notifications = () => {
   const navigate = useNavigate();
@@ -21,7 +23,6 @@ export const Notifications = () => {
 
   const { notifications, loading, error } = useNotifications();
 
-  console.log(notifications);
   if (loading) {
     return (
       <div className="grid h-screen place-items-center">
@@ -83,9 +84,11 @@ export const Notifications = () => {
             {notifications.length ? (
               notifications.map((notification) =>
                 notification.type === NotificationType.WALLET ? (
-                  <WalletNotification />
+                  <WalletNotification notification={notification} />
+                ) : notification.type === NotificationType.TOKEN ? (
+                  <TokenNotification notification={notification} />
                 ) : (
-                  <NFTNotification />
+                  <NFTNotification notification={notification} />
                 ),
               )
             ) : (

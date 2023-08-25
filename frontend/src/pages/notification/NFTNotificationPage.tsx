@@ -128,7 +128,7 @@ export const NFTNotificationPage = () => {
               Whose alerts do you want to see?
             </label>
             <Input
-              placeholder="Add addresses"
+              placeholder="Add NFT Collection"
               style={{ fontSize: '14px' }}
               size="large"
               value={notification.subscribeTo.join(',')}
