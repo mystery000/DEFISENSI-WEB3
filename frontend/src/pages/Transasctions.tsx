@@ -180,7 +180,7 @@ export const Transactions = () => {
                 ))}
               </InfiniteScroll>
             ) : (
-              <EmptyContainer />
+              <EmptyContainer border />
             )}
           </div>
           <div
@@ -210,7 +210,7 @@ export const Transactions = () => {
                 ))}
               </InfiniteScroll>
             ) : (
-              <EmptyContainer />
+              <EmptyContainer border />
             )}
           </div>
           <div
@@ -240,7 +240,7 @@ export const Transactions = () => {
                 ))}
               </InfiniteScroll>
             ) : (
-              <EmptyContainer />
+              <EmptyContainer border />
             )}
           </div>
         </div>

@@ -237,3 +237,14 @@ export const createNotification = async (
     throw error;
   }
 };
+
+export const getNotifications = async (address: string) => {
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/user/${address}/notifications`,
+    );
+    return res.data as Notification[];
+  } catch (error) {
+    throw error;
+  }
+};

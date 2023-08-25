@@ -529,7 +529,7 @@ export const TokenPortfolio = () => {
                 ))}
               </InfiniteScroll>
             ) : (
-              <EmptyContainer />
+              <EmptyContainer descirption="no transactions" />
             )}
           </div>
         </div>

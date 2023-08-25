@@ -666,7 +666,7 @@ export const WalletPortfolio = () => {
                 ))}
               </InfiniteScroll>
             ) : (
-              <EmptyContainer />
+              <EmptyContainer descirption="no transactions" />
             )}
           </div>
         </div>

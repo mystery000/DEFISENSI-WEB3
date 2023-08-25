@@ -6,7 +6,7 @@ export const NFTNotification = () => {
       <div className="text-center font-sora text-xl font-semibold leading-6">
         NFT Alert1
       </div>
-      <div className="bg-persian-red-600 mx-auto my-4 w-fit rounded-[24px] px-4 py-2 text-center text-white">
+      <div className="mx-auto my-4 w-fit rounded-[24px] bg-persian-red-600 px-4 py-2 text-center text-white">
         Alert for all BAYC NFTs
       </div>
       <hr />

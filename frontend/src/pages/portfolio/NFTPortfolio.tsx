@@ -3,16 +3,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Highcharts from 'highcharts';
 import AppLayout from '../../layouts/AppLayout';
 import HighchartsReact from 'highcharts-react-official';
+import { Asset } from '../../components/portfolio/asset';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { Balance, BalanceHistory, TokenBalance } from '../../types/balance';
 
 import {
   FollowerIcon,
   FollowingIcon,
   NotificationOnIcon,
 } from '../../components/icons/defisensi-icons';
-import { Asset } from '../../components/portfolio/asset';
-
-import InfiniteScroll from 'react-infinite-scroll-component';
-import { Balance, BalanceHistory, TokenBalance } from '../../types/balance';
 
 import {
   findWalletTransactions,
@@ -24,6 +23,7 @@ import cn from 'classnames';
 import { useParams } from 'react-router-dom';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
+import { EmptyContainer } from '../../components/EmptyContainer';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 
 enum ContentType {
@@ -497,22 +497,26 @@ export const NFTPortfolio = () => {
             <span className="hidden font-sora text-[32px] 2xl:block">
               Activity
             </span>
-            <InfiniteScroll
-              dataLength={transactions.length}
-              next={fetchMoreTransactions}
-              hasMore={fetchMore}
-              loader={<h4 className="text-center">Loading...</h4>}
-            >
-              {transactions.map((transaction) => (
-                <TransactionCard
-                  key={transaction.txhash}
-                  transaction={transaction}
-                  likes={transaction.likes}
-                  dislikes={transaction.dislikes}
-                  comments={transaction.comments}
-                />
-              ))}
-            </InfiniteScroll>
+            {transactions.length ? (
+              <InfiniteScroll
+                dataLength={transactions.length}
+                next={fetchMoreTransactions}
+                hasMore={fetchMore}
+                loader={<h4 className="text-center">Loading...</h4>}
+              >
+                {transactions.map((transaction) => (
+                  <TransactionCard
+                    key={transaction.txhash}
+                    transaction={transaction}
+                    likes={transaction.likes}
+                    dislikes={transaction.dislikes}
+                    comments={transaction.comments}
+                  />
+                ))}
+              </InfiniteScroll>
+            ) : (
+              <EmptyContainer descirption="no transactions" />
+            )}
           </div>
         </div>
       </div>

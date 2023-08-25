@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Modal } from 'antd';
+import { Modal, Spin } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { Mail, Send } from 'lucide-react';
 import { NFTNotification } from '../components/notifications/NFTNotification';
@@ -11,10 +11,34 @@ import {
   TokenAlertIcon,
   WalletAlertIcon,
 } from '../components/icons/defisensi-icons';
+import useNotifications from '../lib/hooks/useNotifications';
+import { EmptyContainer } from '../components/EmptyContainer';
+import { NotificationType } from '../types/notification';
 
 export const Notifications = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { notifications, loading, error } = useNotifications();
+
+  console.log(notifications);
+  if (loading) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <span className="font-sora text-2xl font-semibold">
+          Network connection error
+        </span>
+      </div>
+    );
+  }
 
   return (
     <AppLayout>
@@ -55,13 +79,18 @@ export const Notifications = () => {
               + Add Alert
             </button>
           </div>
-          <div className="flex flex-col items-center justify-center gap-6 lg:flex-row lg:flex-wrap">
-            <NFTNotification />
-            <NFTNotification />
-            <NFTNotification />
-            <WalletNotification />
-            <WalletNotification />
-            <WalletNotification />
+          <div className="flex flex-col items-start justify-start gap-6 lg:flex-row lg:flex-wrap">
+            {notifications.length ? (
+              notifications.map((notification) =>
+                notification.type === NotificationType.WALLET ? (
+                  <WalletNotification />
+                ) : (
+                  <NFTNotification />
+                ),
+              )
+            ) : (
+              <EmptyContainer />
+            )}
           </div>
         </div>
       </div>
