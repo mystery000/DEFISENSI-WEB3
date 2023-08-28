@@ -1,19 +1,26 @@
-import { FC, useCallback, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
 
+import { Modal } from 'antd';
 import { Play } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../../context/app';
 import { updateNotification } from '../../lib/api';
 import { Notification } from '../../types/notification';
 import { AlertIcon, PauseIcon } from '../icons/defisensi-icons';
+import { NFTNotificationPage } from '../../pages/notification/NFTNotificationPage';
 
 interface NFTNotificationProps {
   notification: Notification;
+  setNotifications: Dispatch<SetStateAction<Notification[]>>;
 }
 
-export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
+export const NFTNotification: FC<NFTNotificationProps> = ({
+  notification,
+  setNotifications,
+}) => {
   const { user } = useAppContext();
   const [status, setStatus] = useState(notification.status);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleToggleAlert = useCallback(async () => {
     if (!user) return;
@@ -31,6 +38,18 @@ export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
       });
     }
   }, [status, user]);
+
+  const handleEditAlert = useCallback(
+    (notification: Notification) => {
+      setNotifications((notifications) =>
+        notifications.map((notif) =>
+          notif._id === notification._id ? notification : notif,
+        ),
+      );
+      setIsModalOpen(false);
+    },
+    [notification],
+  );
 
   return (
     <div className="w-[382px] rounded-md bg-white p-[20px]">
@@ -84,7 +103,10 @@ export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
         </div>
       </div>
       <div className="mt-6 flex justify-start gap-3">
-        <button className="flex items-center justify-center gap-[6px] rounded-md border border-bali-hai-600/40 px-4 py-2">
+        <button
+          className="flex items-center justify-center gap-[6px] rounded-md border border-bali-hai-600/40 px-4 py-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <AlertIcon />
           <span className="text-sm font-medium">Edit Alert</span>
         </button>
@@ -98,6 +120,18 @@ export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
           </span>
         </button>
       </div>
+      <Modal
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        okButtonProps={{ className: 'hidden' }}
+        cancelButtonProps={{ className: 'hidden' }}
+        width={1024}
+      >
+        <NFTNotificationPage
+          data={notification}
+          handleEditAlert={handleEditAlert}
+        />
+      </Modal>
     </div>
   );
 };

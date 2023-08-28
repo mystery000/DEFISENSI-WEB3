@@ -51,4 +51,4 @@ export type NFTNotificationType = {
 
 export type Notification = WalletNotificationType &
   TokenNotificationType &
-  NFTNotificationType & { type: string; status: boolean };
+  NFTNotificationType & { type: string; status: boolean; _id: string };

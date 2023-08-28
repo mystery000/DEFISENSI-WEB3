@@ -1,16 +1,20 @@
+import { useNavigate } from 'react-router-dom';
+import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
+
 import { Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { isValid } from '../../lib/utils';
 import TextArea from 'antd/es/input/TextArea';
 import AppLayout from '../../layouts/AppLayout';
 import { useAppContext } from '../../context/app';
-import { createNotification } from '../../lib/api';
+import { createNotification, updateNotification } from '../../lib/api';
 import { Button, Checkbox, Input, Select } from 'antd';
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+
 import {
   TokenNotificationType,
   FilterNotification,
   NotificationType,
+  Notification,
 } from '../../types/notification';
 import { CheckboxChangeEvent } from 'antd/es/checkbox';
 
@@ -33,11 +37,22 @@ const initialFilterValue = {
   value: 0,
 };
 
-export const TokenNotificationPage = () => {
+interface TokenNotificationPageProps {
+  data?: Notification;
+  handleEditAlert?: Function;
+}
+
+export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
+  data,
+  handleEditAlert,
+}) => {
+  const navigate = useNavigate();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
-  const [notification, setNotification] =
-    useState<TokenNotificationType>(initialValue);
+  const [updating, setUpdating] = useState(false);
+  const [notification, setNotification] = useState<TokenNotificationType>(
+    data ? (data as TokenNotificationType) : initialValue,
+  );
 
   const [filter, setFilter] = useState<FilterNotification>(initialFilterValue);
 
@@ -46,7 +61,7 @@ export const TokenNotificationPage = () => {
     setNotification((prev) => ({ ...prev, address: user.address }));
   }, [user]);
 
-  const handleCreateTokenNotification = useCallback(async () => {
+  const handleCreateNotification = useCallback(async () => {
     if (!isValid(notification)) {
       toast.error('You must fill out all fields');
       return;
@@ -60,6 +75,7 @@ export const TokenNotificationPage = () => {
       toast.success('Created the notification successfully');
       setCreating(false);
       setNotification(initialValue);
+      setTimeout(() => navigate('/notifications'), 500);
     } catch (error) {
       toast.error('Failed to create a notification');
       setCreating(false);
@@ -67,8 +83,27 @@ export const TokenNotificationPage = () => {
     }
   }, [notification]);
 
+  const handleUpdateNotification = useCallback(async () => {
+    if (!data || !handleEditAlert) return;
+
+    setUpdating(true);
+    try {
+      const updatedNotification = await updateNotification((data as any)._id, {
+        ...data,
+        ...notification,
+      });
+      toast.success('Updated the notification successfully');
+      setUpdating(false);
+      setTimeout(() => handleEditAlert(updatedNotification), 500);
+    } catch (error) {
+      toast.error('Failed to update a notification');
+      setUpdating(false);
+      console.error(error);
+    }
+  }, [notification, data]);
+
   return (
-    <AppLayout>
+    <AppLayout noLayout={!!data}>
       <div className="min-w-sm m-4 max-w-5xl bg-white p-6 font-inter lg:mx-auto">
         <div className="font-sora text-2xl font-semibold lg:text-center">
           Create Token Alert
@@ -287,16 +322,31 @@ export const TokenNotificationPage = () => {
             </div>
           </div>
           <div className="w-full text-center">
-            <Button
-              size="large"
-              type="primary"
-              style={{ color: 'white', backgroundColor: '#FF5D29' }}
-              className="w-[350px]"
-              onClick={handleCreateTokenNotification}
-              disabled={creating}
-            >
-              {creating ? 'Creating...' : 'Create Alert'}
-            </Button>
+            {data ? (
+              <div className="flex justify-center gap-4">
+                <Button
+                  size="large"
+                  type="primary"
+                  style={{ color: 'white', backgroundColor: '#61a146' }}
+                  className="w-[350px]"
+                  onClick={handleUpdateNotification}
+                  disabled={updating}
+                >
+                  {updating ? 'Updating...' : 'Update Alert'}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="large"
+                type="primary"
+                style={{ color: 'white', backgroundColor: '#FF5D29' }}
+                className="w-[350px]"
+                onClick={handleCreateNotification}
+                disabled={creating}
+              >
+                {creating ? 'Creating...' : 'Create Alert'}
+              </Button>
+            )}
           </div>
         </div>
       </div>

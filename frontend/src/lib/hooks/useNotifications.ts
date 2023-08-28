@@ -26,5 +26,5 @@ export default function useNotifications() {
     })();
   }, [user]);
 
-  return { notifications: data, error, loading };
+  return { notifications: data, error, loading, mutate: setData };
 }

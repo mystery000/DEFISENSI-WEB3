@@ -12,6 +12,7 @@ import { useAppContext } from '../../context/app';
 import { isValid } from '../../lib/utils';
 import { toast } from 'react-toastify';
 import { createNotification, updateNotification } from '../../lib/api';
+import { useNavigate } from 'react-router-dom';
 
 const initialValue = {
   address: '',
@@ -30,10 +31,13 @@ const initialValue = {
 
 interface WalletNotificationPageProps {
   data?: Notification;
+  handleEditAlert?: Function;
 }
 export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
   data,
+  handleEditAlert,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -60,6 +64,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
       toast.success('Created the notification successfully');
       setCreating(false);
       setNotification(initialValue);
+      setTimeout(() => navigate('/notifications'), 500);
     } catch (error) {
       toast.error('Failed to create a notification');
       setCreating(false);
@@ -68,7 +73,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
   }, [notification]);
 
   const handleUpdateNotification = useCallback(async () => {
-    if (!data) return;
+    if (!data || !handleEditAlert) return;
 
     setUpdating(true);
     try {
@@ -78,6 +83,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
       });
       toast.success('Updated the notification successfully');
       setUpdating(false);
+      setTimeout(() => handleEditAlert(updatedNotification), 500);
     } catch (error) {
       toast.error('Failed to update a notification');
       setUpdating(false);

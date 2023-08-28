@@ -1,21 +1,23 @@
-import { FC, useCallback, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
 
+import { Modal } from 'antd';
 import { Play } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { convertHex } from '../../lib/utils';
+import { useAppContext } from '../../context/app';
+import { updateNotification } from '../../lib/api';
 import { Notification } from '../../types/notification';
 import { AlertIcon, PauseIcon } from '../icons/defisensi-icons';
-import { updateNotification } from '../../lib/api';
-import { useAppContext } from '../../context/app';
-import { toast } from 'react-toastify';
-import { Modal } from 'antd';
 import { WalletNotificationPage } from '../../pages/notification/WalletNotificationPage';
 
 interface WalletNotificationProps {
   notification: Notification;
+  setNotifications: Dispatch<SetStateAction<Notification[]>>;
 }
 
 export const WalletNotification: FC<WalletNotificationProps> = ({
   notification,
+  setNotifications,
 }) => {
   const { user } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,7 +40,17 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
     }
   }, [status, user]);
 
-  const handleEditAlert = useCallback(() => {}, []);
+  const handleEditAlert = useCallback(
+    (notification: Notification) => {
+      setNotifications((notifications) =>
+        notifications.map((notif) =>
+          notif._id === notification._id ? notification : notif,
+        ),
+      );
+      setIsModalOpen(false);
+    },
+    [notification],
+  );
 
   return (
     <div className="w-[382px] rounded-md bg-white p-[20px]">
@@ -135,7 +147,10 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
         cancelButtonProps={{ className: 'hidden' }}
         width={1024}
       >
-        <WalletNotificationPage data={notification} />
+        <WalletNotificationPage
+          data={notification}
+          handleEditAlert={handleEditAlert}
+        />
       </Modal>
     </div>
   );

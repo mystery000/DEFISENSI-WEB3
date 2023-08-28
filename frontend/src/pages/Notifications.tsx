@@ -21,7 +21,7 @@ export const Notifications = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { notifications, loading, error } = useNotifications();
+  const { notifications, loading, error, mutate } = useNotifications();
 
   if (loading) {
     return (
@@ -86,17 +86,20 @@ export const Notifications = () => {
                 notification.type === NotificationType.WALLET ? (
                   <WalletNotification
                     notification={notification}
-                    key={(notification as any)._id}
+                    setNotifications={mutate}
+                    key={notification._id}
                   />
                 ) : notification.type === NotificationType.TOKEN ? (
                   <TokenNotification
                     notification={notification}
-                    key={(notification as any)._id}
+                    setNotifications={mutate}
+                    key={notification._id}
                   />
                 ) : (
                   <NFTNotification
                     notification={notification}
-                    key={(notification as any)._id}
+                    setNotifications={mutate}
+                    key={notification._id}
                   />
                 ),
               )
