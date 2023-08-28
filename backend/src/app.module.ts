@@ -15,7 +15,9 @@ import { NotificationModule } from './notification/notification.module';
 import { EtherscanModule } from './etherscan/etherscan.module';
 import { PolygonscanModule } from './polygonscan/polygonscan.module';
 import { CronJobModule } from './cron-job/cron-job.module';
-
+import { MailingModule } from './mailing/mailing.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -27,6 +29,16 @@ import { CronJobModule } from './cron-job/cron-job.module';
       imports: [DatabaseModule],
       useFactory: (databaseService: DatabaseService) => databaseService.createMongooseOptions(),
     }),
+    MailerModule.forRoot({
+      transport: 'smtps://user@domain.com:pass@smtp.domain.com',
+      template: {
+        dir: process.cwd() + '/templates/',
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
     UserModule,
     WalletModule,
     TokenModule,
@@ -35,6 +47,7 @@ import { CronJobModule } from './cron-job/cron-job.module';
     EtherscanModule,
     PolygonscanModule,
     CronJobModule,
+    MailingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

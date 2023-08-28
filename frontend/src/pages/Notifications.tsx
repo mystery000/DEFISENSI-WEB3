@@ -84,11 +84,20 @@ export const Notifications = () => {
             {notifications.length ? (
               notifications.map((notification) =>
                 notification.type === NotificationType.WALLET ? (
-                  <WalletNotification notification={notification} />
+                  <WalletNotification
+                    notification={notification}
+                    key={(notification as any)._id}
+                  />
                 ) : notification.type === NotificationType.TOKEN ? (
-                  <TokenNotification notification={notification} />
+                  <TokenNotification
+                    notification={notification}
+                    key={(notification as any)._id}
+                  />
                 ) : (
-                  <NFTNotification notification={notification} />
+                  <NFTNotification
+                    notification={notification}
+                    key={(notification as any)._id}
+                  />
                 ),
               )
             ) : (

@@ -1,16 +1,17 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Button, Input, Select } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import AppLayout from '../../layouts/AppLayout';
 import {
-  CreateWalletNotification,
+  WalletNotificationType,
+  Notification,
   NotificationType,
 } from '../../types/notification';
 import { useAppContext } from '../../context/app';
 import { isValid } from '../../lib/utils';
 import { toast } from 'react-toastify';
-import { createNotification } from '../../lib/api';
+import { createNotification, updateNotification } from '../../lib/api';
 
 const initialValue = {
   address: '',
@@ -26,11 +27,19 @@ const initialValue = {
   maxTokenValue: 0,
   network: [],
 };
-export const WalletNotificationPage = () => {
+
+interface WalletNotificationPageProps {
+  data?: Notification;
+}
+export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
+  data,
+}) => {
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
-  const [notification, setNotification] =
-    useState<CreateWalletNotification>(initialValue);
+  const [updating, setUpdating] = useState(false);
+  const [notification, setNotification] = useState<WalletNotificationType>(
+    data ? (data as WalletNotificationType) : initialValue,
+  );
 
   useEffect(() => {
     if (!user.address) return;
@@ -58,11 +67,29 @@ export const WalletNotificationPage = () => {
     }
   }, [notification]);
 
+  const handleUpdateNotification = useCallback(async () => {
+    if (!data) return;
+
+    setUpdating(true);
+    try {
+      const updatedNotification = await updateNotification((data as any)._id, {
+        ...data,
+        ...notification,
+      });
+      toast.success('Updated the notification successfully');
+      setUpdating(false);
+    } catch (error) {
+      toast.error('Failed to update a notification');
+      setUpdating(false);
+      console.error(error);
+    }
+  }, [notification, data]);
+
   return (
-    <AppLayout>
-      <div className="min-w-sm m-4 max-w-5xl bg-white p-4 font-inter lg:mx-auto">
+    <AppLayout noLayout={!!data}>
+      <div className="m-4 min-w-[430px] max-w-5xl bg-white p-4 font-inter lg:mx-auto">
         <div className="font-sora text-2xl font-semibold lg:text-center">
-          Create Wallet Alert
+          {data ? 'Edit Wallet Alert' : 'Create Wallet Alert'}
         </div>
         <hr className="my-2"></hr>
         <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
@@ -72,6 +99,10 @@ export const WalletNotificationPage = () => {
               placeholder="Alert name"
               style={{ fontSize: '14px' }}
               size="large"
+              value={notification?.name}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setNotification((prev) => ({ ...prev, name: e.target.value }))
+              }
             />
           </div>
           <div className="w-full lg:w-[49%]">
@@ -88,6 +119,7 @@ export const WalletNotificationPage = () => {
               ]}
               size="large"
               mode="multiple"
+              value={notification.network}
               onChange={(networks) =>
                 setNotification((prev) => ({ ...prev, network: [...networks] }))
               }
@@ -243,16 +275,31 @@ export const WalletNotificationPage = () => {
             />
           </div>
           <div className="w-full text-center">
-            <Button
-              size="large"
-              type="primary"
-              style={{ color: 'white', backgroundColor: '#FF5D29' }}
-              className="w-[350px]"
-              onClick={handleCreateNotification}
-              disabled={creating}
-            >
-              {creating ? 'Creating...' : 'Create Alert'}
-            </Button>
+            {data ? (
+              <div className="flex justify-center gap-4">
+                <Button
+                  size="large"
+                  type="primary"
+                  style={{ color: 'white', backgroundColor: '#61a146' }}
+                  className="w-[350px]"
+                  onClick={handleUpdateNotification}
+                  disabled={updating}
+                >
+                  {updating ? 'Updating...' : 'Update Alert'}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="large"
+                type="primary"
+                style={{ color: 'white', backgroundColor: '#FF5D29' }}
+                className="w-[350px]"
+                onClick={handleCreateNotification}
+                disabled={creating}
+              >
+                {creating ? 'Creating...' : 'Create Alert'}
+              </Button>
+            )}
           </div>
         </div>
       </div>

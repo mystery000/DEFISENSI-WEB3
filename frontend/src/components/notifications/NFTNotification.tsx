@@ -1,20 +1,36 @@
 import { FC, useCallback, useState } from 'react';
 
 import { Play } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { useAppContext } from '../../context/app';
+import { updateNotification } from '../../lib/api';
 import { Notification } from '../../types/notification';
 import { AlertIcon, PauseIcon } from '../icons/defisensi-icons';
-import { toast } from 'react-toastify';
 
 interface NFTNotificationProps {
   notification: Notification;
 }
 
 export const NFTNotification: FC<NFTNotificationProps> = ({ notification }) => {
+  const { user } = useAppContext();
   const [status, setStatus] = useState(notification.status);
 
-  const handleToggleAlert = useCallback(() => {
-    setStatus((prev) => !prev);
-  }, []);
+  const handleToggleAlert = useCallback(async () => {
+    if (!user) return;
+    try {
+      await updateNotification((notification as any)._id, {
+        ...notification,
+        status: !status,
+      });
+      setStatus((prev) => !prev);
+      toast.success(status ? 'Off' : 'On', { hideProgressBar: true });
+    } catch (error) {
+      console.error(error);
+      toast.error('Sorry, failed to switch notification', {
+        hideProgressBar: true,
+      });
+    }
+  }, [status, user]);
 
   return (
     <div className="w-[382px] rounded-md bg-white p-[20px]">

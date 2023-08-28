@@ -4,6 +4,11 @@ import { Play } from 'lucide-react';
 import { convertHex } from '../../lib/utils';
 import { Notification } from '../../types/notification';
 import { AlertIcon, PauseIcon } from '../icons/defisensi-icons';
+import { updateNotification } from '../../lib/api';
+import { useAppContext } from '../../context/app';
+import { toast } from 'react-toastify';
+import { Modal } from 'antd';
+import { WalletNotificationPage } from '../../pages/notification/WalletNotificationPage';
 
 interface WalletNotificationProps {
   notification: Notification;
@@ -12,11 +17,28 @@ interface WalletNotificationProps {
 export const WalletNotification: FC<WalletNotificationProps> = ({
   notification,
 }) => {
+  const { user } = useAppContext();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [status, setStatus] = useState(notification.status);
 
-  const handleToggleAlert = useCallback(() => {
-    setStatus((prev) => !prev);
-  }, []);
+  const handleToggleAlert = useCallback(async () => {
+    if (!user) return;
+    try {
+      await updateNotification((notification as any)._id, {
+        ...notification,
+        status: !status,
+      });
+      setStatus((prev) => !prev);
+      toast.success(status ? 'Turn off' : 'Turn on', { hideProgressBar: true });
+    } catch (error) {
+      console.error(error);
+      toast.error('Sorry, failed to switch notification', {
+        hideProgressBar: true,
+      });
+    }
+  }, [status, user]);
+
+  const handleEditAlert = useCallback(() => {}, []);
 
   return (
     <div className="w-[382px] rounded-md bg-white p-[20px]">
@@ -89,7 +111,10 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
         </div>
       </div>
       <div className="mt-6 flex justify-start gap-3">
-        <button className="flex items-center justify-center gap-[6px] rounded-md border border-bali-hai-600/40 px-4 py-2">
+        <button
+          className="flex items-center justify-center gap-[6px] rounded-md border border-bali-hai-600/40 px-4 py-2"
+          onClick={() => setIsModalOpen(true)}
+        >
           <AlertIcon />
           <span className="text-sm font-medium">Edit Alert</span>
         </button>
@@ -103,6 +128,15 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
           </span>
         </button>
       </div>
+      <Modal
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        okButtonProps={{ className: 'hidden' }}
+        cancelButtonProps={{ className: 'hidden' }}
+        width={1024}
+      >
+        <WalletNotificationPage data={notification} />
+      </Modal>
     </div>
   );
 };

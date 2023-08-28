@@ -5,11 +5,11 @@ import { API_BASE_URL } from '../config/app';
 import { Balance, BalanceHistory } from '../types/balance';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
 import {
-  CreateNFTNotification,
-  CreateTokenNotification,
-  CreateWalletNotification,
+  NFTNotificationType,
   Notification,
   NotificationType,
+  TokenNotificationType,
+  WalletNotificationType,
 } from '../types/notification';
 
 export const findFollowingWallets = async (
@@ -211,9 +211,9 @@ export const followToken = async (
 export const createNotification = async (
   type: NotificationType,
   notification:
-    | CreateWalletNotification
-    | CreateTokenNotification
-    | CreateNFTNotification,
+    | WalletNotificationType
+    | TokenNotificationType
+    | NFTNotificationType,
 ) => {
   try {
     if (type === NotificationType.WALLET) {
@@ -244,6 +244,20 @@ export const getNotifications = async (address: string) => {
       `${API_BASE_URL}/user/${address}/notifications`,
     );
     return res.data as Notification[];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateNotification = async (
+  id: string,
+  notification: Notification,
+) => {
+  try {
+    const res = await axios.patch(`${API_BASE_URL}/notification/${id}`, {
+      ...notification,
+    });
+    return res.data as Notification;
   } catch (error) {
     throw error;
   }

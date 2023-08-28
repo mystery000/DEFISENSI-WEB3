@@ -1,5 +1,3 @@
-import { NetworkType } from '.';
-
 export enum NotificationType {
   WALLET = 'Wallet',
   TOKEN = 'Token',
@@ -11,7 +9,7 @@ export type FilterNotification = {
   value: number;
 };
 
-export type CreateWalletNotification = {
+export type WalletNotificationType = {
   address: string;
   name: string;
   description: string;
@@ -26,7 +24,7 @@ export type CreateWalletNotification = {
   network: string[];
 };
 
-export type CreateTokenNotification = {
+export type TokenNotificationType = {
   address: string;
   name: string;
   description: string;
@@ -40,7 +38,7 @@ export type CreateTokenNotification = {
   network: string[];
 };
 
-export type CreateNFTNotification = {
+export type NFTNotificationType = {
   address: string;
   name: string;
   description: string;
@@ -51,24 +49,6 @@ export type CreateNFTNotification = {
   network: string[];
 };
 
-export type Notification = {
-  type: NotificationType;
-  status: boolean;
-  name: string;
-  description: string;
-  subscribeTo: string[];
-  receivingFrom: string[];
-  sendingTo: string;
-  minUsd: number;
-  maxUsd: number;
-  tokens: string;
-  minTokenValue: number;
-  maxTokenValue: number;
-  changePercent: string;
-  changePercentDir: string;
-  tokenFilter: { dir: String; value: Number }[];
-  nftDailyFloor: { dir: String; value: Number }[];
-  nftDailyVolume: { dir: String; value: Number }[];
-  nftDailySales: { dir: String; value: Number }[];
-  network: NetworkType[];
-};
+export type Notification = WalletNotificationType &
+  TokenNotificationType &
+  NFTNotificationType & { type: string; status: boolean };

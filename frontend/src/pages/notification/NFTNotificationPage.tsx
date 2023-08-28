@@ -10,9 +10,9 @@ import { useAppContext } from '../../context/app';
 import { createNotification } from '../../lib/api';
 
 import {
-  CreateNFTNotification,
   FilterNotification,
   NotificationType,
+  NFTNotificationType,
 } from '../../types/notification';
 
 const initialValue = {
@@ -35,7 +35,7 @@ export const NFTNotificationPage = () => {
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
   const [notification, setNotification] =
-    useState<CreateNFTNotification>(initialValue);
+    useState<NFTNotificationType>(initialValue);
 
   const [floor, setFloor] = useState<FilterNotification>(initialFilterValue);
   const [volume, setVolume] = useState<FilterNotification>(initialFilterValue);

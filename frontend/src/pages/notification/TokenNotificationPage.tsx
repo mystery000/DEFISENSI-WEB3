@@ -8,7 +8,7 @@ import { createNotification } from '../../lib/api';
 import { Button, Checkbox, Input, Select } from 'antd';
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import {
-  CreateTokenNotification,
+  TokenNotificationType,
   FilterNotification,
   NotificationType,
 } from '../../types/notification';
@@ -37,7 +37,7 @@ export const TokenNotificationPage = () => {
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
   const [notification, setNotification] =
-    useState<CreateTokenNotification>(initialValue);
+    useState<TokenNotificationType>(initialValue);
 
   const [filter, setFilter] = useState<FilterNotification>(initialFilterValue);
 
