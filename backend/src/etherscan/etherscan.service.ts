@@ -716,6 +716,23 @@ export class EtherscanService {
     }
   }
 
+  async getTopERC20Tokens() {
+    try {
+      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: 20,
+          page: 1,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      logger.error(error);
+      return [];
+    }
+  }
+
   async test() {
     /*
       Examples of wallet address
@@ -733,6 +750,7 @@ export class EtherscanService {
 
     // return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
     // return this.getPriceHistory('0xB8c77482e45F1F44dE1745F52C74426C631bDD52');
-    return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
+    // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
+    return this.getTopERC20Tokens();
   }
 }

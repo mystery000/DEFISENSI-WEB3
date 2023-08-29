@@ -11,6 +11,7 @@ import {
   TokenNotificationType,
   WalletNotificationType,
 } from '../types/notification';
+import { TopToken } from '../types/token';
 
 export const findFollowingWallets = async (
   address: string,
@@ -258,6 +259,15 @@ export const updateNotification = async (
       ...notification,
     });
     return res.data as Notification;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTopERC20Tokens = async () => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/token/top-tokens`);
+    return res.data as TopToken[];
   } catch (error) {
     throw error;
   }

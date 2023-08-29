@@ -265,4 +265,8 @@ export class TokenService {
     }
     return null;
   }
+
+  async getTopERC20Tokens() {
+    return this.etherscanService.getTopERC20Tokens();
+  }
 }

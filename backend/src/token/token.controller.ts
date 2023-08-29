@@ -98,6 +98,12 @@ export class TokenController {
     return this.tokenService.getComments(query);
   }
 
+  @Get('top-tokens')
+  @ApiOperation({ summary: 'Get the top ERC20 tokens' })
+  getTopERC20Tokens() {
+    return this.tokenService.getTopERC20Tokens();
+  }
+
   @Get('/:network/:address/transactions')
   @ApiOperation({ summary: 'Get transactions of this token contract' })
   @ApiOkResponse({ type: ApiTransaction, isArray: true })

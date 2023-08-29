@@ -5,42 +5,13 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableContainer from '@mui/material/TableContainer';
-import { Input } from 'antd';
+import { Input, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import Select from 'react-select';
+import useTopTokens from '../../lib/hooks/useTopTokens';
+import { EmptyContainer } from '../../components/EmptyContainer';
 
-const topTokens = [
-  {
-    tokenName: 'USDT',
-    price: 1636077,
-    change: 3122,
-    followers: 77522,
-  },
-  {
-    tokenName: 'BNB',
-    price: 1636077,
-    change: 3122,
-    followers: 77522,
-  },
-  {
-    tokenName: 'USDC',
-    price: 1636077,
-    change: 3122,
-    followers: 77522,
-  },
-  {
-    tokenName: 'MATIC',
-    price: 1636077,
-    change: 3122,
-    followers: 77522,
-  },
-  {
-    tokenName: 'DAI',
-    price: 1636077,
-    change: 3122,
-    followers: 77522,
-  },
-];
+const topTokens = [] as any[];
 
 const options = [
   {
@@ -71,6 +42,16 @@ const formatOptionLabel = ({
 );
 
 export const TopTokens = () => {
+  // const { data: topERC20Tokens, loading } = useTopTokens();
+
+  // if (loading) {
+  //   return (
+  //     <div className="grid h-screen place-items-center">
+  //       <Spin size="large" />
+  //     </div>
+  //   );
+  // }
+
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3">
@@ -99,8 +80,8 @@ export const TopTokens = () => {
             />
           </div>
         </div>
-        <TableContainer className="mt-4 bg-white px-3">
-          <Table sx={{ minWidth: 400 }} aria-label="simple table">
+        <TableContainer className="mt-4 bg-white px-3 ">
+          <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
                 <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
@@ -118,7 +99,7 @@ export const TopTokens = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {topTokens.map((token, id) => (
+              {/* {topTokens.map((token, id) => (
                 <TableRow
                   key={id}
                   sx={{
@@ -138,7 +119,10 @@ export const TopTokens = () => {
                   </TableCell>
                   <TableCell>{token.followers}</TableCell>
                 </TableRow>
-              ))}
+              ))} */}
+              <TableRow style={{ columnSpan: 'all', textAlign: 'center' }}>
+                <EmptyContainer />
+              </TableRow>
             </TableBody>
           </Table>
         </TableContainer>
