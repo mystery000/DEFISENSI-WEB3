@@ -106,18 +106,14 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Chains</div>
           <div className="flex items-center">
-            <img
-              src={`/images/tokens/eth.png`}
-              width={20}
-              height={20}
-              alt="noIcon"
-            />
-            <img
-              src={`/images/tokens/eth.png`}
-              width={20}
-              height={20}
-              alt="noIcon"
-            />
+            {notification.network.map((network) => (
+              <img
+                src={`/images/tokens/eth.png`}
+                width={20}
+                height={20}
+                alt="noIcon"
+              />
+            ))}
             <span className="font-sora font-semibold"></span>
           </div>
         </div>

@@ -1,3 +1,5 @@
+import { NetworkType } from '.';
+
 export enum TransactionType {
   TOKEN = 'token',
   NFT = 'nft',
@@ -22,7 +24,7 @@ export type Transaction = {
 
   txhash: string;
   blockNumber: string;
-  type?: TransactionType;
+  type: TransactionType;
   details: {
     from: string;
     to: string;

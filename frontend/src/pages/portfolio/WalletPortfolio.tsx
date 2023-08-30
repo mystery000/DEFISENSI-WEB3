@@ -31,6 +31,7 @@ import {
 import cn from 'classnames';
 import * as Antd from 'antd';
 import Select from 'react-select';
+import { Box } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../../context/app';
 import { balanceFormatter } from '../../lib/utils';
@@ -589,7 +590,10 @@ export const WalletPortfolio = () => {
                 />
               </div>
               <TableContainer>
-                <Table sx={{ minWidth: 400 }} aria-label="simple table">
+                <Table
+                  sx={{ minWidth: 400, heigh: 600 }}
+                  aria-label="simple table"
+                >
                   <TableHead>
                     <TableRow>
                       <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
@@ -604,34 +608,55 @@ export const WalletPortfolio = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {tokensOfWallet.map((token, id) => (
-                      <TableRow
-                        key={token.name + id}
-                        sx={{
-                          '&:last-child td, &:last-child th': { border: 0 },
-                        }}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <img
-                              src={
-                                token.symbol.toLocaleLowerCase() === 'eth'
-                                  ? `/images/tokens/eth.png`
-                                  : token.logo
-                                  ? token.logo
-                                  : `/images/tokens/empty-eth.png`
-                              }
-                              width={32}
-                              height={32}
-                              alt="no icon"
-                            />
-                            {token.name}
-                          </div>
+                    {tokensOfWallet.length > 0 ? (
+                      tokensOfWallet.map((token, id) => (
+                        <TableRow
+                          key={token.name + id}
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                          }}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <img
+                                src={
+                                  token.symbol.toLocaleLowerCase() === 'eth'
+                                    ? `/images/tokens/eth.png`
+                                    : token.logo
+                                    ? token.logo
+                                    : `/images/tokens/empty-eth.png`
+                                }
+                                width={32}
+                                height={32}
+                                alt="no icon"
+                              />
+                              {token.name}
+                            </div>
+                          </TableCell>
+                          <TableCell>{token.value}</TableCell>
+                          <TableCell>${token.usdPrice}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          style={{
+                            textAlign: 'center',
+                            verticalAlign: 'middle',
+                          }}
+                        >
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="100%"
+                          >
+                            <EmptyContainer />
+                          </Box>
                         </TableCell>
-                        <TableCell>{token.value}</TableCell>
-                        <TableCell>${token.usdPrice}</TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>

@@ -2,18 +2,19 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
+import axios from 'axios';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { UNISWAP_ABI } from './abi';
+import { logger } from 'src/utils/logger';
 import { ConfigService } from '@nestjs/config';
-import { MoralisConfig } from 'src/config/moralis.config';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { ExchangePrice, HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
+import { MoralisConfig } from 'src/config/moralis.config';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import axios from 'axios';
-import { logger } from 'src/utils/logger';
+import { ExchangePrice, HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
+import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class EtherscanService {
@@ -308,7 +309,7 @@ export class EtherscanService {
     return transactions;
   }
 
-  async getTransactionByToken(contractAddress: string, fromBlock: number = 0) {
+  async getTransactionsByToken(contractAddress: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: Transaction[] = [];
 
@@ -571,7 +572,39 @@ export class EtherscanService {
     return transactions;
   }
 
-  async getTransactionByNFT(contractAddress: string, startBlock?: number) {}
+  async getTransactionsByNFT(contractAddress: string, fromBlock: number = 0) {
+    let transactions: any[] = [];
+    try {
+      let txHashs = [];
+      const contractLogs = await Moralis.EvmApi.events.getContractLogs({
+        address: contractAddress,
+        chain: EvmChain.ETHEREUM,
+        limit: 4,
+      });
+
+      for (const log of contractLogs.toJSON().result) {
+        if (!txHashs.includes(log.transaction_hash)) {
+          txHashs.push(log.transaction_hash);
+        }
+      }
+
+      for (const txHash of txHashs) {
+        const tx = (
+          await Moralis.EvmApi.transaction.getTransactionVerbose({
+            chain: EvmChain.ETHEREUM,
+            transactionHash: txHash,
+          })
+        ).toJSON();
+
+        transactions.push(tx);
+      }
+
+      return transactions;
+    } catch (error) {
+      logger.error(error);
+      return transactions;
+    }
+  }
 
   // Get the current block's token balances (native token and ERC20 tokens)
   async getBalances(address: string) {
@@ -718,15 +751,44 @@ export class EtherscanService {
 
   async getTopERC20Tokens() {
     try {
-      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: 20,
-          page: 1,
-        },
-      });
-      return response.data;
+      // const response = await Moralis.EvmApi.marketData.getTopERC20TokensByMarketCap();
+
+      const sampleData = [1, 2, 3, 4, 5].map((rank) => ({
+        rank: rank.toString(),
+        token_name: 'Wrapped Ether',
+        token_symbol: 'WETH',
+        token_logo: 'https://cdn.moralis.io/eth/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
+        token_decimals: '18',
+        contract_address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        price_usd: '0.0285',
+        price_24h_percent_change: '0.0285',
+        price_7d_percent_change: '0.0285',
+        market_cap_usd: '0.0285',
+        followers: 0,
+      }));
+      return sampleData;
+    } catch (error) {
+      logger.error(error);
+      return [];
+    }
+  }
+
+  async getTopNFTs() {
+    try {
+      // const response = await Moralis.EvmApi.marketData.getTopNFTCollectionsByMarketCap();
+      const sampleData = [1, 2, 3, 4, 5].map((rank) => ({
+        rank: rank.toString(),
+        collection_title: 'CryptoPunks',
+        floor_price_usd: '0.0',
+        floor_price_24hr_percent_change: '20.11',
+        market_cap_usd: '0.0',
+        market_cap_24hr_percent_change: '0.0',
+        volume_usd: '0.0',
+        volume_24hr_percent_change: '20.11',
+        holders: 0,
+      }));
+
+      return sampleData;
     } catch (error) {
       logger.error(error);
       return [];
@@ -746,11 +808,13 @@ export class EtherscanService {
       address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', Tether USDT
       address: '0x50327c6c5a14DCaDE707ABad2E27eB517df87AB5', TRON (TRX)
     */
-    // return this.getTransactionByToken('0xdAC17F958D2ee523a2206206994597C13D831ec7');
+    // return this.getTransactionsByToken('0x76BE3b62873462d2142405439777e971754E8E77');
 
     // return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
     // return this.getPriceHistory('0xB8c77482e45F1F44dE1745F52C74426C631bDD52');
     // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
-    return this.getTopERC20Tokens();
+    // return this.getTopERC20Tokens();
+
+    return this.getTransactionsByNFT('0x76BE3b62873462d2142405439777e971754E8E77');
   }
 }

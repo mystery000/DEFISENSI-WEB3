@@ -1,52 +1,16 @@
-import AppLayout from '../../layouts/AppLayout';
+import Select from 'react-select';
+import { Input, Spin } from 'antd';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import TableContainer from '@mui/material/TableContainer';
-import { Input } from 'antd';
+import AppLayout from '../../layouts/AppLayout';
 import { SearchOutlined } from '@ant-design/icons';
-import Select from 'react-select';
-
-const topNFTs = [
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-  {
-    collection: 'CrytoPunks',
-    floor: 1636077,
-    _24hVol: 3122,
-    holders: 77522,
-  },
-];
+import TableContainer from '@mui/material/TableContainer';
+import useTopNFTs from '../../lib/hooks/useTopNFTs';
+import { EmptyContainer } from '../../components/EmptyContainer';
+import { Box } from '@mui/material';
 
 const options = [
   {
@@ -77,6 +41,16 @@ const formatOptionLabel = ({
 );
 
 export const TopNFTs = () => {
+  const { data: topNFTs, loading } = useTopNFTs();
+
+  if (loading) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3">
@@ -106,7 +80,7 @@ export const TopNFTs = () => {
           </div>
         </div>
         <TableContainer className="mt-4 bg-white px-3">
-          <Table sx={{ minWidth: 400 }} aria-label="simple table">
+          <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
                 <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
@@ -124,25 +98,51 @@ export const TopNFTs = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {topNFTs.map((nft, id) => (
-                <TableRow
-                  key={id}
-                  sx={{
-                    '&:last-child td, &:last-child th': { border: 0 },
-                  }}
-                >
-                  <TableCell>{nft.collection}</TableCell>
-                  <TableCell>
-                    {nft.floor}
-                    <span className="text-[#00D455]"> ETH</span>
+              {topNFTs.length > 0 ? (
+                topNFTs.map((nft, id) => (
+                  <TableRow
+                    key={id}
+                    sx={{
+                      '&:last-child td, &:last-child th': { border: 0 },
+                    }}
+                  >
+                    <TableCell>{nft.collection_title}</TableCell>
+                    <TableCell>
+                      {Math.abs(Number(nft.floor_price_24hr_percent_change))}
+                      {Number(nft.floor_price_24hr_percent_change) > 0 ? (
+                        <span className="text-malachite-500">ETH</span>
+                      ) : (
+                        <span className="text-orange-400">ETH</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {Math.abs(Number(nft.volume_24hr_percent_change))}
+                      {Number(nft.volume_24hr_percent_change) > 0 ? (
+                        <span className="text-malachite-500">ETH</span>
+                      ) : (
+                        <span className="text-orange-400">ETH</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{nft.holders}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
+                  >
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      height="100%"
+                    >
+                      <EmptyContainer />
+                    </Box>
                   </TableCell>
-                  <TableCell>
-                    ${nft._24hVol}
-                    <span className="text-[#00D455]"> ETH</span>
-                  </TableCell>
-                  <TableCell>{nft.holders}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getTopERC20Tokens } from '../api';
-import { TopToken } from '../../types/token';
+import { TopToken } from '../../types/discover';
 
 export default function useTopTokens() {
   const [data, setData] = useState<TopToken[]>([]);
@@ -13,7 +13,6 @@ export default function useTopTokens() {
       try {
         setLoading(true);
         const topTokens = await getTopERC20Tokens();
-        console.log(topTokens);
         setData(topTokens);
         setLoading(false);
       } catch (error) {

@@ -87,4 +87,10 @@ export class NftController {
   getComments(@Param() query: FindOneParams): Promise<Comment[]> {
     return this.nftService.getComments(query);
   }
+
+  @Get('top-nfts')
+  @ApiOperation({ summary: 'Get the top ERC20 tokens' })
+  getTopNFTs() {
+    return this.nftService.getTopNFTs();
+  }
 }

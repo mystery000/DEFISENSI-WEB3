@@ -1,17 +1,16 @@
-import AppLayout from '../../layouts/AppLayout';
+import Select from 'react-select';
+import { Input, Spin } from 'antd';
+import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
+import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import TableContainer from '@mui/material/TableContainer';
-import { Input, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import Select from 'react-select';
 import useTopTokens from '../../lib/hooks/useTopTokens';
+import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
-
-const topTokens = [] as any[];
 
 const options = [
   {
@@ -42,15 +41,15 @@ const formatOptionLabel = ({
 );
 
 export const TopTokens = () => {
-  // const { data: topERC20Tokens, loading } = useTopTokens();
+  const { data: topERC20Tokens, loading } = useTopTokens();
 
-  // if (loading) {
-  //   return (
-  //     <div className="grid h-screen place-items-center">
-  //       <Spin size="large" />
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <AppLayout>
@@ -99,30 +98,44 @@ export const TopTokens = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* {topTokens.map((token, id) => (
-                <TableRow
-                  key={id}
-                  sx={{
-                    '&:last-child td, &:last-child th': { border: 0 },
-                  }}
-                >
-                  <TableCell>{token.tokenName}</TableCell>
-                  <TableCell>{token.price}</TableCell>
-                  <TableCell>
-                    ${token.change}
-                    <span
-                      className={id % 3 ? 'text-[#FF5D29]' : 'text-[#00D455]'}
+              {topERC20Tokens.length ? (
+                topERC20Tokens.map((token, id) => (
+                  <TableRow
+                    key={id}
+                    sx={{
+                      '&:last-child td, &:last-child th': { border: 0 },
+                    }}
+                  >
+                    <TableCell>{token.token_name}</TableCell>
+                    <TableCell>${token.price_usd}</TableCell>
+                    <TableCell>
+                      {Math.abs(Number(token.price_24h_percent_change))}%
+                      {Number(token.price_24h_percent_change) > 0 ? (
+                        <span className="text-malachite-500">+</span>
+                      ) : (
+                        <span className="text-orange-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{token.followers}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
+                  >
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      height="100%"
                     >
-                      {' '}
-                      +2%
-                    </span>
+                      <EmptyContainer />
+                    </Box>
                   </TableCell>
-                  <TableCell>{token.followers}</TableCell>
                 </TableRow>
-              ))} */}
-              <TableRow style={{ columnSpan: 'all', textAlign: 'center' }}>
-                <EmptyContainer />
-              </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>

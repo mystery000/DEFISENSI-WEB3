@@ -8,6 +8,7 @@ import { logger } from 'src/utils/logger';
 import { HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import axios from 'axios';
+import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class PolygonscanService {
@@ -105,7 +106,9 @@ export class PolygonscanService {
     return transactions.sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
   }
 
-  async getTransactionsByERC20(contractAddress: string, fromBlock: number = 0) {}
+  async getTransactionsByERC20(contractAddress: string, fromBlock: number = 0) {
+    /* set network to NetworkType.Polygon */
+  }
 
   async getTransactionsByERC721(contractAddress: string, fromBlock: number = 0) {}
 

@@ -6,9 +6,15 @@ import { UserModule } from '../user/user.module';
 import { NftController } from './nft.controller';
 import { Nft, NftSchema } from './schemas/nft.schema';
 import { CommentModule } from '../comment/comment.module';
+import { EtherscanModule } from 'src/etherscan/etherscan.module';
 
 @Module({
-  imports: [UserModule, CommentModule, MongooseModule.forFeature([{ name: Nft.name, schema: NftSchema }])],
+  imports: [
+    UserModule,
+    CommentModule,
+    EtherscanModule,
+    MongooseModule.forFeature([{ name: Nft.name, schema: NftSchema }]),
+  ],
   controllers: [NftController],
   providers: [NftService],
   exports: [NftService],

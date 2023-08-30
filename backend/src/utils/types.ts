@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { NetworkType } from './enums/network.enum';
 import { TransactionType } from './enums/transaction.enum';
 
 export class ApiTokenType {
@@ -64,6 +65,8 @@ export type Token = {
   value: string;
   usdPrice: string;
 };
+
+export type NFT = {};
 
 export type Transaction = {
   txhash: string;

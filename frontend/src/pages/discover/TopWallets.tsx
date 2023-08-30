@@ -1,83 +1,17 @@
-import AppLayout from '../../layouts/AppLayout';
+import Select from 'react-select';
+import { Input, Spin } from 'antd';
+import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
+import { convertHex } from '../../lib/utils';
 import TableRow from '@mui/material/TableRow';
+import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import TableContainer from '@mui/material/TableContainer';
-import { Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import Select from 'react-select';
-import { convertHex } from '../../lib/utils';
-
-const topWallets = [
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-  {
-    address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
-    amount: 1636077,
-    ID: 3122,
-    followers: 77522,
-  },
-];
+import TableContainer from '@mui/material/TableContainer';
+import useTopWallets from '../../lib/hooks/useTopWallets';
+import { EmptyContainer } from '../../components/EmptyContainer';
 
 const options = [
   {
@@ -108,6 +42,16 @@ const formatOptionLabel = ({
 );
 
 export const TopWallets = () => {
+  const { data: topWallets, loading } = useTopWallets();
+
+  if (loading) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3">
@@ -137,7 +81,7 @@ export const TopWallets = () => {
           </div>
         </div>
         <TableContainer className="mt-4 bg-white px-3">
-          <Table sx={{ minWidth: 400 }} aria-label="simple table">
+          <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
                 <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
@@ -147,7 +91,7 @@ export const TopWallets = () => {
                   AUM
                 </TableCell>
                 <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  ID
+                  1D
                 </TableCell>
                 <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
                   Followers
@@ -155,29 +99,56 @@ export const TopWallets = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {topWallets.map((wallet, id) => (
-                <TableRow
-                  key={wallet.address + id}
-                  sx={{
-                    '&:last-child td, &:last-child th': { border: 0 },
-                  }}
-                >
-                  <TableCell>
-                    {convertHex(wallet.address).slice(0, 6)}
-                  </TableCell>
-                  <TableCell>{wallet.amount}</TableCell>
-                  <TableCell>
-                    ${wallet.ID}
-                    <span
-                      className={id % 3 ? 'text-[#FF5D29]' : 'text-[#00D455]'}
+              {topWallets.length > 0 ? (
+                topWallets.map((wallet, id) => (
+                  <TableRow
+                    key={wallet.address + id}
+                    sx={{
+                      '&:last-child td, &:last-child th': { border: 0 },
+                    }}
+                  >
+                    <TableCell>
+                      {convertHex(wallet.address).slice(0, 6)}
+                    </TableCell>
+                    <TableCell>
+                      {Number(wallet.amount).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      ${wallet.price_usd}
+                      {Number(wallet.price_24h_percent_change) < 0 ? (
+                        <span className="text-orange-400">
+                          -
+                          {Number(
+                            wallet.price_24h_percent_change,
+                          ).toLocaleString()}
+                          %
+                        </span>
+                      ) : (
+                        <span className="text-malachite-500">
+                          +{Number(wallet.price_24h_percent_change)}%
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>{wallet.followers}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
+                  >
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      height="100%"
                     >
-                      {' '}
-                      +2%
-                    </span>
+                      <EmptyContainer />
+                    </Box>
                   </TableCell>
-                  <TableCell>{wallet.followers}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

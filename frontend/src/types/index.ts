@@ -6,6 +6,6 @@ export enum TransferType {
 }
 
 export enum NetworkType {
-  POLYGON = 'polygon',
-  ETHEREUM = 'ethereum',
+  Polygon = 'polygon',
+  Ethereum = 'ethereum',
 }

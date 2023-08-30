@@ -62,6 +62,16 @@ export class WalletController {
     return this.walletService.comment(commentWalletDto);
   }
 
+  @Get('top-wallets')
+  @ApiOperation({ summary: 'Get the top wallets' })
+  // @ApiOkResponse({ type: [Wallet] })
+  // getTopWallets(): Promise<Wallet[]> {
+  //   return this.walletService.getTopWallets();
+  // }
+  getTopWallets() {
+    return this.walletService.getTopWallets();
+  }
+
   @Get(':address')
   @ApiOperation({ summary: 'Get wallet' })
   @ApiOkResponse({ type: Wallet })

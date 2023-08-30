@@ -224,7 +224,7 @@ export class TokenService {
         if (token && token.transactions && token.transactions.length > 0)
           latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
 
-        const txs = await this.etherscanService.getTransactionByToken(contractAddress, latestBlockNumber + 1);
+        const txs = await this.etherscanService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.Polygon) {
         // Polygon network
@@ -238,7 +238,7 @@ export class TokenService {
     try {
       if (network === NetworkType.Ethereum) {
         // Ethereum network
-        const txs = await this.etherscanService.getTransactionByToken(contractAddress);
+        const txs = await this.etherscanService.getTransactionsByToken(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.Polygon) {
         // Polygon network

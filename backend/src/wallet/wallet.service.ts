@@ -298,4 +298,22 @@ export class WalletService {
     }
     return foundWallet.balance;
   }
+
+  // Get the top wallets
+  async getTopWallets() {
+    try {
+      // Get top wallets from wallet module
+      const sampleData = [1, 2, 3, 4, 5].map((rank) => ({
+        address: '0xBde3b2d22EA68Fa98e55b7E179BA448E9eC45dA3',
+        amount: '3445.34',
+        price_usd: '1233',
+        price_24h_percent_change: '8',
+        followers: 0,
+      }));
+      return sampleData;
+    } catch (error) {
+      logger.error(error);
+      return [];
+    }
+  }
 }

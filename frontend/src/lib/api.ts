@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-import { ExchangePrice, HistoricalPrice } from '../types/price';
 import { API_BASE_URL } from '../config/app';
 import { Balance, BalanceHistory } from '../types/balance';
+import { ExchangePrice, HistoricalPrice } from '../types/price';
+import { TopNFT, TopToken, TopWallet } from '../types/discover';
 import { TokenTransaction, WalletTransaction } from '../types/transaction';
+
 import {
   NFTNotificationType,
   Notification,
@@ -11,7 +13,6 @@ import {
   TokenNotificationType,
   WalletNotificationType,
 } from '../types/notification';
-import { TopToken } from '../types/token';
 
 export const findFollowingWallets = async (
   address: string,
@@ -268,6 +269,24 @@ export const getTopERC20Tokens = async () => {
   try {
     const res = await axios.get(`${API_BASE_URL}/token/top-tokens`);
     return res.data as TopToken[];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTopNFTCollections = async () => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/nft/top-nfts`);
+    return res.data as TopNFT[];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTopWallets = async () => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/wallet/top-wallets`);
+    return res.data as TopWallet[];
   } catch (error) {
     throw error;
   }

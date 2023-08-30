@@ -10,6 +10,7 @@ import { Nft, NftDocument } from './schemas/nft.schema';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { CommentService } from '../comment/comment.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
+import { EtherscanService } from 'src/etherscan/etherscan.service';
 
 @Injectable()
 export class NftService {
@@ -18,6 +19,7 @@ export class NftService {
     private readonly nftModel: Model<NftDocument>,
     private readonly userService: UserService,
     private readonly commentService: CommentService,
+    private readonly etherscanService: EtherscanService,
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
@@ -129,5 +131,9 @@ export class NftService {
       throw new BadRequestException('Nft not found!');
     }
     return foundNft.comments;
+  }
+
+  async getTopNFTs() {
+    return this.etherscanService.getTopNFTs();
   }
 }
