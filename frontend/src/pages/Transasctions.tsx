@@ -4,12 +4,17 @@ import cn from 'classnames';
 import { Spin } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { useAppContext } from '../context/app';
-import { Transaction } from '../types/transaction';
+import { NFT, Transaction } from '../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { EmptyContainer } from '../components/EmptyContainer';
-import { findFollowingWallets, findFollowingTokens } from '../lib/api';
+import {
+  findFollowingWallets,
+  findFollowingTokens,
+  findFollowingNFTs,
+} from '../lib/api';
 import { TransactionCard } from '../components/transactions/TransactionCard';
 import useFollowingTransactions from '../lib/hooks/useFollowingTransactions';
+import { NFTTransactionCard } from '../components/transactions/NFTTransactionCard';
 
 enum ContentType {
   WALLET = 'wallet',
@@ -28,14 +33,18 @@ export const Transactions = () => {
   const {
     walletTxns,
     tokenTxns,
+    nftTxns,
     error,
     loading,
     fetchMoreWallets,
     fetchMoreTokens,
+    fetchMoreNFTs,
     mutateTokenTxns,
     mutateWalletTxns,
+    mutateNFTTxns,
     mutateFetchMoreTokens,
     mutateFetchMoreWallets,
+    mutateFetchMoreNFTs,
   } = useFollowingTransactions(user.address);
 
   const fetchMoreWalletTxns = () => {
@@ -85,6 +94,31 @@ export const Transactions = () => {
         if (txns.length === tokenTxns.length) mutateFetchMoreTokens(false);
         else mutateFetchMoreTokens(true);
         mutateTokenTxns(txns);
+      } catch (error) {}
+    }, 1500);
+  };
+
+  const fetchMoreNFTTxns = () => {
+    setTimeout(async () => {
+      try {
+        const txns: Transaction<NFT>[] = [];
+        const nfts =
+          (await findFollowingNFTs(user.address, nftTxns.length + 4)) || [];
+
+        nfts.forEach((nft) => {
+          for (const tx of nft.transactions) {
+            txns.push({
+              ...tx,
+              address: nft.address,
+              comments: nft.comments,
+              likes: nft.likes,
+              dislikes: nft.dislikes,
+            });
+          }
+        });
+        if (txns.length === tokenTxns.length) mutateFetchMoreNFTs(false);
+        else mutateFetchMoreNFTs(true);
+        mutateNFTTxns(txns);
       } catch (error) {}
     }, 1500);
   };
@@ -222,15 +256,15 @@ export const Transactions = () => {
             <div className="mb-4 hidden font-sora text-[32px] xl:block">
               NFTs
             </div>
-            {tokenTxns.length ? (
+            {nftTxns.length ? (
               <InfiniteScroll
-                dataLength={tokenTxns.length}
-                next={fetchMoreTokenTxns}
-                hasMore={fetchMoreTokens}
+                dataLength={nftTxns.length}
+                next={fetchMoreNFTTxns}
+                hasMore={fetchMoreNFTs}
                 loader={<h4 className="text-center">Loading...</h4>}
               >
-                {tokenTxns.map((txn, idx) => (
-                  <TransactionCard
+                {nftTxns.map((txn, idx) => (
+                  <NFTTransactionCard
                     key={`nft${idx}_${txn.txhash}`}
                     transaction={txn}
                     likes={txn.likes}

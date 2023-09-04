@@ -66,7 +66,14 @@ export type Token = {
   usdPrice: string;
 };
 
-export type NFT = {};
+export type NFT = {
+  name: string;
+  symbol: string;
+  tokenAddress: string;
+  amount: string;
+  tokenId: string;
+  contractType: string;
+};
 
 export type Transaction = {
   txhash: string;
@@ -75,8 +82,8 @@ export type Transaction = {
   details: {
     from: string;
     to: string;
-    token0: Token;
-    token1?: Token;
+    token0: Token | NFT;
+    token1?: Token | NFT;
     timestamp: number;
   };
 };

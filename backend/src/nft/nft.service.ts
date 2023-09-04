@@ -1,7 +1,9 @@
 import { Model } from 'mongoose';
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
+import { logger } from 'src/utils/logger';
+import { Transaction } from 'src/utils/types';
 import { FollowNftDto } from './dto/follow.dto';
 import { CommentNftDto } from './dto/comment.dto';
 import { UserService } from '../user/user.service';
@@ -11,6 +13,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { CommentService } from '../comment/comment.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class NftService {
@@ -24,13 +27,18 @@ export class NftService {
 
   async create(nft: CreateNftDto): Promise<Nft> {
     const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    return this.nftModel.findOneAndUpdate(nft, nft, options);
+    const newToken = await this.nftModel.findOneAndUpdate(nft, nft, options);
+    // Fetch latest 4 transactions when a new ERC20 token is created
+    await this.initializeTransactions(newToken.address, newToken.network);
+    return newToken;
   }
 
   async getOrCreate(address: string, network: string) {
     let foundNft = await this.nftModel.findOne({ address, network });
     if (!foundNft) {
       foundNft = await this.nftModel.create({ address, network });
+      // Fetch latest 4 transactions when a new ERC20 token is created
+      await this.initializeTransactions(address, network);
     }
     return foundNft;
   }
@@ -96,6 +104,10 @@ export class NftService {
     return foundNft;
   }
 
+  async getAll() {
+    return await this.nftModel.find({});
+  }
+
   async getFollowers(dto: FindOneParams) {
     const foundNft = await this.nftModel.findOne(dto);
     if (!foundNft) {
@@ -135,5 +147,94 @@ export class NftService {
 
   async getTopNFTs() {
     return this.etherscanService.getTopNFTs();
+  }
+
+  async getTransactions(network: string, contractAddress: string, limit: Number = 4) {
+    try {
+      const foundToken = await this.nftModel.aggregate([
+        { $match: { address: contractAddress, network } },
+        {
+          $unwind: '$transactions',
+        },
+        {
+          $match: { 'transactions.details': { $ne: null } },
+        },
+        {
+          $sort: { 'transactions.blockNumber': -1 },
+        },
+        {
+          $limit: Number(limit),
+        },
+        {
+          $group: {
+            _id: '$_id',
+            likes: { $first: '$likes' },
+            dislikes: { $first: '$dislikes' },
+            comments: { $first: '$comments' },
+            transactions: { $push: '$transactions' },
+          },
+        },
+      ]);
+
+      if (!foundToken || foundToken.length === 0) {
+        // throw new BadRequestException('Transactions not found!');
+        logger.error('Transactions not found');
+        return [];
+      }
+
+      return foundToken[0];
+    } catch (err) {
+      logger.error(err);
+      return [];
+    }
+  }
+
+  async setTransactions(contractAddress: string, network: string, transactions: Transaction[]) {
+    try {
+      const foundToken = await this.nftModel.findOne({ address: contractAddress, network });
+      if (!foundToken) {
+        throw new BadRequestException('NFT not found!');
+      }
+      await foundToken.updateOne({
+        $push: { transactions: { $each: transactions } },
+      });
+    } catch (error) {
+      return new SuccessResponse(false, error.message);
+    }
+    return new SuccessResponse(true);
+  }
+
+  async updateTransactions(contractAddress: string, network: string) {
+    try {
+      if (network === NetworkType.Ethereum) {
+        // Ethereum network
+        let latestBlockNumber = 0;
+        const token = await this.nftModel.findOne({ address: contractAddress, network: network });
+
+        if (token && token.transactions && token.transactions.length > 0)
+          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
+
+        const txs = await this.etherscanService.getTransactionsByNFT(contractAddress, latestBlockNumber + 1);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.Polygon) {
+        // Polygon network
+      }
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+
+  async initializeTransactions(contractAddress: string, network: string) {
+    try {
+      if (network === NetworkType.Ethereum) {
+        // Ethereum network
+        const txs = await this.etherscanService.getTransactionsByNFT(contractAddress);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.Polygon) {
+        // Polygon network
+      }
+    } catch (err) {
+      logger.error(err);
+    }
   }
 }

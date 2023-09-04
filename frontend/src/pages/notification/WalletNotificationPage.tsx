@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Button, Input, Select } from 'antd';
@@ -8,11 +9,10 @@ import {
   Notification,
   NotificationType,
 } from '../../types/notification';
-import { useAppContext } from '../../context/app';
-import { isValid } from '../../lib/utils';
 import { toast } from 'react-toastify';
+import { isValid } from '../../lib/utils';
+import { useAppContext } from '../../context/app';
 import { createNotification, updateNotification } from '../../lib/api';
-import { useNavigate } from 'react-router-dom';
 
 const initialValue = {
   address: '',
@@ -57,10 +57,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
     }
     setCreating(true);
     try {
-      const newNotification = await createNotification(
-        NotificationType.WALLET,
-        notification,
-      );
+      await createNotification(NotificationType.WALLET, notification);
       toast.success('Created the notification successfully');
       setCreating(false);
       setNotification(initialValue);
@@ -70,7 +67,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
       setCreating(false);
       console.error(error);
     }
-  }, [notification]);
+  }, [notification, navigate]);
 
   const handleUpdateNotification = useCallback(async () => {
     if (!data || !handleEditAlert) return;
@@ -89,7 +86,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
       setUpdating(false);
       console.error(error);
     }
-  }, [notification, data]);
+  }, [notification, data, handleEditAlert]);
 
   return (
     <AppLayout noLayout={!!data}>

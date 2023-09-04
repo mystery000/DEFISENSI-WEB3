@@ -38,7 +38,7 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
         hideProgressBar: true,
       });
     }
-  }, [status, user]);
+  }, [status, user, notification]);
 
   const handleEditAlert = useCallback(
     (notification: Notification) => {
@@ -49,7 +49,7 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
       );
       setIsModalOpen(false);
     },
-    [notification],
+    [setNotifications],
   );
 
   return (

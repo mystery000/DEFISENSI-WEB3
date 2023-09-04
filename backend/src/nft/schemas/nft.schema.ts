@@ -2,6 +2,8 @@ import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+import { ApiTransaction, Transaction } from 'src/utils/types';
+
 export type NftDocument = Nft & Document;
 
 @Schema({ timestamps: true, versionKey: false })
@@ -35,6 +37,13 @@ export class Nft {
     default: [],
   })
   comments: any[];
+
+  @ApiProperty({ type: [ApiTransaction], isArray: true })
+  @Prop({
+    type: Array<Transaction>,
+    default: [],
+  })
+  transactions: Array<Transaction>;
 }
 
 export const NftSchema = SchemaFactory.createForClass(Nft);

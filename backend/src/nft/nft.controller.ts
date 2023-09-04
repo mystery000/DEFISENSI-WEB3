@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { NftService } from './nft.service';
 import { Nft } from './schemas/nft.schema';
@@ -10,6 +10,7 @@ import { CreateNftDto } from './dto/create-nft.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
+import { ApiTransaction, Transaction } from 'src/utils/types';
 
 @ApiTags('Nft')
 @Controller('nft')
@@ -24,6 +25,13 @@ export class NftController {
   })
   create(@Body() createNftDto: CreateNftDto): Promise<Nft> {
     return this.nftService.create(createNftDto);
+  }
+
+  @Post('follow')
+  @ApiOperation({ summary: 'Follow token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  followToken(@Body() followNftDto: FollowNftDto): Promise<SuccessResponse> {
+    return this.nftService.follow(followNftDto);
   }
 
   @Post('follow')
@@ -92,5 +100,19 @@ export class NftController {
   @ApiOperation({ summary: 'Get the top ERC20 tokens' })
   getTopNFTs() {
     return this.nftService.getTopNFTs();
+  }
+
+  @Get('/:network/:address/transactions')
+  @ApiOperation({ summary: 'Get transactions of this token contract' })
+  @ApiOkResponse({ type: ApiTransaction, isArray: true })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'The token address' })
+  @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
+  getTokenTransactions(
+    @Param('network') network: string,
+    @Param('address') address: string,
+    @Query('limit') limit: number,
+  ) {
+    return this.nftService.getTransactions(network, address, limit);
   }
 }

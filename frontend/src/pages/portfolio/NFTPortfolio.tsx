@@ -13,18 +13,18 @@ import {
   NotificationOnIcon,
 } from '../../components/icons/defisensi-icons';
 
-import {
-  findWalletTransactions,
-  getBalance,
-  getBalanceHistory,
-} from '../../lib/api';
-
 import cn from 'classnames';
+import { Spin } from 'antd';
+import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import { useAppContext } from '../../context/app';
 import { balanceFormatter } from '../../lib/utils';
-import { Transaction } from '../../types/transaction';
+import { NFT, Transaction } from '../../types/transaction';
+import { followNFT, getNFTTransactions } from '../../lib/api';
+import useNFTPortfolio from '../../lib/hooks/useNFTPortfolio';
 import { EmptyContainer } from '../../components/EmptyContainer';
-import { TransactionCard } from '../../components/transactions/TransactionCard';
+import useNFTTransactions from '../../lib/hooks/useNFTTransactions';
+import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 
 enum ContentType {
   INFO = 'info',
@@ -33,17 +33,27 @@ enum ContentType {
 }
 
 export const NFTPortfolio = () => {
-  const { address } = useParams();
-
+  const { user } = useAppContext();
+  const { network, address } = useParams();
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
-
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
-
+  const [following, setFollowing] = useState(false);
   const [fetchMore, setFetchMore] = useState(false);
   const [balance, setBalance] = useState<Balance>({});
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const {
+    transactions,
+    loading: loadingTransactions,
+    mutateTransactions,
+  } = useNFTTransactions();
+
+  const {
+    data: portfolio,
+    loading: loadingPortfolio,
+    mutate: mutatePortfolio,
+  } = useNFTPortfolio();
 
   const defaultOption: Highcharts.Options = useMemo(
     () => ({
@@ -175,60 +185,22 @@ export const NFTPortfolio = () => {
     (TokenBalance & { network: string })[]
   >([]);
 
-  useEffect(() => {
-    if (!address) return;
-    const getTransactions = async () => {
-      try {
-        const wallet = await findWalletTransactions(address, 4);
-
-        if (!wallet) return;
-
-        const txns: Transaction[] = [];
-
-        for (const txn of wallet.transactions) {
-          txns.push({
-            ...txn,
-            address: wallet.address,
-            comments: wallet.comments,
-            likes: wallet.likes,
-            dislikes: wallet.dislikes,
-          });
-        }
-
-        if (txns.length % 4) setFetchMore(false);
-        else setFetchMore(true);
-
-        setTransactions(txns);
-
-        const balance = await getBalance(address);
-        setBalance(balance || {});
-
-        const tokens = [
-          ...(balance?.binance?.tokens.map((token) => ({
-            ...token,
-            network: 'binance',
-          })) || []),
-          ...(balance?.ethereum?.tokens.map((token) => ({
-            ...token,
-            network: 'ethereum',
-          })) || []),
-          ...(balance?.polygon?.tokens.map((token) => ({
-            ...token,
-            network: 'polygon',
-          })) || []),
-        ].filter((token) => Number(token.value) !== 0);
-
-        setTokensOfWallet(tokens);
-        setSelectedToken(tokens[0]);
-
-        const balanceHistory = await getBalanceHistory(address);
-        setBalanceHistory(balanceHistory || {});
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getTransactions();
-  }, [address]);
+  const handleFollow = useCallback(async () => {
+    if (!address || !network) return;
+    try {
+      setFollowing(true);
+      await followNFT(user.address, address, network);
+      mutatePortfolio({
+        ...portfolio,
+        followers: [...portfolio.followers, user.id],
+      });
+      setFollowing(false);
+      toast.success('Followed!');
+    } catch (error) {
+      setFollowing(false);
+      toast.error((error as any).message);
+    }
+  }, [address, network, user, portfolio, mutatePortfolio]);
 
   useEffect(() => {
     if (!selectedToken) return;
@@ -293,32 +265,40 @@ export const NFTPortfolio = () => {
   }, [width]);
 
   const fetchMoreTransactions = useCallback(async () => {
-    if (!address) return;
+    if (!address || !network) return;
     try {
-      const wallet = await findWalletTransactions(
+      const nft = await getNFTTransactions(
+        network,
         address,
         transactions.length + 4,
       );
 
-      if (!wallet) return;
+      if (!nft) return;
 
-      const txns: Transaction[] = [];
+      const txns: Transaction<NFT>[] = [];
 
-      for (const txn of wallet.transactions) {
+      for (const txn of nft.transactions) {
         txns.push({
           ...txn,
-          address: wallet.address,
-          comments: wallet.comments,
-          likes: wallet.likes,
-          dislikes: wallet.dislikes,
+          address: nft.address,
+          comments: nft.comments,
+          likes: nft.likes,
+          dislikes: nft.dislikes,
         });
       }
       if (transactions.length === txns.length) setFetchMore(false);
-      setTimeout(() => setTransactions(txns), 1500);
+      setTimeout(() => mutateTransactions(txns), 1500);
     } catch (error) {
       console.log(error);
     }
-  }, [transactions, address]);
+  }, [transactions, address, network, mutateTransactions]);
+
+  if (loadingTransactions || loadingPortfolio)
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
 
   const EtherValues =
     balance.ethereum?.tokens.reduce(
@@ -401,18 +381,22 @@ export const NFTPortfolio = () => {
           <div className="mt-5 flex justify-center gap-4 text-sm">
             <div className="flex items-center gap-1">
               <FollowingIcon />
-              <span>9</span>
+              <span>{portfolio.followings.length}</span>
               <span className="text-bali-hai-600">Following</span>
             </div>
             <div className="flex items-center gap-1">
               <FollowerIcon />
-              <span>143</span>
+              <span>{portfolio.followers.length}</span>
               <span className="text-bali-hai-600">Followers</span>
             </div>
           </div>
           <div className="mt-5 text-white">
-            <button className="rounded bg-orange-400 px-4 py-[10px]">
-              Follow
+            <button
+              className="rounded bg-orange-400 px-4 py-[10px]"
+              onClick={handleFollow}
+              disabled={following}
+            >
+              {following ? 'Following...' : 'Follow'}
             </button>
           </div>
 
@@ -505,7 +489,7 @@ export const NFTPortfolio = () => {
                 loader={<h4 className="text-center">Loading...</h4>}
               >
                 {transactions.map((transaction) => (
-                  <TransactionCard
+                  <NFTTransactionCard
                     key={transaction.txhash}
                     transaction={transaction}
                     likes={transaction.likes}

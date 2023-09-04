@@ -472,8 +472,9 @@ export const WalletPortfolio = () => {
             <button
               className="rounded bg-orange-400 px-4 py-[10px]"
               onClick={handleFollow}
+              disabled={following}
             >
-              Follow
+              {following ? 'Following...' : 'Follow'}
             </button>
           </div>
 

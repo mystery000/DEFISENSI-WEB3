@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { findFollowingTokens, findFollowingWallets } from '../api';
-import { Transaction } from '../../types/transaction';
+import {
+  findFollowingNFTs,
+  findFollowingTokens,
+  findFollowingWallets,
+} from '../api';
+import { NFT, Transaction } from '../../types/transaction';
 
 export default function useFollowingTransactions(address: string) {
   const [walletTxns, setWalletTxns] = useState<Transaction[]>([]);
   const [tokenTxns, setTokenTxns] = useState<Transaction[]>([]);
+  const [nftTxns, setNFTTxns] = useState<Transaction<NFT>[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchMoreWallets, setFetchMoreWallets] = useState(false);
   const [fetchMoreTokens, setFetchMoreTokens] = useState(false);
+  const [fetchMoreNFTs, setFetchMoreNFTs] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,10 +49,27 @@ export default function useFollowingTransactions(address: string) {
           }
         });
 
+        const nfts = (await findFollowingNFTs(address)) || [];
+        const nftTxns: Transaction<NFT>[] = [];
+
+        nfts.forEach((nft) => {
+          for (const tx of nft.transactions) {
+            nftTxns.push({
+              ...tx,
+              address: nft.address,
+              comments: nft.comments,
+              likes: nft.likes,
+              dislikes: nft.dislikes,
+            });
+          }
+        });
+
         if (walletTxns.length % 4 === 0) setFetchMoreWallets(true);
         setWalletTxns(walletTxns);
         if (tokenTxns.length % 4 === 0) setFetchMoreTokens(true);
         setTokenTxns(tokenTxns);
+        if (nftTxns.length % 4 === 0) setFetchMoreNFTs(true);
+        setNFTTxns(nftTxns);
         setLoading(false);
       } catch (error) {
         setError(error);
@@ -60,13 +83,17 @@ export default function useFollowingTransactions(address: string) {
   return {
     walletTxns,
     tokenTxns,
+    nftTxns,
     error,
     loading,
     fetchMoreTokens,
     fetchMoreWallets,
+    fetchMoreNFTs,
     mutateWalletTxns: setWalletTxns,
     mutateTokenTxns: setTokenTxns,
+    mutateNFTTxns: setNFTTxns,
     mutateFetchMoreWallets: setFetchMoreWallets,
     mutateFetchMoreTokens: setFetchMoreTokens,
+    mutateFetchMoreNFTs: setFetchMoreNFTs,
   };
 }

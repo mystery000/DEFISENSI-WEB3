@@ -137,6 +137,41 @@ export class UserService {
     return user.followingNfts;
   }
 
+  async getFollowingNFTsTransactions(address: string, limit: number) {
+    const result = await this.userModel.aggregate([
+      { $match: { address } },
+      {
+        $lookup: {
+          from: 'nfts', // this should be the actual name of your Token collection
+          localField: 'followingNfts',
+          foreignField: '_id',
+          as: 'followingNftsData',
+        },
+      },
+      { $unwind: '$followingNftsData' },
+      { $unwind: '$followingNftsData.transactions' },
+      { $match: { 'followingNftsData.transactions.details': { $ne: null } } },
+      { $sort: { 'followingNftsData.transactions.blockNumber': -1 } },
+      { $limit: Number(limit) },
+      {
+        $group: {
+          _id: '$followingNftsData._id',
+          address: { $first: '$followingNftsData.address' },
+          comments: { $first: '$followingNftsData.comments' },
+          likes: { $first: '$followingNftsData.likes' },
+          dislikes: { $first: '$followingNftsData.dislikes' },
+          transactions: { $push: '$followingNftsData.transactions' },
+        },
+      },
+    ]);
+
+    if (!result || result.length === 0) {
+      logger.log('Transactions not found');
+    }
+
+    return result || [];
+  }
+
   async getFollowing(address: string): Promise<User> {
     const user = await this.userModel
       .findOne({ address })

@@ -68,10 +68,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
     }
     setCreating(true);
     try {
-      const newNotification = await createNotification(
-        NotificationType.TOKEN,
-        notification,
-      );
+      await createNotification(NotificationType.TOKEN, notification);
       toast.success('Created the notification successfully');
       setCreating(false);
       setNotification(initialValue);
@@ -81,7 +78,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
       setCreating(false);
       console.error(error);
     }
-  }, [notification]);
+  }, [notification, navigate]);
 
   const handleUpdateNotification = useCallback(async () => {
     if (!data || !handleEditAlert) return;
@@ -100,7 +97,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
       setUpdating(false);
       console.error(error);
     }
-  }, [notification, data]);
+  }, [notification, data, handleEditAlert]);
 
   return (
     <AppLayout noLayout={!!data}>

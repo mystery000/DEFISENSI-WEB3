@@ -37,7 +37,7 @@ export const NFTNotification: FC<NFTNotificationProps> = ({
         hideProgressBar: true,
       });
     }
-  }, [status, user]);
+  }, [status, user, notification]);
 
   const handleEditAlert = useCallback(
     (notification: Notification) => {
@@ -48,7 +48,7 @@ export const NFTNotification: FC<NFTNotificationProps> = ({
       );
       setIsModalOpen(false);
     },
-    [notification],
+    [setNotifications],
   );
 
   return (

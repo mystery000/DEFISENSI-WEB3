@@ -66,10 +66,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
     }
     setCreating(true);
     try {
-      const newNotification = await createNotification(
-        NotificationType.NFT,
-        notification,
-      );
+      await createNotification(NotificationType.NFT, notification);
       toast.success('Created the notification successfully');
       setCreating(false);
       setNotification(initialValue);
@@ -79,7 +76,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
       setCreating(false);
       console.error(error);
     }
-  }, [notification]);
+  }, [notification, navigate]);
 
   const handleUpdateNotification = useCallback(async () => {
     if (!data || !handleEditAlert) return;
@@ -98,7 +95,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
       setUpdating(false);
       console.error(error);
     }
-  }, [notification, data]);
+  }, [notification, data, handleEditAlert]);
 
   return (
     <AppLayout noLayout={!!data}>

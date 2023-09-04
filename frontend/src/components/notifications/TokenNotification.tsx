@@ -37,7 +37,7 @@ export const TokenNotification: FC<TokenNotificationProps> = ({
         hideProgressBar: true,
       });
     }
-  }, [status, user]);
+  }, [status, user, notification]);
 
   const handleEditAlert = useCallback(
     (notification: Notification) => {
@@ -48,7 +48,7 @@ export const TokenNotification: FC<TokenNotificationProps> = ({
       );
       setIsModalOpen(false);
     },
-    [notification],
+    [setNotifications],
   );
 
   return (

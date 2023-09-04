@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { Transaction } from '../types/transaction';
 import { TransferType } from '../types';
+import { Transaction } from '../types/transaction';
 
 export const getAge = (timestamp: number) => {
   const now = moment();

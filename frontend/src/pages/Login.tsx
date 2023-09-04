@@ -13,7 +13,7 @@ export const Login = () => {
   const { setUser } = useAppContext();
   const [loading, setLoading] = useState(false);
 
-  const account = useAccount({
+  useAccount({
     async onConnect({ address, connector, isReconnected }) {
       if (!address) return;
 

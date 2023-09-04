@@ -145,6 +145,18 @@ export class UserController {
     return this.userService.getFollowingTokensTransactions(address, limit);
   }
 
+  @Get('/:address/nft/transactions')
+  @ApiOperation({ summary: ' Get transactions of following NFTs' })
+  @ApiOkResponse({ type: Token, isArray: true })
+  @ApiParam({ name: 'address', description: 'The address of user' })
+  @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
+  async getFollowingNFTsTransactions(
+    @Param('address') address: string,
+    @Query('limit') limit: number,
+  ): Promise<Token[]> {
+    return this.userService.getFollowingNFTsTransactions(address, limit);
+  }
+
   @Post('/login')
   @ApiOperation({ summary: 'login' })
   async login(@Body() user: CreateUserDto): Promise<User> {

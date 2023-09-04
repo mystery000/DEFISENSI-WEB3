@@ -13,8 +13,7 @@ import { MoralisConfig } from 'src/config/moralis.config';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { ExchangePrice, HistoricalPrice, TokenBalance, Transaction } from 'src/utils/types';
-import { NetworkType } from 'src/utils/enums/network.enum';
+import { ExchangePrice, HistoricalPrice, NFT, TokenBalance, Transaction } from 'src/utils/types';
 
 @Injectable()
 export class EtherscanService {
@@ -572,36 +571,50 @@ export class EtherscanService {
     return transactions;
   }
 
-  async getTransactionsByNFT(contractAddress: string, fromBlock: number = 0) {
-    let transactions: any[] = [];
+  async getTransactionsByNFT(address: string, fromBlock: number = 0) {
+    let transactions: Transaction[] = [];
     try {
-      let txHashs = [];
-      const contractLogs = await Moralis.EvmApi.events.getContractLogs({
-        address: contractAddress,
+      const response = await Moralis.EvmApi.nft.getNFTContractTransfers({
         chain: EvmChain.ETHEREUM,
+        format: 'decimal',
+        address,
         limit: 4,
+        fromBlock,
       });
+      const transfers = response.toJSON().result;
+      for (const transfer of transfers) {
+        const res = await Moralis.EvmApi.nft.getNFTMetadata({
+          chain: EvmChain.ETHEREUM,
+          format: 'decimal',
+          address,
+          normalizeMetadata: false,
+          mediaItems: false,
+          tokenId: transfer.token_id,
+        });
 
-      for (const log of contractLogs.toJSON().result) {
-        if (!txHashs.includes(log.transaction_hash)) {
-          txHashs.push(log.transaction_hash);
-        }
+        const metadata = res.toJSON();
+        transactions.push({
+          txhash: transfer.transaction_hash,
+          blockNumber: transfer.block_number,
+          type: TransactionType.NFT,
+          details: {
+            from: transfer.from_address,
+            to: transfer.to_address,
+            timestamp: new Date(transfer.block_timestamp).getTime(),
+            token0: {
+              name: metadata.name,
+              symbol: metadata.symbol,
+              tokenAddress: metadata.token_address,
+              amount: metadata.amount,
+              tokenId: metadata.token_id,
+              contractType: metadata.contract_type,
+            },
+          },
+        });
       }
-
-      for (const txHash of txHashs) {
-        const tx = (
-          await Moralis.EvmApi.transaction.getTransactionVerbose({
-            chain: EvmChain.ETHEREUM,
-            transactionHash: txHash,
-          })
-        ).toJSON();
-
-        transactions.push(tx);
-      }
-
-      return transactions;
     } catch (error) {
       logger.error(error);
+    } finally {
       return transactions;
     }
   }
@@ -815,6 +828,6 @@ export class EtherscanService {
     // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
     // return this.getTopERC20Tokens();
 
-    return this.getTransactionsByNFT('0x76BE3b62873462d2142405439777e971754E8E77');
+    return this.getTransactionsByNFT('0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D');
   }
 }
