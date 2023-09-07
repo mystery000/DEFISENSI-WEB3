@@ -216,7 +216,7 @@ export class TokenService {
 
   async updateTransactions(contractAddress: string, network: string) {
     try {
-      if (network === NetworkType.Ethereum) {
+      if (network === NetworkType.ETHEREUM) {
         // Ethereum network
         let latestBlockNumber = 0;
         const token = await this.tokenModel.findOne({ address: contractAddress, network: network });
@@ -226,7 +226,7 @@ export class TokenService {
 
         const txs = await this.etherscanService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
-      } else if (network === NetworkType.Polygon) {
+      } else if (network === NetworkType.POLYGON) {
         // Polygon network
       }
     } catch (err) {
@@ -236,11 +236,11 @@ export class TokenService {
 
   async initializeTransactions(contractAddress: string, network: string) {
     try {
-      if (network === NetworkType.Ethereum) {
+      if (network === NetworkType.ETHEREUM) {
         // Ethereum network
         const txs = await this.etherscanService.getTransactionsByToken(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
-      } else if (network === NetworkType.Polygon) {
+      } else if (network === NetworkType.POLYGON) {
         // Polygon network
       }
     } catch (err) {
@@ -249,18 +249,18 @@ export class TokenService {
   }
 
   async getPriceHistory(network: string, contractAddress: string) {
-    if (network === NetworkType.Ethereum) {
+    if (network === NetworkType.ETHEREUM) {
       return this.etherscanService.getPriceHistory(contractAddress);
-    } else if (network === NetworkType.Polygon) {
+    } else if (network === NetworkType.POLYGON) {
       return this.polygonService.getPriceHistory(contractAddress);
     }
     return null;
   }
 
   async getTokenPriceFromExchanges(network: string, contractAddress: string) {
-    if (network === NetworkType.Ethereum) {
+    if (network === NetworkType.ETHEREUM) {
       return this.etherscanService.getPriceFromExchanges(contractAddress);
-    } else if (network === NetworkType.Polygon) {
+    } else if (network === NetworkType.POLYGON) {
       // return this.polygonService.getPriceFromExchanges(contractAddress);
     }
     return null;

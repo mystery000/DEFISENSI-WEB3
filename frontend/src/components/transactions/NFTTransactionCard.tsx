@@ -2,8 +2,7 @@ import { FC } from 'react';
 import cn from 'classnames';
 import { Card } from 'antd';
 import { useAppContext } from '../../context/app';
-import { NFT, Transaction } from '../../types/transaction';
-
+import { NftTransfer } from '../../types/transaction';
 import { getAge, convertHex, standardUnit } from '../../lib/utils';
 
 import {
@@ -13,10 +12,12 @@ import {
   NFTIcon,
   PurchaseIcon,
   MintIcon,
+  BurnIcon,
+  SendIcon,
 } from '../icons/defisensi-icons';
 
 type TransactionCardProps = {
-  transaction: Transaction<NFT>;
+  transaction: NftTransfer;
   likes: any[];
   dislikes: any[];
   comments: any[];
@@ -30,8 +31,15 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
 }) => {
   const { user } = useAppContext();
   const age = getAge(transaction.details.timestamp);
+  const { type, amount, name, symbol } = transaction.details.actions[0];
+
   return (
-    <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter">
+    <Card
+      bordered={false}
+      style={{ width: 392 }}
+      className="mb-2 font-inter"
+      key={transaction.txHash}
+    >
       <div className="flex justify-between font-inter text-sm">
         <NFTIcon />
         <span>{age}</span>
@@ -42,7 +50,21 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
             {convertHex(transaction.details.from).substring(0, 5)}
           </span>
           <span>
-            {transaction.details.to === '0' ? <MintIcon /> : <PurchaseIcon />}
+            {transaction.details.actions.map((action, idx) => {
+              if (idx > 0) return;
+              switch (action.type) {
+                case 'Mint':
+                  return <MintIcon />;
+                case 'Burn':
+                  return <BurnIcon />;
+                case 'Purchase':
+                  return <PurchaseIcon />;
+                case 'Transfer':
+                  return <SendIcon />;
+                case 'Sale':
+                  return <PurchaseIcon />;
+              }
+            })}
           </span>
           <span className="font-bold" title={transaction.details.to}>
             {convertHex(transaction.details.to).substring(0, 5)}
@@ -50,7 +72,7 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
         </div>
         <div>
           <img
-            src={`/images/exchanges/binance.png`}
+            src={`/images/network/${transaction.network}.png`}
             width={32}
             height={32}
             className="rounded-full border"
@@ -58,7 +80,7 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
           ></img>
         </div>
       </div>
-      <div className="text-base font-semibold">{`Purchase of ${transaction.details.token0.name}(${transaction.details.token0.symbol})`}</div>
+      <div className="text-base font-semibold">{`${type} ${amount} of ${name} (${symbol})`}</div>
       <div className="mt-4 flex justify-around text-center text-sm">
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
           <ThumbsUpSolid

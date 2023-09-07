@@ -66,15 +66,6 @@ export type Token = {
   usdPrice: string;
 };
 
-export type NFT = {
-  name: string;
-  symbol: string;
-  tokenAddress: string;
-  amount: string;
-  tokenId: string;
-  contractType: string;
-};
-
 export type Transaction = {
   txhash: string;
   blockNumber: string;
@@ -82,8 +73,8 @@ export type Transaction = {
   details: {
     from: string;
     to: string;
-    token0: Token | NFT;
-    token1?: Token | NFT;
+    token0: Token;
+    token1?: Token;
     timestamp: number;
   };
 };
@@ -209,5 +200,29 @@ export type ExchangePrice = {
     kucoin?: string;
     binance?: string;
     coinbase?: string;
+  };
+};
+
+export type ActionType = 'Burn' | 'Transfer' | 'Sale' | 'Mint' | 'Purchase';
+
+export type Action = {
+  type: ActionType;
+  amount: number;
+  tokenAddress: string;
+  name: string;
+  symbol: string;
+  floor?: string;
+};
+
+export type NFTTransaction = {
+  txHash: string;
+  blockNumber: string;
+  type: TransactionType;
+  network: NetworkType;
+  details: {
+    from: string;
+    to: string;
+    actions: Action[];
+    timestamp: number;
   };
 };

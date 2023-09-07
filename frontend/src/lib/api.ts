@@ -271,6 +271,7 @@ export const followNFT = async (
   nftAddress: string,
   network: string,
 ) => {
+  console.log(network);
   try {
     const res = await axios.post(`${API_BASE_URL}/nft/follow`, {
       address,

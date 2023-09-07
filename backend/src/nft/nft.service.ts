@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { logger } from 'src/utils/logger';
-import { Transaction } from 'src/utils/types';
+import { NFTTransaction, Transaction } from 'src/utils/types';
 import { FollowNftDto } from './dto/follow.dto';
 import { CommentNftDto } from './dto/comment.dto';
 import { UserService } from '../user/user.service';
@@ -14,6 +14,7 @@ import { CommentService } from '../comment/comment.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { NetworkType } from 'src/utils/enums/network.enum';
+import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 
 @Injectable()
 export class NftService {
@@ -23,6 +24,7 @@ export class NftService {
     private readonly userService: UserService,
     private readonly commentService: CommentService,
     private readonly etherscanService: EtherscanService,
+    private readonly polygonService: PolygonscanService,
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
@@ -116,6 +118,14 @@ export class NftService {
     return this.userService.getByIds(foundNft.followers);
   }
 
+  async getFollowings(dto: FindOneParams) {
+    const foundToken = await this.nftModel.findOne(dto);
+    if (!foundToken) {
+      throw new BadRequestException('Token not found!');
+    }
+    return this.userService.getByIds(foundToken.followings);
+  }
+
   async comment(commentNftDto: CommentNftDto) {
     const user = await this.userService.getByAddress(commentNftDto.address);
     const foundNft = await this.getOrCreate(commentNftDto.nftAddress, commentNftDto.nftNetwork);
@@ -149,10 +159,10 @@ export class NftService {
     return this.etherscanService.getTopNFTs();
   }
 
-  async getTransactions(network: string, contractAddress: string, limit: Number = 4) {
+  async getTransactions(network: string, address: string, limit: Number = 4) {
     try {
       const foundToken = await this.nftModel.aggregate([
-        { $match: { address: contractAddress, network } },
+        { $match: { address: address, network } },
         {
           $unwind: '$transactions',
         },
@@ -189,9 +199,9 @@ export class NftService {
     }
   }
 
-  async setTransactions(contractAddress: string, network: string, transactions: Transaction[]) {
+  async setTransactions(address: string, network: string, transactions: NFTTransaction[]) {
     try {
-      const foundToken = await this.nftModel.findOne({ address: contractAddress, network });
+      const foundToken = await this.nftModel.findOne({ address, network });
       if (!foundToken) {
         throw new BadRequestException('NFT not found!');
       }
@@ -204,34 +214,40 @@ export class NftService {
     return new SuccessResponse(true);
   }
 
-  async updateTransactions(contractAddress: string, network: string) {
+  async updateTransactions(address: string, network: string) {
     try {
-      if (network === NetworkType.Ethereum) {
-        // Ethereum network
+      if (network === NetworkType.ETHEREUM) {
         let latestBlockNumber = 0;
-        const token = await this.nftModel.findOne({ address: contractAddress, network: network });
+        const token = await this.nftModel.findOne({ address: address, network: network });
 
         if (token && token.transactions && token.transactions.length > 0)
           latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
 
-        const txs = await this.etherscanService.getTransactionsByNFT(contractAddress, latestBlockNumber + 1);
-        await this.setTransactions(contractAddress, network, txs);
-      } else if (network === NetworkType.Polygon) {
-        // Polygon network
+        const txs = await this.etherscanService.getTransactionsByNFT(address, latestBlockNumber + 1);
+        await this.setTransactions(address, network, txs);
+      } else if (network === NetworkType.POLYGON) {
+        let latestBlockNumber = 0;
+        const token = await this.nftModel.findOne({ address: address, network: network });
+
+        if (token && token.transactions && token.transactions.length > 0)
+          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
+
+        const txs = await this.polygonService.getTransactionsByNFTCollection(address, latestBlockNumber + 1);
+        await this.setTransactions(address, network, txs);
       }
     } catch (err) {
       logger.error(err);
     }
   }
 
-  async initializeTransactions(contractAddress: string, network: string) {
+  async initializeTransactions(address: string, network: string) {
     try {
-      if (network === NetworkType.Ethereum) {
-        // Ethereum network
-        const txs = await this.etherscanService.getTransactionsByNFT(contractAddress);
-        await this.setTransactions(contractAddress, network, txs);
-      } else if (network === NetworkType.Polygon) {
-        // Polygon network
+      if (network === NetworkType.ETHEREUM) {
+        const txs = await this.etherscanService.getTransactionsByNFT(address);
+        await this.setTransactions(address, network, txs);
+      } else if (network === NetworkType.POLYGON) {
+        const txs = await this.polygonService.getTransactionsByNFTCollection(address);
+        await this.setTransactions(address, network, txs);
       }
     } catch (err) {
       logger.error(err);

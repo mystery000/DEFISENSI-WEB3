@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { Spin } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { useAppContext } from '../context/app';
-import { NFT, Transaction } from '../types/transaction';
+import { NftTransfer, Transaction } from '../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { EmptyContainer } from '../components/EmptyContainer';
 import {
@@ -101,7 +101,7 @@ export const Transactions = () => {
   const fetchMoreNFTTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: Transaction<NFT>[] = [];
+        const txns: NftTransfer[] = [];
         const nfts =
           (await findFollowingNFTs(user.address, nftTxns.length + 4)) || [];
 
@@ -116,7 +116,8 @@ export const Transactions = () => {
             });
           }
         });
-        if (txns.length === tokenTxns.length) mutateFetchMoreNFTs(false);
+
+        if (txns.length === nftTxns.length) mutateFetchMoreNFTs(false);
         else mutateFetchMoreNFTs(true);
         mutateNFTTxns(txns);
       } catch (error) {}
@@ -265,7 +266,7 @@ export const Transactions = () => {
               >
                 {nftTxns.map((txn, idx) => (
                   <NFTTransactionCard
-                    key={`nft${idx}_${txn.txhash}`}
+                    key={txn.txHash}
                     transaction={txn}
                     likes={txn.likes}
                     dislikes={txn.dislikes}

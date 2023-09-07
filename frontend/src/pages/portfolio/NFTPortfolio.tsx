@@ -19,7 +19,7 @@ import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/app';
 import { balanceFormatter } from '../../lib/utils';
-import { NFT, Transaction } from '../../types/transaction';
+import { NftTransfer } from '../../types/transaction';
 import { followNFT, getNFTTransactions } from '../../lib/api';
 import useNFTPortfolio from '../../lib/hooks/useNFTPortfolio';
 import { EmptyContainer } from '../../components/EmptyContainer';
@@ -275,7 +275,7 @@ export const NFTPortfolio = () => {
 
       if (!nft) return;
 
-      const txns: Transaction<NFT>[] = [];
+      const txns: NftTransfer[] = [];
 
       for (const txn of nft.transactions) {
         txns.push({
@@ -349,7 +349,7 @@ export const NFTPortfolio = () => {
     (val, i) => val + PolygonSparkLineData[i] + BinanceSparkLineData[i],
   );
 
-  if (!address) return;
+  if (!address || !network) return;
 
   return (
     <AppLayout>
@@ -366,12 +366,14 @@ export const NFTPortfolio = () => {
               <span>AZUKI</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
                 <img
-                  src="/images/tokens/eth.png"
+                  src={`/images/network/${network}.png`}
                   width={32}
                   height={32}
                   alt="noicon"
                 ></img>
-                <span>on Ethereum</span>
+                <span>{`on ${
+                  network[0].toUpperCase() + network.slice(1)
+                }`}</span>
               </span>
             </h2>
             <span className="mt-4 text-sm font-medium">
@@ -481,6 +483,7 @@ export const NFTPortfolio = () => {
             <span className="hidden font-sora text-[32px] 2xl:block">
               Activity
             </span>
+
             {transactions.length ? (
               <InfiniteScroll
                 dataLength={transactions.length}
@@ -490,7 +493,7 @@ export const NFTPortfolio = () => {
               >
                 {transactions.map((transaction) => (
                   <NFTTransactionCard
-                    key={transaction.txhash}
+                    key={transaction.txHash}
                     transaction={transaction}
                     likes={transaction.likes}
                     dislikes={transaction.dislikes}

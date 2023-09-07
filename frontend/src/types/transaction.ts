@@ -1,3 +1,5 @@
+import { NetworkType } from '.';
+
 export enum TransactionType {
   TOKEN = 'token',
   NFT = 'nft',
@@ -13,16 +15,7 @@ export type Token = {
   usdPrice: string;
 };
 
-export type NFT = {
-  name: string;
-  symbol: string;
-  tokenAddress: string;
-  amount: string;
-  tokenId: string;
-  contractType: string;
-};
-
-export interface Transaction<T = Token> {
+export interface Transaction {
   // Extended fields
   address: string;
   comments: any[];
@@ -35,8 +28,8 @@ export interface Transaction<T = Token> {
   details: {
     from: string;
     to: string;
-    token0: T;
-    token1?: T;
+    token0: Token;
+    token1?: Token;
     timestamp: number;
   };
 }
@@ -62,5 +55,34 @@ export type NFTTransaction = {
   comments: any[];
   dislikes: any[];
   likes: any[];
-  transactions: Transaction<NFT>[];
+  transactions: NftTransfer[];
+};
+
+export type NftTransfer = {
+  // Extended fields
+  address: string;
+  comments: any[];
+  dislikes: any[];
+  likes: any[];
+
+  txHash: string;
+  blockNumber: string;
+  type: TransactionType;
+  network: NetworkType;
+  details: {
+    from: string;
+    to: string;
+    actions: Action[];
+    timestamp: number;
+  };
+};
+export type ActionType = 'Burn' | 'Transfer' | 'Sale' | 'Mint' | 'Purchase';
+
+export type Action = {
+  type: ActionType;
+  amount: number;
+  tokenAddress: string;
+  name: string;
+  symbol: string;
+  floor?: string;
 };

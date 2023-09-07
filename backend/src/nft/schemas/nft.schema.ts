@@ -1,8 +1,8 @@
 import { Document, Types } from 'mongoose';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-import { ApiTransaction, Transaction } from 'src/utils/types';
+import { NFTTransaction } from 'src/utils/types';
 
 export type NftDocument = Nft & Document;
 
@@ -22,6 +22,10 @@ export class Nft {
   @Prop({ type: [String], default: [] })
   followers: string[];
 
+  @ApiProperty({ type: String, isArray: true, description: 'The followings of this nft' })
+  @Prop({ type: [String], default: [] })
+  followings: string[];
+
   @ApiProperty({ description: 'The likes of this nft' })
   @Prop({ type: [String], default: [] })
   likes: string[];
@@ -38,12 +42,12 @@ export class Nft {
   })
   comments: any[];
 
-  @ApiProperty({ type: [ApiTransaction], isArray: true })
+  @ApiProperty({ description: 'List of NFT transactions' })
   @Prop({
-    type: Array<Transaction>,
+    type: Array<NFTTransaction>,
     default: [],
   })
-  transactions: Array<Transaction>;
+  transactions: NFTTransaction[];
 }
 
 export const NftSchema = SchemaFactory.createForClass(Nft);

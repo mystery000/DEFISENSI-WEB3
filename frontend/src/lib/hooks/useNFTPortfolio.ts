@@ -20,14 +20,8 @@ export default function useNFTPortfolio() {
       }
       setLoading(true);
       try {
-        const followers = await getFollowersByNFT(
-          network,
-          address.toLowerCase(),
-        );
-        const followings = await getFollowingsByNFT(
-          network,
-          address.toLowerCase(),
-        );
+        const followers = await getFollowersByNFT(network, address);
+        const followings = await getFollowingsByNFT(network, address);
         setData({
           followers: followers || [],
           followings: followings || [],

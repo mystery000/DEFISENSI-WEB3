@@ -71,6 +71,15 @@ export class NftController {
     return this.nftService.get(dto);
   }
 
+  @Get('followings/:network/:address')
+  @ApiOperation({ summary: 'Get followings of this token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'Get followers for token' })
+  getFollowings(@Param() dto: FindOneParams): Promise<User[]> {
+    return this.nftService.getFollowings(dto);
+  }
+
   @Get('followers/:network/:address')
   @ApiOperation({ summary: 'Get followers of this nft' })
   @ApiOkResponse({ type: SuccessResponse })

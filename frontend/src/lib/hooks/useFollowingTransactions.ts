@@ -4,12 +4,12 @@ import {
   findFollowingTokens,
   findFollowingWallets,
 } from '../api';
-import { NFT, Transaction } from '../../types/transaction';
+import { NftTransfer, Transaction } from '../../types/transaction';
 
 export default function useFollowingTransactions(address: string) {
   const [walletTxns, setWalletTxns] = useState<Transaction[]>([]);
   const [tokenTxns, setTokenTxns] = useState<Transaction[]>([]);
-  const [nftTxns, setNFTTxns] = useState<Transaction<NFT>[]>([]);
+  const [nftTxns, setNFTTxns] = useState<NftTransfer[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fetchMoreWallets, setFetchMoreWallets] = useState(false);
@@ -50,7 +50,7 @@ export default function useFollowingTransactions(address: string) {
         });
 
         const nfts = (await findFollowingNFTs(address)) || [];
-        const nftTxns: Transaction<NFT>[] = [];
+        const nftTxns: NftTransfer[] = [];
 
         nfts.forEach((nft) => {
           for (const tx of nft.transactions) {

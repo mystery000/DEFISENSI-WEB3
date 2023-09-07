@@ -8,4 +8,5 @@ export enum TransferType {
 export enum NetworkType {
   Polygon = 'polygon',
   Ethereum = 'ethereum',
+  BSC = 'binance',
 }

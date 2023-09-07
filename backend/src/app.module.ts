@@ -15,6 +15,9 @@ import { DatabaseService } from './database/database.service';
 import { EtherscanModule } from './etherscan/etherscan.module';
 import { PolygonscanModule } from './polygonscan/polygonscan.module';
 import { NotificationModule } from './notification/notification.module';
+import { BscscanService } from './bscscan/bscscan.service';
+import { BscscanController } from './bscscan/bscscan.controller';
+import { BscscanModule } from './bscscan/bscscan.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,8 +37,9 @@ import { NotificationModule } from './notification/notification.module';
     EtherscanModule,
     PolygonscanModule,
     CronJobModule,
+    BscscanModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, BscscanController],
+  providers: [AppService, BscscanService],
 })
 export class AppModule {}

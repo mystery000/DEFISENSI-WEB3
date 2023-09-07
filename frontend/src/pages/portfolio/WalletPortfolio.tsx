@@ -225,28 +225,32 @@ export const WalletPortfolio = () => {
     if (!address) return;
     const getTransactions = async () => {
       try {
+        const balanceHistory = await getBalanceHistory(address);
+        setBalanceHistory(balanceHistory || {});
+
         const wallet = await findWalletTransactions(address, 4);
 
-        if (!wallet) return;
+        if (wallet) {
+          const txns: Transaction[] = [];
 
-        const txns: Transaction[] = [];
+          for (const txn of wallet.transactions) {
+            txns.push({
+              ...txn,
+              address: wallet.address,
+              comments: wallet.comments,
+              likes: wallet.likes,
+              dislikes: wallet.dislikes,
+            });
+          }
 
-        for (const txn of wallet.transactions) {
-          txns.push({
-            ...txn,
-            address: wallet.address,
-            comments: wallet.comments,
-            likes: wallet.likes,
-            dislikes: wallet.dislikes,
-          });
+          if (txns.length % 4) setFetchMore(false);
+          else setFetchMore(true);
+
+          setTransactions(txns);
         }
 
-        if (txns.length % 4) setFetchMore(false);
-        else setFetchMore(true);
-
-        setTransactions(txns);
-
         const balance = await getBalance(address);
+        console.log(balance);
         setBalance(balance || {});
 
         const tokens = [
@@ -266,9 +270,6 @@ export const WalletPortfolio = () => {
 
         setTokensOfWallet(tokens);
         setSelectedToken(tokens[0]);
-
-        const balanceHistory = await getBalanceHistory(address);
-        setBalanceHistory(balanceHistory || {});
       } catch (error) {
         console.log(error);
       }

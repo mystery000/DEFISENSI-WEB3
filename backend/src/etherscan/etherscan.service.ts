@@ -13,7 +13,8 @@ import { MoralisConfig } from 'src/config/moralis.config';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { ExchangePrice, HistoricalPrice, NFT, TokenBalance, Transaction } from 'src/utils/types';
+import { Action, ExchangePrice, HistoricalPrice, NFTTransaction, TokenBalance, Transaction } from 'src/utils/types';
+import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class EtherscanService {
@@ -572,45 +573,222 @@ export class EtherscanService {
   }
 
   async getTransactionsByNFT(address: string, fromBlock: number = 0) {
-    let transactions: Transaction[] = [];
+    let txHashs = [];
+    let transactions: NFTTransaction[] = [];
     try {
-      const response = await Moralis.EvmApi.nft.getNFTContractTransfers({
-        chain: EvmChain.ETHEREUM,
-        format: 'decimal',
-        address,
-        limit: 4,
-        fromBlock,
-      });
-      const transfers = response.toJSON().result;
-      for (const transfer of transfers) {
-        const res = await Moralis.EvmApi.nft.getNFTMetadata({
+      // Get NFT transfers by contract and extract transaction hashs
+      let transfers = [];
+
+      await Moralis.EvmApi.nft
+        .getNFTContractTransfers({
           chain: EvmChain.ETHEREUM,
           format: 'decimal',
-          address,
-          normalizeMetadata: false,
-          mediaItems: false,
-          tokenId: transfer.token_id,
+          address: address,
+          limit: 4,
+          fromBlock,
+        })
+        .then((response) => {
+          transfers = response.toJSON().result;
         });
 
-        const metadata = res.toJSON();
-        transactions.push({
-          txhash: transfer.transaction_hash,
-          blockNumber: transfer.block_number,
-          type: TransactionType.NFT,
-          details: {
-            from: transfer.from_address,
-            to: transfer.to_address,
-            timestamp: new Date(transfer.block_timestamp).getTime(),
-            token0: {
-              name: metadata.name,
-              symbol: metadata.symbol,
-              tokenAddress: metadata.token_address,
-              amount: metadata.amount,
-              tokenId: metadata.token_id,
-              contractType: metadata.contract_type,
-            },
-          },
+      for (const transfer of transfers) {
+        if (!transfer.possible_spam && !txHashs.includes(transfer.transaction_hash)) {
+          txHashs.push(transfer.transaction_hash);
+        }
+      }
+
+      // Get decoded transaction by hash
+      for (const txHash of txHashs) {
+        const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
+          chain: EvmChain.ETHEREUM,
+          transactionHash: txHash,
         });
+
+        const { logs, block_number, block_timestamp, from_address, to_address } = transaction.toJSON();
+        // Check if there is OrderFulFilled event in logs
+        const order = logs.find((log) => log.decoded_event?.label === 'OrderFulfilled');
+        if (order) {
+          let metadata: any = {};
+
+          /* Metadata Type:
+              sales?: number,
+              purchases?: number,
+              name: string, 
+              symbol: string 
+              contractType: 'ERC721' | 'ERC1155'
+          */
+
+          for (const log of logs) {
+            if (log.decoded_event.label === 'OrderFulfilled') {
+              // Check if order type is purchase or sale
+              const offer = log.decoded_event.params.find((param) => param.name === 'offer')?.value || '';
+              const decodedValue = offer.split(',');
+              const spentItems: { itemType: number; address: string; identifier: string; amount: number }[] = [];
+              for (let i = 0; i < decodedValue.length; i += 4) {
+                if (decodedValue[i] === undefined) return;
+                spentItems.push({
+                  itemType: Number(decodedValue[i]),
+                  address: decodedValue[i + 1],
+                  identifier: decodedValue[i + 2],
+                  amount: Number(decodedValue[i + 3]),
+                });
+              }
+              for (const item of spentItems) {
+                /*
+                 itemType 0: Native Token
+                          1: ERC20
+                          2: ERC721
+                */
+                if (item.itemType == 2 && metadata[item.address]) {
+                  metadata[item.address] = {
+                    ...metadata[item.address],
+                    sales: metadata[item.address].sales + item.amount,
+                  };
+                }
+
+                if (item.itemType === 2 && !metadata[item.address]) {
+                  await Moralis.EvmApi.nft
+                    .getNFTContractMetadata({
+                      chain: EvmChain.ETHEREUM,
+                      address: item.address,
+                    })
+                    .then((response) => {
+                      metadata[item.address] = { ...response.toJSON(), sales: item.amount };
+                    })
+                    .catch((error) => {});
+                }
+              }
+            }
+          }
+
+          let actions: Action[] = [];
+          Object.entries(metadata).map(([key, value]: [key: string, value: any]) => {
+            if (value.sales) {
+              actions.push({
+                type: 'Sale',
+                amount: value.sales,
+                tokenAddress: key,
+                name: value.name,
+                symbol: value.symbol,
+              });
+            }
+            if (value.purchases) {
+              actions.push({
+                type: 'Purchase',
+                amount: value.purchases,
+                tokenAddress: key,
+                name: value.name,
+                symbol: value.symbol,
+              });
+            }
+          });
+
+          if (actions.length) {
+            transactions.push({
+              txHash,
+              blockNumber: block_number,
+              type: TransactionType.NFT,
+              network: NetworkType.ETHEREUM,
+              details: {
+                from: from_address,
+                to: to_address,
+                timestamp: new Date(block_timestamp).getTime(),
+                actions,
+              },
+            });
+          }
+        } else {
+          let metadata: any = {};
+          /* Metadata Type:
+
+              mints?: number
+              transfers?: number
+              burns?: number
+              name: string,
+              symbol: string
+              contractType: 'ERC721' | 'ERC1155'
+          */
+
+          // Tranfer
+          for (const log of logs) {
+            if (!metadata[log.address]) {
+              await Moralis.EvmApi.nft
+                .getNFTContractMetadata({
+                  chain: EvmChain.ETHEREUM,
+                  address: log.address,
+                })
+                .then((response) => {
+                  metadata[log.address] = { ...response.toJSON() };
+                })
+                .catch((error) => {});
+            }
+            // Parse ERC721 and ERC1155
+            if (metadata[log.address]) {
+              if (log.decoded_event.label === 'Transfer') {
+                const from = log.decoded_event.params.find((param) => param.name === 'from').value;
+                const to = log.decoded_event.params.find((param) => param.name === 'to').value;
+                if (Number(from) === 0) {
+                  // Mint Tranfer
+                  metadata[log.address] = { ...metadata[log.address], mints: (metadata[log.address].mints || 0) + 1 };
+                } else if (Number(to) === 0) {
+                  // Burn Transfer
+                  metadata[log.address] = { ...metadata[log.address], burns: (metadata[log.address].burns || 0) + 1 };
+                } else {
+                  metadata[log.address] = {
+                    ...metadata[log.address],
+                    transfers: (metadata[log.address].transfers || 0) + 1,
+                  };
+                }
+              }
+            }
+          }
+
+          let actions: Action[] = [];
+          Object.entries(metadata).map(([key, value]: [key: string, value: any]) => {
+            if (value.mints) {
+              actions.push({
+                type: 'Mint',
+                amount: value.mints,
+                tokenAddress: key,
+                name: value.name,
+                symbol: value.symbol,
+              });
+            }
+            if (value.burns) {
+              actions.push({
+                type: 'Burn',
+                amount: value.burns,
+                tokenAddress: key,
+                name: value.name,
+                symbol: value.symbol,
+              });
+            }
+            if (value.transfers) {
+              actions.push({
+                type: 'Transfer',
+                amount: value.transfers,
+                tokenAddress: key,
+                name: value.name,
+                symbol: value.symbol,
+              });
+            }
+          });
+
+          if (actions.length > 0) {
+            transactions.push({
+              txHash,
+              blockNumber: block_number,
+              type: TransactionType.NFT,
+              network: NetworkType.ETHEREUM,
+              details: {
+                from: from_address,
+                to: to_address,
+                timestamp: new Date(block_timestamp).getTime(),
+                actions,
+              },
+            });
+          }
+        }
       }
     } catch (error) {
       logger.error(error);
@@ -828,6 +1006,6 @@ export class EtherscanService {
     // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
     // return this.getTopERC20Tokens();
 
-    return this.getTransactionsByNFT('0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D');
+    return this.getTransactionsByNFT('0x769272677faB02575E84945F03Eca517ACc544Cc');
   }
 }

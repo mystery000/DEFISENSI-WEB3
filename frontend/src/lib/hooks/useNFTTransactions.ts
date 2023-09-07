@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getNFTTransactions } from '../api';
-import { NFT, Transaction } from '../../types/transaction';
+import { NftTransfer } from '../../types/transaction';
 
 export default function useNFTTransactions() {
   const { network, address } = useParams();
-  const [data, setData] = useState<Transaction<NFT>[]>([]);
+  const [data, setData] = useState<NftTransfer[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export default function useNFTTransactions() {
           return;
         }
 
-        const txns: Transaction<NFT>[] = [];
+        const txns: NftTransfer[] = [];
         for (const txn of token.transactions) {
           txns.push({
             ...txn,
