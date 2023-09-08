@@ -1,5 +1,5 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get } from '@nestjs/common';
 
 import { EtherscanService } from './etherscan.service';
 
@@ -7,9 +7,6 @@ import { EtherscanService } from './etherscan.service';
 @Controller('etherscan')
 export class EtherscanController {
   constructor(private readonly etherscanService: EtherscanService) {}
-
-  @Get('/webhook/transaction')
-  async getTransactionByWebhook() {}
 
   @Get('/test')
   async test() {

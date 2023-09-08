@@ -10,7 +10,6 @@ import { CreateNftDto } from './dto/create-nft.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { ApiTransaction, Transaction } from 'src/utils/types';
 
 @ApiTags('Nft')
 @Controller('nft')
@@ -113,7 +112,6 @@ export class NftController {
 
   @Get('/:network/:address/transactions')
   @ApiOperation({ summary: 'Get transactions of this token contract' })
-  @ApiOkResponse({ type: ApiTransaction, isArray: true })
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'The token address' })
   @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })

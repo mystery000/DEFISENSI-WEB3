@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
-import { Action, HistoricalPrice, NFTTransaction, TokenBalance, Transaction } from 'src/utils/types';
+import { Action, HistoricalPrice, NFTTransaction, TokenBalance, TokenTransaction } from 'src/utils/types';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import axios from 'axios';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -16,7 +16,7 @@ export class PolygonscanService {
   constructor(private readonly http: HttpService) {}
 
   async getTransactionsByWallet(address: string, fromBlock: number = 0) {
-    const transactions: Transaction[] = [];
+    const transactions: TokenTransaction[] = [];
     try {
       // Get native transactions by wallet
       const nativeTxns = await Moralis.EvmApi.transaction.getWalletTransactions({
@@ -38,21 +38,22 @@ export class PolygonscanService {
         ).toJSON();
 
         transactions.push({
-          txhash: txn.hash,
+          txHash: txn.hash,
           blockNumber: txn.block_number,
           type: TransactionType.TOKEN,
+          timestamp: new Date(txn.block_timestamp).getTime(),
+          network: NetworkType.POLYGON,
           details: {
             from: txn.from_address,
             to: txn.to_address,
-            timestamp: new Date(txn.block_timestamp).getTime(),
             token0: {
               name: 'MATIC',
               symbol: 'MATIC',
               decimals: '18',
               logo: matic_price.tokenLogo,
               contractAddress: matic_price.tokenAddress,
-              value: txn.value,
-              usdPrice: ((matic_price.usdPrice * Number(txn.value)) / 1e18).toString(),
+              amount: txn.value,
+              price: ((matic_price.usdPrice * Number(txn.value)) / 1e18).toString(),
             },
           },
         });
@@ -80,21 +81,22 @@ export class PolygonscanService {
         }
 
         transactions.push({
-          txhash: txn.transaction_hash,
+          txHash: txn.transaction_hash,
           blockNumber: txn.block_number,
           type: TransactionType.TOKEN,
+          timestamp: new Date(txn.block_timestamp).getTime(),
+          network: NetworkType.POLYGON,
           details: {
             from: txn.from_address,
             to: txn.to_address,
-            timestamp: new Date(txn.block_timestamp).getTime(),
             token0: {
               name: txn.token_name,
               symbol: txn.token_symbol,
               decimals: txn.token_decimals,
               logo: txn.token_logo,
               contractAddress: txn.address,
-              value: txn.value,
-              usdPrice: (tokenPrice.usdPrice * Number(txn.value_decimal)).toString(),
+              amount: txn.value,
+              price: (tokenPrice.usdPrice * Number(txn.value_decimal)).toString(),
             },
           },
         });
@@ -106,7 +108,7 @@ export class PolygonscanService {
     return transactions.sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
   }
 
-  async getTransactionsByERC20(contractAddress: string, fromBlock: number = 0) {
+  async getTransactionsByERC20(address: string, fromBlock: number = 0) {
     /* set network to NetworkType.Polygon */
   }
   async getTransactionsByNFTCollection(address: string, fromBlock: number = 0) {
@@ -225,10 +227,10 @@ export class PolygonscanService {
               blockNumber: block_number,
               type: TransactionType.NFT,
               network: NetworkType.POLYGON,
+              timestamp: new Date(block_timestamp).getTime(),
               details: {
                 from: from_address,
                 to: to_address,
-                timestamp: new Date(block_timestamp).getTime(),
                 actions,
               },
             });
@@ -315,10 +317,10 @@ export class PolygonscanService {
               blockNumber: block_number,
               type: TransactionType.NFT,
               network: NetworkType.POLYGON,
+              timestamp: new Date(block_timestamp).getTime(),
               details: {
                 from: from_address,
                 to: to_address,
-                timestamp: new Date(block_timestamp).getTime(),
                 actions,
               },
             });

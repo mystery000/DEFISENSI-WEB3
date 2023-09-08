@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { Transaction } from 'src/utils/types';
+import { TokenTransaction } from 'src/utils/types';
 import { FollowTokenDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentTokenDto } from './dto/comment.dto';
@@ -159,7 +159,7 @@ export class TokenService {
     return foundToken.comments;
   }
 
-  async setTransactions(contractAddress: string, network: string, transactions: Transaction[]) {
+  async setTransactions(contractAddress: string, network: string, transactions: TokenTransaction[]) {
     try {
       const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
       if (!foundToken) {

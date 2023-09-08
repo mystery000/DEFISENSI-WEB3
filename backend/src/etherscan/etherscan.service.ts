@@ -13,18 +13,23 @@ import { MoralisConfig } from 'src/config/moralis.config';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { Action, ExchangePrice, HistoricalPrice, NFTTransaction, TokenBalance, Transaction } from 'src/utils/types';
+import {
+  Action,
+  ExchangePrice,
+  HistoricalPrice,
+  NFTTransaction,
+  TokenBalance,
+  TokenTransaction,
+} from 'src/utils/types';
 import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
 export class EtherscanService {
   private readonly web3: Web3;
-  private readonly moralisConfig: MoralisConfig;
   private readonly ethereumConfig: EthereumConfig;
   private readonly WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; // Wrapped Ether address
 
   constructor(private readonly http: HttpService, private readonly configService: ConfigService) {
-    this.moralisConfig = this.configService.get<MoralisConfig>('moralis');
     this.ethereumConfig = this.configService.get<EthereumConfig>('ethereum');
     const provider = `https://${this.ethereumConfig.network}.infura.io/v3/${this.ethereumConfig.infura_api_key}`;
     this.web3 = new Web3(provider);
@@ -38,7 +43,7 @@ export class EtherscanService {
       fromBlock,
     });
 
-    const transactions: Transaction[] = [];
+    const transactions: TokenTransaction[] = [];
 
     for (const tx of response.toJSON().result) {
       // Native token transaction
@@ -50,21 +55,22 @@ export class EtherscanService {
         });
 
         transactions.push({
-          txhash: tx.hash,
+          txHash: tx.hash,
           blockNumber: tx.block_number,
+          timestamp: new Date(tx.block_timestamp).getTime(),
           type: TransactionType.TOKEN,
+          network: NetworkType.ETHEREUM,
           details: {
             from: tx.from_address,
             to: tx.to_address,
-            timestamp: new Date(tx.block_timestamp).getTime(),
             token0: {
               name: 'Ether',
               symbol: 'ETH',
               decimals: '18',
               contractAddress: response.toJSON().tokenAddress,
               logo: null,
-              value: tx.value,
-              usdPrice: ((response.toJSON().usdPrice * Number(tx.value)) / 1e18).toString(),
+              amount: tx.value,
+              price: ((response.toJSON().usdPrice * Number(tx.value)) / 1e18).toString(),
             },
           },
         });
@@ -135,21 +141,22 @@ export class EtherscanService {
               toBlock: Number(tx.block_number),
             });
             transactions.push({
-              txhash: tx.hash,
+              txHash: tx.hash,
               blockNumber: tx.block_number,
               type: TransactionType.TOKEN,
+              network: NetworkType.UNISWAP,
+              timestamp: new Date(tx.block_timestamp).getTime(),
               details: {
                 from: tx.from_address,
                 to: toAddress,
-                timestamp: new Date(tx.block_timestamp).getTime(),
                 token0: {
                   name: token0Contract.toJSON().tokenName,
                   symbol: token0Contract.toJSON().tokenSymbol,
                   decimals: token0Contract.toJSON().tokenDecimals,
                   contractAddress: token0Contract.toJSON().tokenAddress,
                   logo: token0Contract.toJSON().tokenLogo,
-                  value: amount0.toString(),
-                  usdPrice: (
+                  amount: amount0.toString(),
+                  price: (
                     (token0Contract.toJSON().usdPrice * amount0) /
                     10 ** Number(token0Contract.toJSON().tokenDecimals)
                   ).toString(),
@@ -160,8 +167,8 @@ export class EtherscanService {
                   decimals: token1Contract.toJSON().tokenDecimals,
                   contractAddress: token1Contract.toJSON().tokenAddress,
                   logo: token1Contract.toJSON().tokenLogo,
-                  value: amount1.toString(),
-                  usdPrice: (
+                  amount: amount1.toString(),
+                  price: (
                     (token1Contract.toJSON().usdPrice * amount1) /
                     10 ** Number(token1Contract.toJSON().tokenDecimals)
                   ).toString(),
@@ -228,21 +235,22 @@ export class EtherscanService {
           toBlock: Number(tx.block_number),
         });
         transactions.push({
-          txhash: tx.hash,
+          txHash: tx.hash,
           blockNumber: tx.block_number,
+          timestamp: new Date(tx.block_timestamp).getTime(),
           type: TransactionType.TOKEN,
+          network: NetworkType.UNISWAP,
           details: {
             from: tx.from_address,
             to: to,
-            timestamp: new Date(tx.block_timestamp).getTime(),
             token0: {
               name: tokenInContract.toJSON().tokenName,
               symbol: tokenInContract.toJSON().tokenSymbol,
               decimals: tokenInContract.toJSON().tokenDecimals,
               contractAddress: tokenInContract.toJSON().tokenAddress,
               logo: tokenInContract.toJSON().tokenLogo,
-              value: amountIn.toString(),
-              usdPrice: (
+              amount: amountIn.toString(),
+              price: (
                 (tokenInContract.toJSON().usdPrice * amountIn) /
                 10 ** Number(tokenInContract.toJSON().tokenDecimals)
               ).toString(),
@@ -253,8 +261,8 @@ export class EtherscanService {
               decimals: tokenOutContract.toJSON().tokenDecimals,
               contractAddress: tokenOutContract.toJSON().tokenAddress,
               logo: tokenOutContract.toJSON().tokenLogo,
-              value: amountOut.toString(),
-              usdPrice: (
+              amount: amountOut.toString(),
+              price: (
                 (tokenOutContract.toJSON().usdPrice * amountOut) /
                 10 ** Number(tokenOutContract.toJSON().tokenDecimals)
               ).toString(),
@@ -282,21 +290,22 @@ export class EtherscanService {
         });
 
         transactions.push({
-          txhash: tx.hash,
+          txHash: tx.hash,
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
+          timestamp: new Date(transferLog.block_timestamp).getTime(),
+          network: NetworkType.ETHEREUM,
           details: {
             from: tx.from_address,
             to: transfer_to,
-            timestamp: new Date(transferLog.block_timestamp).getTime(),
             token0: {
               name: erc20Token.toJSON().tokenName,
               symbol: erc20Token.toJSON().tokenSymbol,
               decimals: erc20Token.toJSON().tokenDecimals,
               contractAddress: transferLog.address,
               logo: erc20Token.toJSON().tokenLogo,
-              value: tranfer_value,
-              usdPrice: (
+              amount: tranfer_value,
+              price: (
                 (erc20Token.toJSON().usdPrice * Number(tranfer_value)) /
                 10 ** Number(erc20Token.toJSON().tokenDecimals)
               ).toString(),
@@ -311,7 +320,7 @@ export class EtherscanService {
 
   async getTransactionsByToken(contractAddress: string, fromBlock: number = 0) {
     let txHashs = [];
-    let transactions: Transaction[] = [];
+    let transactions: TokenTransaction[] = [];
 
     const contractLogs = await Moralis.EvmApi.events.getContractLogs({
       address: contractAddress,
@@ -398,21 +407,22 @@ export class EtherscanService {
               toBlock: Number(tx.block_number),
             });
             transactions.push({
-              txhash: tx.hash,
+              txHash: tx.hash,
               blockNumber: tx.block_number,
               type: TransactionType.TOKEN,
+              timestamp: new Date(tx.block_timestamp).getTime(),
+              network: NetworkType.UNISWAP,
               details: {
                 from: tx.from_address,
                 to: toAddress,
-                timestamp: new Date(tx.block_timestamp).getTime(),
                 token0: {
                   name: token0Contract.toJSON().tokenName,
                   symbol: token0Contract.toJSON().tokenSymbol,
                   decimals: token0Contract.toJSON().tokenDecimals,
                   contractAddress: token0Contract.toJSON().tokenAddress,
                   logo: token0Contract.toJSON().tokenLogo,
-                  value: amount0.toString(),
-                  usdPrice: (
+                  amount: amount0.toString(),
+                  price: (
                     (token0Contract.toJSON().usdPrice * amount0) /
                     10 ** Number(token0Contract.toJSON().tokenDecimals)
                   ).toString(),
@@ -423,8 +433,8 @@ export class EtherscanService {
                   decimals: token1Contract.toJSON().tokenDecimals,
                   contractAddress: token1Contract.toJSON().tokenAddress,
                   logo: token1Contract.toJSON().tokenLogo,
-                  value: amount1.toString(),
-                  usdPrice: (
+                  amount: amount1.toString(),
+                  price: (
                     (token1Contract.toJSON().usdPrice * amount1) /
                     10 ** Number(token1Contract.toJSON().tokenDecimals)
                   ).toString(),
@@ -491,21 +501,22 @@ export class EtherscanService {
           toBlock: Number(tx.block_number),
         });
         transactions.push({
-          txhash: tx.hash,
+          txHash: tx.hash,
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
+          timestamp: new Date(tx.block_timestamp).getTime(),
+          network: NetworkType.UNISWAP,
           details: {
             from: tx.from_address,
             to: to,
-            timestamp: new Date(tx.block_timestamp).getTime(),
             token0: {
               name: tokenInContract.toJSON().tokenName,
               symbol: tokenInContract.toJSON().tokenSymbol,
               decimals: tokenInContract.toJSON().tokenDecimals,
               contractAddress: tokenInContract.toJSON().tokenAddress,
               logo: tokenInContract.toJSON().tokenLogo,
-              value: amountIn.toString(),
-              usdPrice: (
+              amount: amountIn.toString(),
+              price: (
                 (tokenInContract.toJSON().usdPrice * amountIn) /
                 10 ** Number(tokenInContract.toJSON().tokenDecimals)
               ).toString(),
@@ -516,8 +527,8 @@ export class EtherscanService {
               decimals: tokenOutContract.toJSON().tokenDecimals,
               contractAddress: tokenOutContract.toJSON().tokenAddress,
               logo: tokenOutContract.toJSON().tokenLogo,
-              value: amountOut.toString(),
-              usdPrice: (
+              amount: amountOut.toString(),
+              price: (
                 (tokenOutContract.toJSON().usdPrice * amountOut) /
                 10 ** Number(tokenOutContract.toJSON().tokenDecimals)
               ).toString(),
@@ -545,21 +556,22 @@ export class EtherscanService {
         });
 
         transactions.push({
-          txhash: tx.hash,
+          txHash: tx.hash,
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
+          timestamp: new Date(transferLog.block_timestamp).getTime(),
+          network: NetworkType.ETHEREUM,
           details: {
             from: tx.from_address,
             to: transfer_to,
-            timestamp: new Date(transferLog.block_timestamp).getTime(),
             token0: {
               name: erc20Token.toJSON().tokenName,
               symbol: erc20Token.toJSON().tokenSymbol,
               decimals: erc20Token.toJSON().tokenDecimals,
               contractAddress: transferLog.address,
               logo: erc20Token.toJSON().tokenLogo,
-              value: tranfer_value,
-              usdPrice: (
+              amount: tranfer_value,
+              price: (
                 (erc20Token.toJSON().usdPrice * Number(tranfer_value)) /
                 10 ** Number(erc20Token.toJSON().tokenDecimals)
               ).toString(),
@@ -689,10 +701,10 @@ export class EtherscanService {
               blockNumber: block_number,
               type: TransactionType.NFT,
               network: NetworkType.ETHEREUM,
+              timestamp: new Date(block_timestamp).getTime(),
               details: {
                 from: from_address,
                 to: to_address,
-                timestamp: new Date(block_timestamp).getTime(),
                 actions,
               },
             });
@@ -780,10 +792,10 @@ export class EtherscanService {
               blockNumber: block_number,
               type: TransactionType.NFT,
               network: NetworkType.ETHEREUM,
+              timestamp: new Date(block_timestamp).getTime(),
               details: {
                 from: from_address,
                 to: to_address,
-                timestamp: new Date(block_timestamp).getTime(),
                 actions,
               },
             });

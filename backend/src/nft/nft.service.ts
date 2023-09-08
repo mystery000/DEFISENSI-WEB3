@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { logger } from 'src/utils/logger';
-import { NFTTransaction, Transaction } from 'src/utils/types';
+import { NFTTransaction } from 'src/utils/types';
 import { FollowNftDto } from './dto/follow.dto';
 import { CommentNftDto } from './dto/comment.dto';
 import { UserService } from '../user/user.service';

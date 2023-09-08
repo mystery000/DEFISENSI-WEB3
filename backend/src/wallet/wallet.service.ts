@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { TokenBalance, Transaction } from 'src/utils/types';
+import { TokenTransaction, NFTTransaction } from 'src/utils/types';
 import { logger } from 'src/utils/logger';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
@@ -13,6 +13,9 @@ import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+
+type Transaction = TokenTransaction | NFTTransaction;
+
 @Injectable()
 export class WalletService {
   constructor(

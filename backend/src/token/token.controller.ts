@@ -3,6 +3,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, Ap
 
 import { TokenService } from './token.service';
 import { Token } from './schemas/token.schema';
+import { ExchangePrice } from 'src/utils/types';
 import { FollowTokenDto } from './dto/follow.dto';
 import { User } from '../user/schemas/user.schema';
 import { CommentTokenDto } from './dto/comment.dto';
@@ -10,7 +11,6 @@ import { CreateTokenDto } from './dto/create-token.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
-import { ApiTransaction, ExchangePrice, Transaction } from 'src/utils/types';
 
 @ApiTags('Token')
 @Controller('token')
@@ -106,7 +106,6 @@ export class TokenController {
 
   @Get('/:network/:address/transactions')
   @ApiOperation({ summary: 'Get transactions of this token contract' })
-  @ApiOkResponse({ type: ApiTransaction, isArray: true })
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'The token address' })
   @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
