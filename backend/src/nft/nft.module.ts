@@ -8,6 +8,7 @@ import { Nft, NftSchema } from './schemas/nft.schema';
 import { CommentModule } from '../comment/comment.module';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
 import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
+import { BscscanModule } from 'src/bscscan/bscscan.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
     CommentModule,
     EtherscanModule,
     PolygonscanModule,
+    BscscanModule,
     MongooseModule.forFeature([{ name: Nft.name, schema: NftSchema }]),
   ],
   controllers: [NftController],

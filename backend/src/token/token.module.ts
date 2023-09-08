@@ -8,6 +8,7 @@ import { CommentModule } from '../comment/comment.module';
 import { Token, TokenSchema } from './schemas/token.schema';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
 import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
+import { BscscanModule } from 'src/bscscan/bscscan.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
     CommentModule,
     EtherscanModule,
     PolygonscanModule,
+    BscscanModule,
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
   ],
   controllers: [TokenController],

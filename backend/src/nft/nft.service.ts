@@ -15,6 +15,7 @@ import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { BscscanService } from 'src/bscscan/bscscan.service';
 
 @Injectable()
 export class NftService {
@@ -25,6 +26,7 @@ export class NftService {
     private readonly commentService: CommentService,
     private readonly etherscanService: EtherscanService,
     private readonly polygonService: PolygonscanService,
+    private readonly bscService: BscscanService,
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
@@ -215,24 +217,22 @@ export class NftService {
   }
 
   async updateTransactions(address: string, network: string) {
+    if (!Object.values(NetworkType).includes(network as NetworkType)) return;
     try {
+      // Get the latest block number
+      let latestBlockNumber = 0;
+      const token = await this.nftModel.findOne({ address: address, network: network });
+      if (token && token.transactions && token.transactions.length > 0)
+        latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
+
       if (network === NetworkType.ETHEREUM) {
-        let latestBlockNumber = 0;
-        const token = await this.nftModel.findOne({ address: address, network: network });
-
-        if (token && token.transactions && token.transactions.length > 0)
-          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
-
         const txs = await this.etherscanService.getTransactionsByNFT(address, latestBlockNumber + 1);
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        let latestBlockNumber = 0;
-        const token = await this.nftModel.findOne({ address: address, network: network });
-
-        if (token && token.transactions && token.transactions.length > 0)
-          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
-
         const txs = await this.polygonService.getTransactionsByNFTCollection(address, latestBlockNumber + 1);
+        await this.setTransactions(address, network, txs);
+      } else if (network === NetworkType.BSC) {
+        const txs = await this.bscService.getTransactionsByNFT(address, latestBlockNumber + 1);
         await this.setTransactions(address, network, txs);
       }
     } catch (err) {
@@ -247,6 +247,9 @@ export class NftService {
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.POLYGON) {
         const txs = await this.polygonService.getTransactionsByNFTCollection(address);
+        await this.setTransactions(address, network, txs);
+      } else if (network === NetworkType.BSC) {
+        const txs = await this.bscService.getTransactionsByNFT(address);
         await this.setTransactions(address, network, txs);
       }
     } catch (err) {

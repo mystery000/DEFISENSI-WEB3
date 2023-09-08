@@ -110,6 +110,8 @@ export class PolygonscanService {
 
   async getTransactionsByERC20(address: string, fromBlock: number = 0) {
     /* set network to NetworkType.Polygon */
+    const transactions: TokenTransaction[] = [];
+    return transactions;
   }
   async getTransactionsByNFTCollection(address: string, fromBlock: number = 0) {
     let txHashs = [];

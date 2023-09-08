@@ -15,6 +15,7 @@ import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { logger } from 'src/utils/logger';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { BscscanService } from 'src/bscscan/bscscan.service';
 
 @Injectable()
 export class TokenService {
@@ -25,6 +26,7 @@ export class TokenService {
     private readonly commentService: CommentService,
     private readonly polygonService: PolygonscanService,
     private readonly etherscanService: EtherscanService,
+    private readonly bscService: BscscanService,
   ) {}
 
   async create(token: CreateTokenDto): Promise<Token> {
@@ -215,19 +217,21 @@ export class TokenService {
   }
 
   async updateTransactions(contractAddress: string, network: string) {
+    if (!Object.values(NetworkType).includes(network as NetworkType)) return;
     try {
+      let latestBlockNumber = 0;
+      const token = await this.tokenModel.findOne({ address: contractAddress, network: network });
+      if (token && token.transactions && token.transactions.length > 0)
+        latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
       if (network === NetworkType.ETHEREUM) {
-        // Ethereum network
-        let latestBlockNumber = 0;
-        const token = await this.tokenModel.findOne({ address: contractAddress, network: network });
-
-        if (token && token.transactions && token.transactions.length > 0)
-          latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
-
         const txs = await this.etherscanService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        // Polygon network
+        const txs = await this.polygonService.getTransactionsByERC20(contractAddress, latestBlockNumber + 1);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.BSC) {
+        const txs = await this.bscService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
+        await this.setTransactions(contractAddress, network, txs);
       }
     } catch (err) {
       logger.error(err);
@@ -237,11 +241,14 @@ export class TokenService {
   async initializeTransactions(contractAddress: string, network: string) {
     try {
       if (network === NetworkType.ETHEREUM) {
-        // Ethereum network
         const txs = await this.etherscanService.getTransactionsByToken(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        // Polygon network
+        const txs = await this.polygonService.getTransactionsByERC20(contractAddress);
+        await this.setTransactions(contractAddress, network, txs);
+      } else if (network === NetworkType.BSC) {
+        const txs = await this.bscService.getTransactionsByToken(contractAddress);
+        await this.setTransactions(contractAddress, network, txs);
       }
     } catch (err) {
       logger.error(err);
