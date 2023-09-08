@@ -5,6 +5,7 @@ import { WalletService } from './wallet.service';
 import { UserModule } from '../user/user.module';
 import { WalletController } from './wallet.controller';
 import { CommentModule } from '../comment/comment.module';
+import { BscscanModule } from 'src/bscscan/bscscan.module';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
 import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
@@ -15,6 +16,7 @@ import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
     CommentModule,
     EtherscanModule,
     PolygonscanModule,
+    BscscanModule,
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
   ],
   controllers: [WalletController],

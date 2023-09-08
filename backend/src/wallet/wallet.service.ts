@@ -13,6 +13,7 @@ import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { BscscanService } from 'src/bscscan/bscscan.service';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -25,6 +26,7 @@ export class WalletService {
     private readonly commentService: CommentService,
     private readonly etherscanService: EtherscanService,
     private readonly polygonscanService: PolygonscanService,
+    private readonly bscService: BscscanService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
@@ -227,15 +229,16 @@ export class WalletService {
 
   async updateTransactions(address: string) {
     try {
-      let latestBlockNumber = 0;
+      const foundWallet = await this.walletModel.findOne({ address: address });
 
-      const wallet = await this.walletModel.findOne({ address: address });
-
-      if (wallet && wallet.transactions && wallet.transactions.length > 0)
-        latestBlockNumber = Number(wallet.transactions.at(-1).blockNumber);
-
-      const txs = await this.etherscanService.getTransactionsByWallet(address, latestBlockNumber + 1);
-      await this.setTransactions(address, txs);
+      if (foundWallet) {
+        const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+          await this.etherscanService.getTransactionsByWallet(address),
+          await this.polygonscanService.getTransactionsByWallet(address),
+          await this.bscService.getTransactionsByWallet(address),
+        ]);
+        await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
+      }
     } catch (err) {
       logger.error(err);
     }
@@ -243,11 +246,12 @@ export class WalletService {
 
   async initializeTransactions(address: string) {
     try {
-      const ethereumTxns = await this.etherscanService.getTransactionsByWallet(address);
-      // const polygonTxns = await this.polygonscanService.getTransactionsByWallet(address);
-      // Sort transactions by desending order
-      // const txns = [...ethereumTxns, ...polygonTxns].sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
-      await this.setTransactions(address, ethereumTxns);
+      const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+        await this.etherscanService.getTransactionsByWallet(address),
+        await this.polygonscanService.getTransactionsByWallet(address),
+        await this.bscService.getTransactionsByWallet(address),
+      ]);
+      await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
     } catch (err) {
       logger.error(err);
     }
