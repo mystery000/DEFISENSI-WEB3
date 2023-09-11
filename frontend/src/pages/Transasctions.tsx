@@ -206,7 +206,7 @@ export const Transactions = () => {
               >
                 {walletTxns.map((txn, idx) => (
                   <TransactionCard
-                    key={`wallet${idx}_${txn.txhash}`}
+                    key={`wallet${idx}_${txn.txHash}`}
                     transaction={txn}
                     likes={txn.likes}
                     dislikes={txn.dislikes}
@@ -236,7 +236,7 @@ export const Transactions = () => {
               >
                 {tokenTxns.map((txn, idx) => (
                   <TransactionCard
-                    key={`token${idx}_${txn.txhash}`}
+                    key={`token${idx}_${txn.txHash}`}
                     transaction={txn}
                     likes={txn.likes}
                     dislikes={txn.dislikes}

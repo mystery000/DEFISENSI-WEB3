@@ -180,6 +180,7 @@ export const getFollowersByToken = async (network: string, address: string) => {
     return res.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
@@ -194,6 +195,7 @@ export const getFollowingsByToken = async (
     return res.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 

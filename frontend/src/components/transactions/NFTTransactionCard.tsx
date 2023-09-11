@@ -30,7 +30,7 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
   comments,
 }) => {
   const { user } = useAppContext();
-  const age = getAge(transaction.details.timestamp);
+  const age = getAge(transaction.timestamp);
   const { type, amount, name, symbol } = transaction.details.actions[0];
 
   return (

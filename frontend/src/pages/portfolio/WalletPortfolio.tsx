@@ -684,7 +684,7 @@ export const WalletPortfolio = () => {
               >
                 {transactions.map((transaction) => (
                   <TransactionCard
-                    key={transaction.txhash}
+                    key={transaction.txHash}
                     transaction={transaction}
                     likes={transaction.likes}
                     dislikes={transaction.dislikes}

@@ -9,10 +9,10 @@ export type Token = {
   name: string;
   symbol: string;
   logo?: string;
-  decimals: string;
   contractAddress: string;
-  value: string;
-  usdPrice: string;
+  decimals: string;
+  amount: string;
+  price: string;
 };
 
 export interface Transaction {
@@ -22,15 +22,16 @@ export interface Transaction {
   dislikes: any[];
   likes: any[];
 
-  txhash: string;
+  txHash: string;
   blockNumber: string;
   type: TransactionType;
+  network: NetworkType;
+  timestamp: number;
   details: {
     from: string;
     to: string;
     token0: Token;
     token1?: Token;
-    timestamp: number;
   };
 }
 
@@ -69,11 +70,11 @@ export type NftTransfer = {
   blockNumber: string;
   type: TransactionType;
   network: NetworkType;
+  timestamp: number;
   details: {
     from: string;
     to: string;
     actions: Action[];
-    timestamp: number;
   };
 };
 export type ActionType = 'Burn' | 'Transfer' | 'Sale' | 'Mint' | 'Purchase';

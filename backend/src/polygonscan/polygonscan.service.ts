@@ -160,7 +160,7 @@ export class PolygonscanService {
           */
 
           for (const log of logs) {
-            if (log.decoded_event.label === 'OrderFulfilled') {
+            if (log.decoded_event?.label === 'OrderFulfilled') {
               // Check if order type is purchase or sale
               const offer = log.decoded_event.params.find((param) => param.name === 'offer')?.value || '';
               const decodedValue = offer.split(',');
@@ -264,7 +264,7 @@ export class PolygonscanService {
             }
             // Parse ERC721 and ERC1155
             if (metadata[log.address]) {
-              if (log.decoded_event.label === 'Transfer') {
+              if (log.decoded_event?.label === 'Transfer') {
                 const from = log.decoded_event.params.find((param) => param.name === 'from').value;
                 const to = log.decoded_event.params.find((param) => param.name === 'to').value;
                 if (Number(from) === 0) {

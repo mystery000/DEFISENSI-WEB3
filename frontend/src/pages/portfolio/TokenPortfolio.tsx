@@ -290,13 +290,6 @@ export const TokenPortfolio = () => {
       </div>
     );
 
-  if (!exchangePrice?.tokenName && !priceHistory.length && !transactions.length)
-    return (
-      <div className="grid h-screen place-items-center text-2xl font-semibold text-red-600">
-        Invalid Token Address
-      </div>
-    );
-
   return (
     <AppLayout>
       <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
@@ -312,12 +305,12 @@ export const TokenPortfolio = () => {
               <span>{exchangePrice?.tokenName}</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
                 <img
-                  src="/images/tokens/eth.png"
+                  src={`/images/network/${network}.png`}
                   width={32}
                   height={32}
                   alt="noicon"
                 ></img>
-                <span>on Ethereum</span>
+                <span>on{network}</span>
               </span>
             </h2>
             <span className="mt-4 text-sm font-medium" title={address}>
@@ -419,7 +412,7 @@ export const TokenPortfolio = () => {
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
                           <img
-                            src="/images/platforms/uni.png"
+                            src="/images/exchanges/uniswap.png"
                             width={32}
                             height={32}
                             className="rounded-full border"
@@ -429,8 +422,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice.uniswap
-                          ? `$${exchangePrice?.usdPrice.uniswap}`
+                        {exchangePrice?.usdPrice?.uniswap
+                          ? `$${exchangePrice?.usdPrice?.uniswap}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -448,8 +441,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice.binance
-                          ? `$${exchangePrice?.usdPrice.binance}`
+                        {exchangePrice?.usdPrice?.binance
+                          ? `$${exchangePrice?.usdPrice?.binance}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -467,8 +460,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice.kucoin
-                          ? `$${exchangePrice?.usdPrice.kucoin}`
+                        {exchangePrice?.usdPrice?.kucoin
+                          ? `$${exchangePrice?.usdPrice?.kucoin}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -490,8 +483,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice.coinbase
-                          ? `$${exchangePrice?.usdPrice.coinbase}`
+                        {exchangePrice?.usdPrice?.coinbase
+                          ? `$${exchangePrice?.usdPrice?.coinbase}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -520,7 +513,7 @@ export const TokenPortfolio = () => {
               >
                 {transactions.map((transaction) => (
                   <TransactionCard
-                    key={transaction.txhash}
+                    key={transaction.txHash}
                     transaction={transaction}
                     likes={transaction.likes}
                     dislikes={transaction.dislikes}

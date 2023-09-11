@@ -119,7 +119,8 @@ export class TokenService {
   async getFollowers(dto: FindOneParams) {
     const foundToken = await this.tokenModel.findOne(dto);
     if (!foundToken) {
-      throw new BadRequestException('Token not found!');
+      // throw new BadRequestException('Token not found!');
+      return [];
     }
     return this.userService.getByIds(foundToken.followers);
   }
@@ -127,7 +128,8 @@ export class TokenService {
   async getFollowings(dto: FindOneParams) {
     const foundToken = await this.tokenModel.findOne(dto);
     if (!foundToken) {
-      throw new BadRequestException('Token not found!');
+      // throw new BadRequestException('Token not found!');
+      return [];
     }
     return this.userService.getByIds(foundToken.followings);
   }
@@ -206,7 +208,7 @@ export class TokenService {
       if (!foundToken || foundToken.length === 0) {
         // throw new BadRequestException('Transactions not found!');
         logger.error('Transactions not found');
-        return null;
+        return [];
       }
 
       return foundToken[0];

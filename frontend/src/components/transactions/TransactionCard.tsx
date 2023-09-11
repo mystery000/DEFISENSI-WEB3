@@ -38,15 +38,11 @@ export const TransactionCard: FC<TransactionCardProps> = ({
   comments,
 }) => {
   const { user } = useAppContext();
-  const age = getAge(transaction.details.timestamp);
+  const age = getAge(transaction.timestamp);
   return (
     <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter">
       <div className="flex justify-between font-inter text-sm">
-        {transaction.type === TransactionType.TOKEN || !transaction.type ? (
-          <TokenIcon />
-        ) : (
-          <NFTIcon />
-        )}
+        <TokenIcon />
         <span>{age}</span>
       </div>
       <div className="flex items-center justify-between">
@@ -67,7 +63,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
         </div>
         <div>
           <img
-            src={`/images/platforms/uni.png`}
+            src={`/images/network/${transaction.network.toLowerCase()}.png`}
             width={32}
             height={32}
             className="rounded-full border"
@@ -93,12 +89,12 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           </span>
           <span>
             {`${convertDecimals(
-              transaction.details.token0.value,
+              transaction.details.token0.amount,
               transaction.details.token0.decimals,
             )} ${transaction.details.token0.symbol}`}
           </span>
           <span className="text-bali-hai-600">{`@${Number(
-            transaction.details.token0.usdPrice,
+            transaction.details.token0.price,
           ).toLocaleString()} USD`}</span>
         </div>
       )}
@@ -119,11 +115,11 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             />
           </span>
           <span>{`${convertDecimals(
-            transaction.details.token1.value,
+            transaction.details.token1.amount,
             transaction.details.token1.decimals,
           )} ${transaction.details.token1.symbol}`}</span>
           <span className="text-bali-hai-600">{`@${Number(
-            transaction.details.token1.usdPrice,
+            transaction.details.token1.price,
           ).toLocaleString()} USD`}</span>
         </div>
       )}
