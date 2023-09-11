@@ -276,7 +276,7 @@ export const TokenPortfolio = () => {
     }
   }, [address, network, user, portfolio, mutatePortfolio]);
 
-  if (!address) return;
+  if (!address || !network) return;
 
   if (
     loadingExchangePrice ||
@@ -310,7 +310,9 @@ export const TokenPortfolio = () => {
                   height={32}
                   alt="noicon"
                 ></img>
-                <span>on{network}</span>
+                <span>{`on ${
+                  network[0].toUpperCase() + network.slice(1)
+                }`}</span>
               </span>
             </h2>
             <span className="mt-4 text-sm font-medium" title={address}>

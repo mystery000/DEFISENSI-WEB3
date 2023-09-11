@@ -127,4 +127,19 @@ export class WalletController {
   getBalanceHistory(@Param() { address }: FindOneParams) {
     return this.walletService.getBalanceHistory(address);
   }
+
+  @Get('resolve/:address/reverse')
+  @ApiOperation({ summary: 'Reverse resolve a given ETH address to its ENS domain' })
+  @ApiParam({ name: 'address', description: 'The address to be resolved' })
+  resolveAddress(@Param() { address }: FindOneParams) {
+    return this.walletService.resolveAddress(address);
+  }
+
+  @Get('resolve/ens/:domain')
+  @ApiOperation({ summary: 'Resolve a specific ENS domain to its address.' })
+  @ApiOkResponse({ type: String, isArray: false })
+  @ApiParam({ name: 'domain', description: 'The domain to be resolved' })
+  resolveENSDomain(@Param('domain') domain: string) {
+    return this.walletService.resolveENSDomain(domain);
+  }
 }

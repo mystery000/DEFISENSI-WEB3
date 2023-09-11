@@ -104,7 +104,9 @@ export const Notifications = () => {
                 ),
               )
             ) : (
-              <EmptyContainer />
+              <div className="flex grow justify-center">
+                <EmptyContainer />
+              </div>
             )}
           </div>
         </div>

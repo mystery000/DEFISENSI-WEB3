@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getFollowersByWallet, getFollowingsByWallet } from '../api';
+import { getFollowersByWallet, getFollowingsByWallet, getENS } from '../api';
 
 // Get the followers and followings of this wallet
 export default function useWalletPortfolio() {
   const [data, setData] = useState<{
     followers: any[];
     followings: any[];
-  }>({ followers: [], followings: [] });
+    ens?: string;
+  }>({ followers: [], followings: [], ens: '' });
+
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { address } = useParams();
@@ -22,10 +24,13 @@ export default function useWalletPortfolio() {
       try {
         const followers = await getFollowersByWallet(address);
         const followings = await getFollowingsByWallet(address);
+        const ens = await getENS(address);
         setData({
           followers: followers || [],
           followings: followings || [],
+          ens: ens,
         });
+
         setLoading(false);
       } catch (error) {
         setLoading(false);

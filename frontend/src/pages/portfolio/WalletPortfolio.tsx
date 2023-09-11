@@ -452,7 +452,9 @@ export const WalletPortfolio = () => {
           }}
         >
           <div>
-            <h2 className="font-sora text-4xl font-semibold">Aliashraf.eth</h2>
+            <h2 className="font-sora text-4xl font-semibold">
+              {portfolio.ens}
+            </h2>
             <span className="mt-4 text-sm font-medium" title={address}>
               {address?.slice(0, 11)}.........{address?.slice(-10)}
             </span>

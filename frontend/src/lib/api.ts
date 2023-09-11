@@ -367,3 +367,15 @@ export const getTopWallets = async () => {
     throw error;
   }
 };
+
+export const getENS = async (address: string) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/wallet/resolve/${address}/reverse`,
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return '';
+  }
+};

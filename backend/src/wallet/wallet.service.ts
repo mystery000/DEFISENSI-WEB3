@@ -2,18 +2,19 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { TokenTransaction, NFTTransaction } from 'src/utils/types';
+import Moralis from 'moralis';
 import { logger } from 'src/utils/logger';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentWalletDto } from './dto/comment.dto';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { CommentService } from '../comment/comment.service';
-import { Wallet, WalletDocument } from './schemas/wallet.schema';
-import { SuccessResponse } from '../utils/dtos/success-response';
-import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 import { BscscanService } from 'src/bscscan/bscscan.service';
+import { SuccessResponse } from '../utils/dtos/success-response';
+import { Wallet, WalletDocument } from './schemas/wallet.schema';
+import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { TokenTransaction, NFTTransaction } from 'src/utils/types';
+import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -321,6 +322,28 @@ export class WalletService {
     } catch (error) {
       logger.error(error);
       return [];
+    }
+  }
+
+  async resolveAddress(address: string) {
+    try {
+      const response = await Moralis.EvmApi.resolve.resolveAddress({
+        address,
+      });
+      return response.toJSON().name;
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+
+  async resolveENSDomain(domain: string) {
+    try {
+      const response = await Moralis.EvmApi.resolve.resolveENSDomain({
+        domain,
+      });
+      return response.toJSON().address;
+    } catch (error) {
+      logger.error(error);
     }
   }
 }
