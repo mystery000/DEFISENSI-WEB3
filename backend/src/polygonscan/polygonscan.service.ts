@@ -109,10 +109,79 @@ export class PolygonscanService {
   }
 
   async getTransactionsByERC20(address: string, fromBlock: number = 0) {
-    /* set network to NetworkType.Polygon */
-    const transactions: TokenTransaction[] = [];
-    return transactions;
+    let txHashs = [];
+    let transactions: TokenTransaction[] = [];
+    try {
+      // Get NFT transfers by contract and extract transaction hashs
+      let transfers = [];
+      await Moralis.EvmApi.token
+        .getTokenTransfers({
+          chain: EvmChain.POLYGON,
+          address: address,
+          limit: 4,
+          fromBlock,
+        })
+        .then((response) => {
+          transfers = response.toJSON().result;
+        });
+
+      for (const transfer of transfers) {
+        if (!txHashs.includes(transfer.transaction_hash)) {
+          txHashs.push(transfer.transaction_hash);
+        }
+      }
+
+      for (const txHash of txHashs) {
+        const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
+          chain: EvmChain.POLYGON,
+          transactionHash: txHash,
+        });
+
+        const { logs, block_number, block_timestamp } = transaction.toJSON();
+        for (const log of logs) {
+          await Moralis.EvmApi.token
+            .getTokenPrice({
+              chain: EvmChain.POLYGON,
+              address: log.address,
+              exchange: 'uniswapv3',
+            })
+            .then((response) => {
+              const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();
+              const from = log.decoded_event?.params.find((param) => param.name === 'from').value;
+              const to = log.decoded_event?.params.find((param) => param.name === 'to').value;
+              const value = log.decoded_event?.params.find((param) => param.name === 'value').value;
+
+              transactions.push({
+                txHash,
+                blockNumber: block_number,
+                type: TransactionType.TOKEN,
+                network: NetworkType.POLYGON,
+                timestamp: new Date(block_timestamp).getTime(),
+                details: {
+                  from,
+                  to,
+                  token0: {
+                    name: tokenName,
+                    symbol: tokenSymbol,
+                    logo: tokenLogo,
+                    contractAddress: log.address,
+                    decimals: tokenDecimals,
+                    amount: value,
+                    price: usdPrice.toString(),
+                  },
+                },
+              });
+            });
+          break;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      return transactions;
+    }
   }
+
   async getTransactionsByNFTCollection(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: NFTTransaction[] = [];
@@ -436,6 +505,6 @@ export class PolygonscanService {
     // return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
 
     // return this.getBalances('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
-    return this.getTransactionsByNFTCollection('0x4d544035500D7aC1B42329c70eb58E77f8249f0F');
+    return this.getTransactionsByERC20('0x6f8a06447Ff6FcF75d803135a7de15CE88C1d4ec');
   }
 }
