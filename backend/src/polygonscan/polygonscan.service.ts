@@ -8,6 +8,7 @@ import { logger } from 'src/utils/logger';
 import {
   Action,
   ChainbaseChain,
+  ExchangePrice,
   HistoricalPrice,
   NFTTransaction,
   TokenBalance,
@@ -501,6 +502,55 @@ export class PolygonscanService {
     } catch (error) {
       logger.error(error);
       return [] as HistoricalPrice[];
+    }
+  }
+
+  async getPriceFromExchanges(address: string) {
+    let exchangesPrice: ExchangePrice = {
+      tokenName: '',
+      tokenAddress: '',
+      tokenSymbol: '',
+      tokenLogo: '',
+      tokenDecimals: '',
+      usdPrice: {},
+    };
+
+    try {
+      // Uniswap V3
+      const uniswap = await Moralis.EvmApi.token.getTokenPrice({
+        chain: EvmChain.POLYGON,
+        address,
+      });
+
+      if (!uniswap) return exchangesPrice;
+
+      const { tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } = uniswap.toJSON();
+
+      exchangesPrice.tokenDecimals = tokenDecimals;
+      exchangesPrice.tokenLogo = tokenLogo;
+      exchangesPrice.tokenName = tokenName;
+      exchangesPrice.tokenSymbol = tokenSymbol;
+      exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
+      // Get prices from Binance and Kucoin in parallel
+      const [binanceResponse, kucoinResponse] = await Promise.all([
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
+        axios
+          .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
+          .catch((error) => {}),
+      ]);
+
+      if (binanceResponse && binanceResponse.data) {
+        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, binance: binanceResponse.data.price };
+      }
+
+      if (kucoinResponse && kucoinResponse.data) {
+        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, kucoin: kucoinResponse.data.data?.price };
+      }
+
+      return exchangesPrice;
+    } catch (error) {
+      logger.error(error);
+      return exchangesPrice;
     }
   }
 

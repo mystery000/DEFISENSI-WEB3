@@ -903,7 +903,7 @@ export class EtherscanService {
     }
   }
 
-  async getPriceFromExchanges(contractAddress: string) {
+  async getPriceFromExchanges(address: string) {
     let exchangesPrice: ExchangePrice = {
       tokenName: '',
       tokenAddress: '',
@@ -917,7 +917,7 @@ export class EtherscanService {
       // Uniswap V3
       const uniswap = await Moralis.EvmApi.token.getTokenPrice({
         chain: EvmChain.ETHEREUM,
-        address: contractAddress,
+        address,
       });
 
       if (!uniswap) return exchangesPrice;
