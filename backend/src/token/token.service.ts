@@ -269,11 +269,14 @@ export class TokenService {
     return null;
   }
 
-  async getTokenPriceFromExchanges(network: string, contractAddress: string) {
-    if (network === NetworkType.ETHEREUM) {
-      return this.etherscanService.getPriceFromExchanges(contractAddress);
-    } else if (network === NetworkType.POLYGON) {
-      // return this.polygonService.getPriceFromExchanges(contractAddress);
+  async getTokenPriceFromExchanges(network: string, address: string) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getPriceFromExchanges(address);
+      case NetworkType.POLYGON:
+        return this.polygonService.getPriceFromExchanges(address);
+      case NetworkType.BSC:
+        return this.bscService.getPriceFromExchanges(address);
     }
     return null;
   }

@@ -3,7 +3,6 @@ export type HistoricalPrice = {
   symbol: string;
   decimals: number;
   updated_at: string;
-  logo?: string;
 };
 
 export type ExchangePrice = {

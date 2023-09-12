@@ -153,7 +153,7 @@ export const getPriceHistory = async (
     return res.data as HistoricalPrice[];
   } catch (error) {
     console.log(error);
-    return [] as HistoricalPrice[];
+    return [] ;
   }
 };
 

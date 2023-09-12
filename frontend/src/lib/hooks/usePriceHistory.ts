@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { HistoricalPrice } from '../../types/price';
 import { useParams } from 'react-router-dom';
+
 import { getPriceHistory } from '../api';
+import { HistoricalPrice } from '../../types/price';
 
 export default function usePriceHistory() {
   const [data, setData] = useState<HistoricalPrice[]>([]);
