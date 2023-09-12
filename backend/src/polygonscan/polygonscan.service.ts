@@ -5,7 +5,14 @@ import { Injectable } from '@nestjs/common';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
-import { Action, HistoricalPrice, NFTTransaction, TokenBalance, TokenTransaction } from 'src/utils/types';
+import {
+  Action,
+  ChainbaseChain,
+  HistoricalPrice,
+  NFTTransaction,
+  TokenBalance,
+  TokenTransaction,
+} from 'src/utils/types';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import axios from 'axios';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -475,7 +482,7 @@ export class PolygonscanService {
     return { timestamp, tokens };
   }
 
-  async getPriceHistory(contractAddress: string) {
+  async getPriceHistory(address: string) {
     // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
     const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
     const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
@@ -485,7 +492,7 @@ export class PolygonscanService {
 
     try {
       const response = await axios.get(
-        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=137&contract_address=${contractAddress}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
+        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.POLYGON}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
         {
           headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
         },
@@ -505,6 +512,6 @@ export class PolygonscanService {
     // return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
 
     // return this.getBalances('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
-    return this.getTransactionsByERC20('0x6f8a06447Ff6FcF75d803135a7de15CE88C1d4ec');
+    return this.getPriceHistory('0x3BA4c387f786bFEE076A58914F5Bd38d668B42c3');
   }
 }

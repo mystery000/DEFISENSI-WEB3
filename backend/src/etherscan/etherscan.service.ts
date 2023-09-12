@@ -15,6 +15,7 @@ import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
   Action,
+  ChainbaseChain,
   ExchangePrice,
   HistoricalPrice,
   NFTTransaction,
@@ -882,7 +883,7 @@ export class EtherscanService {
   }
 
   // Get the price history of ERC20 token for 90 days
-  async getPriceHistory(contractAddress: string) {
+  async getPriceHistory(address: string) {
     // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
     const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
     const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
@@ -891,7 +892,7 @@ export class EtherscanService {
 
     try {
       const response = await axios.get(
-        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=1&contract_address=${contractAddress}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
+        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.ETHEREUM}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
         {
           headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
         },
@@ -899,7 +900,6 @@ export class EtherscanService {
       return response.data.data as HistoricalPrice[];
     } catch (error) {
       logger.error(error);
-      return [] as HistoricalPrice[];
     }
   }
 
@@ -1018,6 +1018,6 @@ export class EtherscanService {
     // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
     // return this.getTopERC20Tokens();
 
-    return this.getTransactionsByNFT('0x769272677faB02575E84945F03Eca517ACc544Cc');
+    return this.getPriceHistory('0xdac17f958d2ee523a2206206994597c13d831ec7');
   }
 }

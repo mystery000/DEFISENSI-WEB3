@@ -109,7 +109,6 @@ export type HistoricalPrice = {
   symbol: string;
   decimals: number;
   updated_at: string;
-  logo?: string;
 };
 
 export type ExchangePrice = {
@@ -175,3 +174,12 @@ export type NFTTransaction = {
     actions: Action[];
   };
 };
+
+export enum ChainbaseChain {
+  ETHEREUM = '1',
+  POLYGON = '137',
+  BSC = '56',
+  AVALANCHE = '43114',
+  ARBITRUM = '42161',
+  OPTIMISM = '10',
+}

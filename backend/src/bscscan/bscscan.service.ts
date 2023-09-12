@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
+import axios from 'axios';
 import Moralis from 'moralis';
 import { DEX_ABI } from './abi/dex';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { Action, NFTTransaction, Token, TokenTransaction } from 'src/utils/types';
+import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, Token, TokenTransaction } from 'src/utils/types';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 @Injectable()
@@ -619,9 +620,30 @@ export class BscscanService {
     }
   }
 
+  // Get the price history of ERC20 token for 90 days
+  async getPriceHistory(address: string) {
+    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
+    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
+    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
+    let toTimestamp = Math.round(new Date().getTime() / 1000);
+    let fromTimestamp = toTimestamp - 86400 * 90;
+
+    try {
+      const response = await axios.get(
+        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.BSC}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
+        {
+          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
+        },
+      );
+      return response.data.data as HistoricalPrice[];
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+
   async test() {
     // return this.getTransactionsByToken('0x2170Ed0880ac9A755fd29B2688956BD959F933F8');
-    return this.getTransactionsByNFT('0xDf7952B35f24aCF7fC0487D01c8d5690a60DBa07');
+    return this.getPriceHistory('0x2170ed0880ac9a755fd29b2688956bd959f933f8');
     // Instantiate the contract
     // const contract = new this.web3.eth.Contract(DEX_ABI, '0x7Da3fF95A3566287aFEc13b154794eee52A2e00d');
     // // Get the addresses of the pair's tokens

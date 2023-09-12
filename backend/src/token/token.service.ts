@@ -257,11 +257,14 @@ export class TokenService {
     }
   }
 
-  async getPriceHistory(network: string, contractAddress: string) {
-    if (network === NetworkType.ETHEREUM) {
-      return this.etherscanService.getPriceHistory(contractAddress);
-    } else if (network === NetworkType.POLYGON) {
-      return this.polygonService.getPriceHistory(contractAddress);
+  async getPriceHistory(network: string, address: string) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getPriceHistory(address);
+      case NetworkType.POLYGON:
+        return this.polygonService.getPriceHistory(address);
+      case NetworkType.BSC:
+        return this.bscService.getPriceHistory(address);
     }
     return null;
   }
