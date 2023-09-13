@@ -118,6 +118,7 @@ export const getBalance = async (address: string) => {
     return res.data as Balance;
   } catch (error) {
     console.log(error);
+    return {};
   }
 };
 
@@ -129,6 +130,7 @@ export const getBalanceHistory = async (address: string) => {
     return res.data as BalanceHistory;
   } catch (error) {
     console.log(error);
+    return {};
   }
 };
 
@@ -153,7 +155,7 @@ export const getPriceHistory = async (
     return res.data as HistoricalPrice[];
   } catch (error) {
     console.log(error);
-    return [] ;
+    return [];
   }
 };
 

@@ -397,7 +397,7 @@ export const TokenPortfolio = () => {
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-2 rounded-lg bg-bali-hai-600/20 px-2 py-1">
                             <img
-                              src="/images/tokens/eth.png"
+                              src={`/images/network/${network}.png`}
                               width={24}
                               height={24}
                               alt="noicon"
@@ -425,7 +425,7 @@ export const TokenPortfolio = () => {
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         {exchangePrice?.usdPrice?.uniswap
-                          ? `$${exchangePrice?.usdPrice?.uniswap}`
+                          ? `$${exchangePrice.usdPrice.uniswap}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>

@@ -218,10 +218,11 @@ export class WalletService {
         },
       ]);
 
-      if (!foundWallet || foundWallet.length === 0) {
+      if (!foundWallet) {
         throw new BadRequestException('Wallet not found!');
       }
-      return foundWallet[0];
+
+      return foundWallet?.[0];
     } catch (error) {
       logger.log(error);
       return null;
@@ -288,7 +289,7 @@ export class WalletService {
       ]);
 
       if (result.length === 0) {
-        throw new BadRequestException('Wallet not found!');
+        throw new BadRequestException('No balance data');
       }
 
       return result[0];

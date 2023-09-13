@@ -57,7 +57,7 @@ const options = [
     value: 'polygon',
     name: 'polygon',
     label: 'POLYGON',
-    logo: '/images/tokens/eth.png',
+    logo: '/images/network/polygon.png',
   },
 ];
 
@@ -224,55 +224,50 @@ export const WalletPortfolio = () => {
   useEffect(() => {
     if (!address) return;
     const getTransactions = async () => {
-      try {
-        const balanceHistory = await getBalanceHistory(address);
-        setBalanceHistory(balanceHistory || {});
+      const balanceHistory = await getBalanceHistory(address);
+      setBalanceHistory(balanceHistory);
 
-        const wallet = await findWalletTransactions(address, 4);
+      const wallet = await findWalletTransactions(address, 4);
 
-        if (wallet) {
-          const txns: Transaction[] = [];
+      if (wallet) {
+        const txns: Transaction[] = [];
 
-          for (const txn of wallet.transactions) {
-            txns.push({
-              ...txn,
-              address: wallet.address,
-              comments: wallet.comments,
-              likes: wallet.likes,
-              dislikes: wallet.dislikes,
-            });
-          }
-
-          if (txns.length % 4) setFetchMore(false);
-          else setFetchMore(true);
-
-          setTransactions(txns);
+        for (const txn of wallet.transactions) {
+          txns.push({
+            ...txn,
+            address: wallet.address,
+            comments: wallet.comments,
+            likes: wallet.likes,
+            dislikes: wallet.dislikes,
+          });
         }
 
-        const balance = await getBalance(address);
-        console.log(balance);
-        setBalance(balance || {});
+        if (txns.length % 4) setFetchMore(false);
+        else setFetchMore(true);
 
-        const tokens = [
-          ...(balance?.binance?.tokens.map((token) => ({
-            ...token,
-            network: 'binance',
-          })) || []),
-          ...(balance?.ethereum?.tokens.map((token) => ({
-            ...token,
-            network: 'ethereum',
-          })) || []),
-          ...(balance?.polygon?.tokens.map((token) => ({
-            ...token,
-            network: 'polygon',
-          })) || []),
-        ].filter((token) => Number(token.value) !== 0);
-
-        setTokensOfWallet(tokens);
-        setSelectedToken(tokens[0]);
-      } catch (error) {
-        console.log(error);
+        setTransactions(txns);
       }
+
+      const balance = await getBalance(address);
+      setBalance(balance);
+
+      const tokens = [
+        ...(balance?.binance?.tokens.map((token) => ({
+          ...token,
+          network: 'binance',
+        })) || []),
+        ...(balance?.ethereum?.tokens.map((token) => ({
+          ...token,
+          network: 'ethereum',
+        })) || []),
+        ...(balance?.polygon?.tokens.map((token) => ({
+          ...token,
+          network: 'polygon',
+        })) || []),
+      ].filter((token) => Number(token.value) !== 0);
+
+      setTokensOfWallet(tokens);
+      setSelectedToken(tokens[0]);
     };
     getTransactions();
   }, [address]);
@@ -473,7 +468,9 @@ export const WalletPortfolio = () => {
           </div>
           <div className="mt-5 text-white">
             <button
-              className="rounded bg-orange-400 px-4 py-[10px]"
+              className={cn('rounded bg-orange-400 px-4 py-[10px]', {
+                hidden: user.address === address,
+              })}
               onClick={handleFollow}
               disabled={following}
             >
@@ -637,7 +634,9 @@ export const WalletPortfolio = () => {
                               {token.name}
                             </div>
                           </TableCell>
-                          <TableCell>{token.value}</TableCell>
+                          <TableCell>
+                            {Number(token.value).toLocaleString()}
+                          </TableCell>
                           <TableCell>${token.usdPrice}</TableCell>
                         </TableRow>
                       ))
