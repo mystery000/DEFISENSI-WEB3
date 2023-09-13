@@ -226,13 +226,13 @@ export class TokenService {
       if (token && token.transactions && token.transactions.length > 0)
         latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
       if (network === NetworkType.ETHEREUM) {
-        const txs = await this.etherscanService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
+        const txs = await this.etherscanService.getTransactionsByContract(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByERC20(contractAddress, latestBlockNumber + 1);
+        const txs = await this.polygonService.getTransactionsByContract(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.BSC) {
-        const txs = await this.bscService.getTransactionsByToken(contractAddress, latestBlockNumber + 1);
+        const txs = await this.bscService.getTransactionsByContract(contractAddress, latestBlockNumber + 1);
         await this.setTransactions(contractAddress, network, txs);
       }
     } catch (err) {
@@ -243,13 +243,13 @@ export class TokenService {
   async initializeTransactions(contractAddress: string, network: string) {
     try {
       if (network === NetworkType.ETHEREUM) {
-        const txs = await this.etherscanService.getTransactionsByToken(contractAddress);
+        const txs = await this.etherscanService.getTransactionsByContract(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByERC20(contractAddress);
+        const txs = await this.polygonService.getTransactionsByContract(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
       } else if (network === NetworkType.BSC) {
-        const txs = await this.bscService.getTransactionsByToken(contractAddress);
+        const txs = await this.bscService.getTransactionsByContract(contractAddress);
         await this.setTransactions(contractAddress, network, txs);
       }
     } catch (err) {

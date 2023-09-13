@@ -26,7 +26,7 @@ export class BscscanService {
     const provider = `https://bsc-dataseed1.binance.org/`;
     this.web3 = new Web3(provider);
   }
-  async getTransactionsByWallet(address: string, fromBlock: number = 0) {
+  async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
     const WRAPPED_BNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
@@ -235,7 +235,7 @@ export class BscscanService {
     }
   }
 
-  async getTransactionsByToken(address: string, fromBlock: number = 0) {
+  async getTransactionsByContract(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
 

@@ -23,7 +23,7 @@ export class PolygonscanService {
   private readonly MATIC_ADDRESS = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
   constructor(private readonly http: HttpService) {}
 
-  async getTransactionsByWallet(address: string, fromBlock: number = 0) {
+  async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     const transactions: TokenTransaction[] = [];
     try {
       // Get native transactions by wallet
@@ -116,7 +116,7 @@ export class PolygonscanService {
     return transactions.sort((a, b) => b.blockNumber.localeCompare(a.blockNumber));
   }
 
-  async getTransactionsByERC20(address: string, fromBlock: number = 0) {
+  async getTransactionsByContract(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
     try {
@@ -190,7 +190,7 @@ export class PolygonscanService {
     }
   }
 
-  async getTransactionsByNFTCollection(address: string, fromBlock: number = 0) {
+  async getTransactionsByNFT(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: NFTTransaction[] = [];
     try {

@@ -229,7 +229,7 @@ export class NftService {
         const txs = await this.etherscanService.getTransactionsByNFT(address, latestBlockNumber + 1);
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByNFTCollection(address, latestBlockNumber + 1);
+        const txs = await this.polygonService.getTransactionsByNFT(address, latestBlockNumber + 1);
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.BSC) {
         const txs = await this.bscService.getTransactionsByNFT(address, latestBlockNumber + 1);
@@ -246,7 +246,7 @@ export class NftService {
         const txs = await this.etherscanService.getTransactionsByNFT(address);
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByNFTCollection(address);
+        const txs = await this.polygonService.getTransactionsByNFT(address);
         await this.setTransactions(address, network, txs);
       } else if (network === NetworkType.BSC) {
         const txs = await this.bscService.getTransactionsByNFT(address);

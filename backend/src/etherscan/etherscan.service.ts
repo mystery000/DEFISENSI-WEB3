@@ -36,7 +36,7 @@ export class EtherscanService {
     this.web3 = new Web3(provider);
   }
 
-  async getTransactionsByWallet(address: string, fromBlock: number = 0) {
+  async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     const response = await Moralis.EvmApi.transaction.getWalletTransactionsVerbose({
       chain: EvmChain.ETHEREUM,
       address,
@@ -319,7 +319,7 @@ export class EtherscanService {
     return transactions;
   }
 
-  async getTransactionsByToken(contractAddress: string, fromBlock: number = 0) {
+  async getTransactionsByContract(contractAddress: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
 

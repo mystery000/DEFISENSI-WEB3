@@ -235,9 +235,9 @@ export class WalletService {
 
       if (foundWallet) {
         const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
-          await this.etherscanService.getTransactionsByWallet(address),
-          await this.polygonscanService.getTransactionsByWallet(address),
-          await this.bscService.getTransactionsByWallet(address),
+          await this.etherscanService.getTransactionsByAccount(address),
+          await this.polygonscanService.getTransactionsByAccount(address),
+          await this.bscService.getTransactionsByAccount(address),
         ]);
         await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
       }
@@ -249,9 +249,9 @@ export class WalletService {
   async initializeTransactions(address: string) {
     try {
       const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
-        await this.etherscanService.getTransactionsByWallet(address),
-        await this.polygonscanService.getTransactionsByWallet(address),
-        await this.bscService.getTransactionsByWallet(address),
+        await this.etherscanService.getTransactionsByAccount(address),
+        await this.polygonscanService.getTransactionsByAccount(address),
+        await this.bscService.getTransactionsByAccount(address),
       ]);
       await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
     } catch (err) {
