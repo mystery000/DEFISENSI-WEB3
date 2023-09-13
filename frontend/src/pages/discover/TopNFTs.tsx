@@ -1,29 +1,38 @@
+import { ChangeEvent, useState } from 'react';
+
 import Select from 'react-select';
 import { Input, Spin } from 'antd';
+import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
+import { NetworkType } from '../../types';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import AppLayout from '../../layouts/AppLayout';
 import { SearchOutlined } from '@ant-design/icons';
-import TableContainer from '@mui/material/TableContainer';
 import useTopNFTs from '../../lib/hooks/useTopNFTs';
+import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
-import { Box } from '@mui/material';
 
 const options = [
   {
-    value: 'ethereum',
+    value: NetworkType.Ethereum,
     name: 'ethereum',
     label: 'ETH',
-    logo: '../images/tokens/eth.png',
+    logo: '../images/network/ethereum.png',
   },
   {
-    value: 'polygon',
+    value: NetworkType.Polygon,
     name: 'polygon',
     label: 'POLYGON',
-    logo: '../images/tokens/eth.png',
+    logo: '../images/network/polygon.png',
+  },
+  {
+    value: NetworkType.BSC,
+    name: 'bsc',
+    label: 'BSC',
+    logo: '../images/network/binance.png',
   },
 ];
 
@@ -35,13 +44,22 @@ const formatOptionLabel = ({
   logo: string;
 }) => (
   <div className="flex items-center gap-2">
-    <img src={logo} width={24} height={24} alt="noLogo" />
+    <img
+      src={logo}
+      width={24}
+      height={24}
+      alt="noLogo"
+      className="rounded-full"
+      loading="lazy"
+    />
     <div>{label}</div>
   </div>
 );
 
 export const TopNFTs = () => {
   const { data: topNFTs, loading } = useTopNFTs();
+  const [query, setQuery] = useState('');
+  const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
 
   if (loading) {
     return (
@@ -70,12 +88,18 @@ export const TopNFTs = () => {
               defaultValue={options[0]}
               formatOptionLabel={formatOptionLabel}
               options={options}
+              onChange={(chain) => {
+                if (chain) setChain(chain.value);
+              }}
             />
             <Input
               placeholder="Search wallet"
               suffix={<SearchOutlined />}
               className="w-48"
               size={'large'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setQuery(e.target.value)
+              }
             />
           </div>
         </div>

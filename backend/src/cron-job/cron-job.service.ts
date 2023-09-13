@@ -15,7 +15,7 @@ export class CronJobService {
   ) {}
 
   // Update the transactions of all wallets every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */3 * * * *')
   async handleWalletCronForTxns() {
     try {
       const wallets = await this.walletService.getAll();
@@ -29,7 +29,7 @@ export class CronJobService {
   }
 
   // Update the transactions of all ERC20 tokens every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */3 * * * *')
   async handleERC20CronForTxns() {
     try {
       const tokens = await this.tokenService.getAll();
@@ -43,7 +43,7 @@ export class CronJobService {
   }
 
   // Update the balances of all wallets every 2 minutes
-  @Cron('0 */1 * * * *')
+  @Cron('0 */2 * * * *')
   async handleWalletCronForBalance() {
     try {
       const wallets = await this.walletService.getAll();
@@ -57,7 +57,7 @@ export class CronJobService {
   }
 
   // Update the transactions of all NFT tokens every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */3 * * * *')
   async handleNFTCronForTxns() {
     try {
       const nfts = await this.nftService.getAll();
