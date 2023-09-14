@@ -9,6 +9,8 @@ import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, TokenTransaction } from 'src/utils/types';
 
+type Transaction = TokenTransaction | NFTTransaction;
+
 @Injectable()
 export class ArbitrumService {
   private readonly web3: Web3;
@@ -19,7 +21,99 @@ export class ArbitrumService {
   }
 
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
-    const transactions: TokenTransaction[] = [];
+    const transactions: Transaction[] = [];
+
+    const [TokenTxns, NFTTxns] = await Promise.all([
+      Moralis.EvmApi.token.getWalletTokenTransfers({
+        chain: EvmChain.ARBITRUM,
+        address,
+        limit: 2,
+      }),
+      Moralis.EvmApi.nft.getWalletNFTTransfers({
+        chain: EvmChain.ARBITRUM,
+        address,
+        format: 'decimal',
+        limit: 2,
+      }),
+    ]);
+
+    for (const transfer of TokenTxns.toJSON().result) {
+      const {
+        transaction_hash,
+        block_number,
+        block_timestamp,
+        token_decimals,
+        token_name,
+        token_symbol,
+        token_logo,
+        address,
+        value,
+      } = transfer;
+
+      let usdPrice = '0';
+
+      await Moralis.EvmApi.token
+        .getTokenPrice({
+          chain: EvmChain.ARBITRUM,
+          address,
+          exchange: 'uniswapv3',
+        })
+        .then((response) => (usdPrice = response.toJSON().usdPrice.toString()));
+
+      transactions.push({
+        txHash: transaction_hash,
+        blockNumber: block_number,
+        type: TransactionType.TOKEN,
+        network: NetworkType.ARBITRUM,
+        timestamp: new Date(block_timestamp).getTime(),
+        details: {
+          from: transfer.from_address,
+          to: transfer.to_address,
+          token0: {
+            name: token_name,
+            symbol: token_symbol,
+            logo: token_logo,
+            contractAddress: address,
+            decimals: token_decimals,
+            amount: value,
+            price: usdPrice,
+          },
+        },
+      });
+    }
+
+    for (const transfer of NFTTxns.toJSON().result) {
+      const { token_address, from_address, to_address, transaction_hash, block_timestamp, block_number, amount } =
+        transfer;
+      await Moralis.EvmApi.nft
+        .getNFTContractMetadata({
+          chain: EvmChain.ARBITRUM,
+          address: token_address,
+        })
+        .then((response) => {
+          const { name, symbol } = response.toJSON();
+          const action: Action = {
+            type: Number(from_address) === 0 ? 'Mint' : Number(to_address) ? 'Burn' : 'Transfer',
+            amount: Number(amount),
+            tokenAddress: token_address,
+            name,
+            symbol,
+          };
+          transactions.push({
+            txHash: transaction_hash,
+            blockNumber: block_number,
+            type: TransactionType.NFT,
+            network: NetworkType.ARBITRUM,
+            timestamp: new Date(block_timestamp).getTime(),
+            details: {
+              from: from_address,
+              to: to_address,
+              actions: [action],
+            },
+          });
+        });
+    }
+
     return transactions;
   }
 
@@ -345,6 +439,6 @@ export class ArbitrumService {
   }
 
   async test() {
-    return this.getTransactionsByNFT('0xC36442b4a4522E871399CD717aBDD847Ab11FE88');
+    return this.getTransactionsByAccount('0xF977814e90dA44bFA03b6295A0616a897441aceC');
   }
 }
