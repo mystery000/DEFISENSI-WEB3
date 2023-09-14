@@ -2,6 +2,7 @@ import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
+import axios from 'axios';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
@@ -15,7 +16,6 @@ import {
   TokenTransaction,
 } from 'src/utils/types';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import axios from 'axios';
 import { NetworkType } from 'src/utils/enums/network.enum';
 
 @Injectable()
@@ -147,6 +147,7 @@ export class PolygonscanService {
 
         const { logs, block_number, block_timestamp } = transaction.toJSON();
         for (const log of logs) {
+          if (address.toLocaleLowerCase() !== log.address) continue;
           await Moralis.EvmApi.token
             .getTokenPrice({
               chain: EvmChain.POLYGON,

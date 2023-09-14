@@ -259,7 +259,7 @@ export class BscscanService {
           txHashs.push(transfer.transaction_hash);
         }
       }
-      console.log(txHashs);
+
       for (const txHash of txHashs) {
         const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
           chain: EvmChain.BSC,
@@ -272,7 +272,7 @@ export class BscscanService {
         for (const log of logs) {
           if (log.decoded_event?.label === 'Transfer') {
             if (isSwapTransaction) continue;
-
+            if (address.toLocaleLowerCase() !== log.address) continue;
             // Get only first Transfer Event, ignore others
             await Moralis.EvmApi.token
               .getTokenPrice({

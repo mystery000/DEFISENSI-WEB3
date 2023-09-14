@@ -43,7 +43,7 @@ export class CronJobService {
   }
 
   // Update the balances of all wallets every 2 minutes
-  @Cron('0 */2 * * * *')
+  // @Cron('0 */2 * * * *')s
   async handleWalletCronForBalance() {
     try {
       const wallets = await this.walletService.getAll();
