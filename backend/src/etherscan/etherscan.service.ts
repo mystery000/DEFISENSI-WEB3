@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
@@ -7,9 +6,7 @@ import Moralis from 'moralis';
 import * as moment from 'moment';
 import { UNISWAP_ABI } from './abi';
 import { logger } from 'src/utils/logger';
-import { ConfigService } from '@nestjs/config';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
@@ -26,12 +23,10 @@ import { NetworkType } from 'src/utils/enums/network.enum';
 @Injectable()
 export class EtherscanService {
   private readonly web3: Web3;
-  private readonly ethereumConfig: EthereumConfig;
   private readonly WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; // Wrapped Ether address
 
-  constructor(private readonly http: HttpService, private readonly configService: ConfigService) {
-    this.ethereumConfig = this.configService.get<EthereumConfig>('ethereum');
-    const provider = `https://${this.ethereumConfig.network}.infura.io/v3/${this.ethereumConfig.infura_api_key}`;
+  constructor() {
+    const provider = `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
     this.web3 = new Web3(provider);
   }
 

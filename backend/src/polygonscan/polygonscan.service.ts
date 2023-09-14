@@ -1,11 +1,11 @@
-import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
+import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
+import { EvmChain } from '@moralisweb3/common-evm-utils';
 import {
   Action,
   ChainbaseChain,
@@ -15,13 +15,18 @@ import {
   TokenBalance,
   TokenTransaction,
 } from 'src/utils/types';
-import { TransactionType } from 'src/utils/enums/transaction.enum';
 import { NetworkType } from 'src/utils/enums/network.enum';
+import { TransactionType } from 'src/utils/enums/transaction.enum';
 
 @Injectable()
 export class PolygonscanService {
+  private readonly web3: Web3;
   private readonly MATIC_ADDRESS = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
-  constructor(private readonly http: HttpService) {}
+
+  constructor() {
+    const provider = `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
+    this.web3 = new Web3(provider);
+  }
 
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     const transactions: TokenTransaction[] = [];

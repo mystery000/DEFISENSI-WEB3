@@ -1,15 +1,23 @@
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { Injectable } from '@nestjs/common';
 
+import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
+import { logger } from 'src/utils/logger';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { logger } from 'src/utils/logger';
 import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, TokenTransaction } from 'src/utils/types';
 
 @Injectable()
 export class ArbitrumService {
+  private readonly web3: Web3;
+
+  constructor() {
+    const provider = `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
+    this.web3 = new Web3(provider);
+  }
+
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     const transactions: TokenTransaction[] = [];
     return transactions;
