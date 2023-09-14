@@ -18,6 +18,8 @@ import { NotificationModule } from './notification/notification.module';
 import { BscscanService } from './bscscan/bscscan.service';
 import { BscscanController } from './bscscan/bscscan.controller';
 import { BscscanModule } from './bscscan/bscscan.module';
+import { ArbitrumController } from './arbitrum/arbitrum.controller';
+import { ArbitrumModule } from './arbitrum/arbitrum.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,8 +40,9 @@ import { BscscanModule } from './bscscan/bscscan.module';
     PolygonscanModule,
     CronJobModule,
     BscscanModule,
+    ArbitrumModule,
   ],
-  controllers: [AppController, BscscanController],
+  controllers: [AppController, BscscanController, ArbitrumController],
   providers: [AppService, BscscanService],
 })
 export class AppModule {}

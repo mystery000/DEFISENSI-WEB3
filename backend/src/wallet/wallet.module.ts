@@ -9,6 +9,7 @@ import { BscscanModule } from 'src/bscscan/bscscan.module';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { EtherscanModule } from 'src/etherscan/etherscan.module';
 import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
+import { ArbitrumModule } from 'src/arbitrum/arbitrum.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
     EtherscanModule,
     PolygonscanModule,
     BscscanModule,
+    ArbitrumModule,
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
   ],
   controllers: [WalletController],

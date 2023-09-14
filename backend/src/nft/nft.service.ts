@@ -16,6 +16,7 @@ import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 import { BscscanService } from 'src/bscscan/bscscan.service';
+import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 
 @Injectable()
 export class NftService {
@@ -27,6 +28,7 @@ export class NftService {
     private readonly etherscanService: EtherscanService,
     private readonly polygonService: PolygonscanService,
     private readonly bscService: BscscanService,
+    private readonly arbitrumService: ArbitrumService,
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
@@ -225,15 +227,23 @@ export class NftService {
       if (token && token.transactions && token.transactions.length > 0)
         latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
 
-      if (network === NetworkType.ETHEREUM) {
-        const txs = await this.etherscanService.getTransactionsByNFT(address, latestBlockNumber + 1);
-        await this.setTransactions(address, network, txs);
-      } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByNFT(address, latestBlockNumber + 1);
-        await this.setTransactions(address, network, txs);
-      } else if (network === NetworkType.BSC) {
-        const txs = await this.bscService.getTransactionsByNFT(address, latestBlockNumber + 1);
-        await this.setTransactions(address, network, txs);
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereumTxns = await this.etherscanService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, ethereumTxns);
+          break;
+        case NetworkType.POLYGON:
+          const polygonTxns = await this.polygonService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, polygonTxns);
+          break;
+        case NetworkType.BSC:
+          const bscTxns = await this.bscService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, bscTxns);
+          break;
+        case NetworkType.ARBITRUM:
+          const arbitrumTxns = await this.arbitrumService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, arbitrumTxns);
+          break;
       }
     } catch (err) {
       logger.error(err);
@@ -242,15 +252,23 @@ export class NftService {
 
   async initializeTransactions(address: string, network: string) {
     try {
-      if (network === NetworkType.ETHEREUM) {
-        const txs = await this.etherscanService.getTransactionsByNFT(address);
-        await this.setTransactions(address, network, txs);
-      } else if (network === NetworkType.POLYGON) {
-        const txs = await this.polygonService.getTransactionsByNFT(address);
-        await this.setTransactions(address, network, txs);
-      } else if (network === NetworkType.BSC) {
-        const txs = await this.bscService.getTransactionsByNFT(address);
-        await this.setTransactions(address, network, txs);
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereumTxns = await this.etherscanService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, ethereumTxns);
+          break;
+        case NetworkType.POLYGON:
+          const polygonTxns = await this.polygonService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, polygonTxns);
+          break;
+        case NetworkType.BSC:
+          const bscTxns = await this.bscService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, bscTxns);
+          break;
+        case NetworkType.ARBITRUM:
+          const arbitrumTxns = await this.arbitrumService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, arbitrumTxns);
+          break;
       }
     } catch (err) {
       logger.error(err);

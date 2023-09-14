@@ -9,7 +9,6 @@ import { UNISWAP_ABI } from './abi';
 import { logger } from 'src/utils/logger';
 import { ConfigService } from '@nestjs/config';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
-import { MoralisConfig } from 'src/config/moralis.config';
 import { EthereumConfig } from 'src/config/ethereum.config';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';

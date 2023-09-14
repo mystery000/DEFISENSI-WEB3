@@ -15,6 +15,7 @@ import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { TokenTransaction, NFTTransaction } from 'src/utils/types';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -28,6 +29,7 @@ export class WalletService {
     private readonly etherscanService: EtherscanService,
     private readonly polygonscanService: PolygonscanService,
     private readonly bscService: BscscanService,
+    private readonly arbitrumService: ArbitrumService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
@@ -234,12 +236,13 @@ export class WalletService {
       const foundWallet = await this.walletModel.findOne({ address: address });
 
       if (foundWallet) {
-        const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+        const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns] = await Promise.all([
           await this.etherscanService.getTransactionsByAccount(address),
           await this.polygonscanService.getTransactionsByAccount(address),
           await this.bscService.getTransactionsByAccount(address),
+          await this.arbitrumService.getTransactionsByAccount(address),
         ]);
-        await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
+        await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns]);
       }
     } catch (err) {
       logger.error(err);
@@ -248,12 +251,13 @@ export class WalletService {
 
   async initializeTransactions(address: string) {
     try {
-      const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns] = await Promise.all([
         await this.etherscanService.getTransactionsByAccount(address),
         await this.polygonscanService.getTransactionsByAccount(address),
         await this.bscService.getTransactionsByAccount(address),
+        await this.arbitrumService.getTransactionsByAccount(address),
       ]);
-      await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns]);
+      await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns]);
     } catch (err) {
       logger.error(err);
     }
