@@ -283,6 +283,8 @@ export class TokenService {
         return this.polygonService.getPriceHistory(address);
       case NetworkType.BSC:
         return this.bscService.getPriceHistory(address);
+      case NetworkType.ARBITRUM:
+        return this.arbitrumService.getPriceHistory(address);
     }
     return null;
   }
@@ -295,6 +297,8 @@ export class TokenService {
         return this.polygonService.getPriceFromExchanges(address);
       case NetworkType.BSC:
         return this.bscService.getPriceFromExchanges(address);
+      case NetworkType.ARBITRUM:
+        break;
     }
     return null;
   }

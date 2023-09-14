@@ -33,6 +33,13 @@ export type Balance = {
       tokens: [TokenBalance];
     },
   ];
+
+  arbitrum?: [
+    {
+      timestamp: number;
+      tokens: [TokenBalance];
+    },
+  ];
 };
 
 export class ApiTokenBalance {
@@ -76,6 +83,12 @@ export class ApiBalance {
     timestamp: number;
     tokens: [ApiTokenBalance];
   };
+
+  @ApiProperty()
+  arbitrum?: {
+    timestamp: number;
+    tokens: [ApiTokenBalance];
+  };
 }
 
 export class ApiBalanceHistory {
@@ -97,6 +110,14 @@ export class ApiBalanceHistory {
 
   @ApiProperty()
   binance?: [
+    {
+      timestamp: number;
+      tokens: [ApiTokenBalance];
+    },
+  ];
+
+  @ApiProperty()
+  arbitrum?: [
     {
       timestamp: number;
       tokens: [ApiTokenBalance];

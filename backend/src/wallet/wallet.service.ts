@@ -266,12 +266,11 @@ export class WalletService {
   // Update the balance of this wallet
   async updateBalance(address: string) {
     try {
-      // Get balances on Ethereum network
-      const etherBalance = await this.etherscanService.getBalances(address);
+      const [etherBalance, polygonBalance] = await Promise.all([
+        await this.etherscanService.getBalances(address),
+        await this.polygonscanService.getBalances(address),
+      ]);
       await this.walletModel.updateOne({ address }, { $push: { 'balance.ethereum': { ...etherBalance } } });
-
-      // Get balances on Polygon network
-      const polygonBalance = await this.polygonscanService.getBalances(address);
       await this.walletModel.updateOne({ address }, { $push: { 'balance.polygon': { ...polygonBalance } } });
     } catch (error) {
       logger.error(error);
