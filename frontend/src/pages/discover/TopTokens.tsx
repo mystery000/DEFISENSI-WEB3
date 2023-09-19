@@ -1,5 +1,6 @@
-import { ChangeEvent, useEffect, useState } from 'react';
-import Select from 'react-select';
+import { useNavigate } from 'react-router-dom';
+import { ChangeEvent, useState } from 'react';
+
 import { Input, Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
@@ -9,53 +10,12 @@ import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import { getTokenAddress } from '../../lib/api';
 import { SearchOutlined } from '@ant-design/icons';
 import useTopTokens from '../../lib/hooks/useTopTokens';
 import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
-import { getTokenAddress } from '../../lib/api';
-import { useNavigate } from 'react-router-dom';
-
-const options = [
-  {
-    value: NetworkType.Ethereum,
-    name: 'ethereum',
-    label: 'ETH',
-    logo: '../images/network/ethereum.png',
-  },
-  {
-    value: NetworkType.Polygon,
-    name: 'polygon',
-    label: 'POLYGON',
-    logo: '../images/network/polygon.png',
-  },
-  {
-    value: NetworkType.BSC,
-    name: 'bsc',
-    label: 'BSC',
-    logo: '../images/network/binance.png',
-  },
-];
-
-const formatOptionLabel = ({
-  label,
-  logo,
-}: {
-  label: string;
-  logo: string;
-}) => (
-  <div className="flex items-center gap-2">
-    <img
-      src={logo}
-      width={24}
-      height={24}
-      alt="noLogo"
-      className="rounded-full"
-      loading="lazy"
-    />
-    <div>{label}</div>
-  </div>
-);
+import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopTokens = () => {
   const [query, setQuery] = useState('');
@@ -66,11 +26,8 @@ export const TopTokens = () => {
 
   const handleClick = async (network: string, id: string) => {
     if (!id || !network) return;
-    console.log(network, id);
     const token_address = await getTokenAddress(network, id);
-    console.log(token_address);
-    if (!token_address) return;
-    navigate(`/portfolio/token/${network}/${token_address}`);
+    if (token_address) navigate(`/portfolio/token/${network}/${token_address}`);
   };
 
   if (loading) {
@@ -96,10 +53,7 @@ export const TopTokens = () => {
           </div>
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
-            <Select
-              defaultValue={options[0]}
-              formatOptionLabel={formatOptionLabel}
-              options={options}
+            <ChainSelection
               onChange={(chain) => {
                 if (chain) setChain(chain.value);
               }}
@@ -142,13 +96,15 @@ export const TopTokens = () => {
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
                     onClick={() => handleClick(chain, token.id)}
+                    hover
+                    className="hover:cursor-pointer"
                   >
                     <TableCell>{token.name}</TableCell>
                     <TableCell>
                       ${token.current_price.toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      {Math.abs(token.price_change_24h).toFixed(3)}
+                      {Math.abs(token.price_change_percentage_24h).toFixed(3)}
                       <span
                         className={
                           token.price_change_percentage_24h > 0
@@ -156,9 +112,7 @@ export const TopTokens = () => {
                             : 'text-orange-400'
                         }
                       >
-                        {(token.price_change_percentage_24h > 0 ? '+' : '') +
-                          token.price_change_percentage_24h.toFixed(3)}
-                        %
+                        {token.price_change_percentage_24h > 0 ? '+' : '-'}
                       </span>
                     </TableCell>
                     <TableCell>{token.followers || 0}</TableCell>

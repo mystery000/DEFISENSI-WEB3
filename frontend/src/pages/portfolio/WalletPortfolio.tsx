@@ -39,40 +39,13 @@ import { Transaction } from '../../types/transaction';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
+import { ChainSelection } from '../../components/ChainSelection';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
   TRANSACTIONS = 'transactions',
   ALL = 'all',
 }
-
-const options = [
-  {
-    value: 'ethereum',
-    name: 'ethereum',
-    label: 'ETH',
-    logo: '/images/tokens/eth.png',
-  },
-  {
-    value: 'polygon',
-    name: 'polygon',
-    label: 'POLYGON',
-    logo: '/images/network/polygon.png',
-  },
-];
-
-const formatOptionLabel = ({
-  label,
-  logo,
-}: {
-  label: string;
-  logo: string;
-}) => (
-  <div className="flex items-center gap-2">
-    <img src={logo} width={24} height={24} alt="noLogo" />
-    <div>{label}</div>
-  </div>
-);
 
 export const WalletPortfolio = () => {
   const { address } = useParams();
@@ -536,12 +509,7 @@ export const WalletPortfolio = () => {
                     </option>
                   ))}
                 </select> */}
-                <Select
-                  defaultValue={options[0]}
-                  formatOptionLabel={formatOptionLabel}
-                  options={options}
-                  onChange={(value) => console.log(value)}
-                />
+                <ChainSelection />
               </div>
               <HighchartsReact
                 highcharts={Highcharts}

@@ -1,6 +1,5 @@
 import { ChangeEvent, useState } from 'react';
 
-import Select from 'react-select';
 import { Input, Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
@@ -14,47 +13,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import useTopNFTs from '../../lib/hooks/useTopNFTs';
 import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
-
-const options = [
-  {
-    value: NetworkType.Ethereum,
-    name: 'ethereum',
-    label: 'ETH',
-    logo: '../images/network/ethereum.png',
-  },
-  {
-    value: NetworkType.Polygon,
-    name: 'polygon',
-    label: 'POLYGON',
-    logo: '../images/network/polygon.png',
-  },
-  {
-    value: NetworkType.BSC,
-    name: 'bsc',
-    label: 'BSC',
-    logo: '../images/network/binance.png',
-  },
-];
-
-const formatOptionLabel = ({
-  label,
-  logo,
-}: {
-  label: string;
-  logo: string;
-}) => (
-  <div className="flex items-center gap-2">
-    <img
-      src={logo}
-      width={24}
-      height={24}
-      alt="noLogo"
-      className="rounded-full"
-      loading="lazy"
-    />
-    <div>{label}</div>
-  </div>
-);
+import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopNFTs = () => {
   const { data: topNFTs, loading } = useTopNFTs();
@@ -84,10 +43,7 @@ export const TopNFTs = () => {
           </div>
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
-            <Select
-              defaultValue={options[0]}
-              formatOptionLabel={formatOptionLabel}
-              options={options}
+            <ChainSelection
               onChange={(chain) => {
                 if (chain) setChain(chain.value);
               }}
