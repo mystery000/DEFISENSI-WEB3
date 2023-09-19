@@ -264,7 +264,7 @@ export class UserService {
 
   async getNotifications(address: string) {
     const user = await this.userModel.findOne({ address }).populate('notifications');
-    return user.notifications;
+    return user?.notifications || [];
   }
 
   async login(address: string) {

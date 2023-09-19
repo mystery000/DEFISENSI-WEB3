@@ -343,12 +343,16 @@ export const updateNotification = async (
   }
 };
 
-export const getTopERC20Tokens = async () => {
+export const getTopERC20Tokens = async (network: string) => {
+  if (!network) {
+    console.log('network parameter is required to get the top tokens');
+    return [];
+  }
   try {
-    const res = await axios.get(`${API_BASE_URL}/token/top-tokens`);
+    const res = await axios.get(`${API_BASE_URL}/token/top/${network}`);
     return res.data as TopToken[];
   } catch (error) {
-    throw error;
+    return [];
   }
 };
 
@@ -379,5 +383,17 @@ export const getENS = async (address: string) => {
   } catch (error) {
     console.log(error);
     return '';
+  }
+};
+
+export const getTokenAddress = async (network: string, id: string) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/token/top/${network}/${id}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
   }
 };

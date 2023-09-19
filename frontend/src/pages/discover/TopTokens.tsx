@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import Select from 'react-select';
 import { Input, Spin } from 'antd';
 import { Box } from '@mui/material';
@@ -13,6 +13,8 @@ import { SearchOutlined } from '@ant-design/icons';
 import useTopTokens from '../../lib/hooks/useTopTokens';
 import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
+import { getTokenAddress } from '../../lib/api';
+import { useNavigate } from 'react-router-dom';
 
 const options = [
   {
@@ -56,9 +58,20 @@ const formatOptionLabel = ({
 );
 
 export const TopTokens = () => {
-  const { data: topERC20Tokens, loading } = useTopTokens();
   const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const { data: topERC20Tokens, loading } = useTopTokens(chain);
+
+  const navigate = useNavigate();
+
+  const handleClick = async (network: string, id: string) => {
+    if (!id || !network) return;
+    console.log(network, id);
+    const token_address = await getTokenAddress(network, id);
+    console.log(token_address);
+    if (!token_address) return;
+    navigate(`/portfolio/token/${network}/${token_address}`);
+  };
 
   if (loading) {
     return (
@@ -128,18 +141,27 @@ export const TopTokens = () => {
                     sx={{
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
+                    onClick={() => handleClick(chain, token.id)}
                   >
-                    <TableCell>{token.token_name}</TableCell>
-                    <TableCell>${token.price_usd}</TableCell>
+                    <TableCell>{token.name}</TableCell>
                     <TableCell>
-                      {Math.abs(Number(token.price_24h_percent_change))}%
-                      {Number(token.price_24h_percent_change) > 0 ? (
-                        <span className="text-malachite-500">+</span>
-                      ) : (
-                        <span className="text-orange-400">-</span>
-                      )}
+                      ${token.current_price.toLocaleString()}
                     </TableCell>
-                    <TableCell>{token.followers}</TableCell>
+                    <TableCell>
+                      {Math.abs(token.price_change_24h).toFixed(3)}
+                      <span
+                        className={
+                          token.price_change_percentage_24h > 0
+                            ? 'text-malachite-500'
+                            : 'text-orange-400'
+                        }
+                      >
+                        {(token.price_change_percentage_24h > 0 ? '+' : '') +
+                          token.price_change_percentage_24h.toFixed(3)}
+                        %
+                      </span>
+                    </TableCell>
+                    <TableCell>{token.followers || 0}</TableCell>
                   </TableRow>
                 ))
               ) : (

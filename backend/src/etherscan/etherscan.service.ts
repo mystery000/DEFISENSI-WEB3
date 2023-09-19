@@ -946,24 +946,25 @@ export class EtherscanService {
     }
   }
 
-  async getTopERC20Tokens() {
+  async getTopERC20Tokens(order?: string) {
     try {
-      // const response = await Moralis.EvmApi.marketData.getTopERC20TokensByMarketCap();
+      const response = await axios.get(
+        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=ethereum-ecosystem&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`,
+      );
+      const tokens = response.data.slice(1);
 
-      const sampleData = [1, 2, 3, 4, 5].map((rank) => ({
-        rank: rank.toString(),
-        token_name: 'Wrapped Ether',
-        token_symbol: 'WETH',
-        token_logo: 'https://cdn.moralis.io/eth/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
-        token_decimals: '18',
-        contract_address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-        price_usd: '0.0285',
-        price_24h_percent_change: '0.0285',
-        price_7d_percent_change: '0.0285',
-        market_cap_usd: '0.0285',
-        followers: 0,
-      }));
-      return sampleData;
+      switch (order) {
+        case 'current_price_asc':
+          return tokens.sort((a, b) => a.current_price - b.current_price);
+        case 'current_price_desc':
+          return tokens.sort((a, b) => b.current_price - a.current_price);
+        case 'price_change_percentage_24h_asc':
+          return tokens.sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
+        case 'price_change_percentage_24h_desc':
+          return tokens.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+      }
+
+      return tokens;
     } catch (error) {
       logger.error(error);
       return [];
@@ -1012,6 +1013,6 @@ export class EtherscanService {
     // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
     // return this.getTopERC20Tokens();
 
-    return this.getPriceHistory('0xdac17f958d2ee523a2206206994597c13d831ec7');
+    return this.getTopERC20Tokens();
   }
 }

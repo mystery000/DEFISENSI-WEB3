@@ -1,13 +1,12 @@
 export type TopToken = {
-  rank: string;
-  token_name: string;
-  token_symbol: string;
-  token_logo: string;
-  contract_address: string;
-  price_usd: string;
-  price_24h_percent_change: string;
-  price_7d_percent_change: string;
-  followers: number;
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  followers?: number;
 };
 
 export type TopNFT = {

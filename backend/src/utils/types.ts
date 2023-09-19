@@ -204,3 +204,18 @@ export enum ChainbaseChain {
   ARBITRUM = '42161',
   OPTIMISM = '10',
 }
+
+export type TopERC20Token = {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  followers?: number;
+};
+
+export type TopNFT = {};
+
+export type TopWallet = {};

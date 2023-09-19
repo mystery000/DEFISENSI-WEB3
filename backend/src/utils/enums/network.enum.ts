@@ -2,6 +2,6 @@ export enum NetworkType {
   POLYGON = 'polygon',
   ETHEREUM = 'ethereum',
   BSC = 'binance',
-  ARBITRUM = ' arbitrum',
+  ARBITRUM = 'arbitrum',
   UNISWAP = 'uniswap', // Temporary property
 }

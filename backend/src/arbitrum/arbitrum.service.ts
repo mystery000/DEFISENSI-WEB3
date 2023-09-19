@@ -438,6 +438,31 @@ export class ArbitrumService {
     }
   }
 
+  async getTopERC20Tokens(order?: string) {
+    try {
+      const response = await axios.get(
+        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=arbitrum-ecosystem&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`,
+      );
+      const tokens = response.data;
+
+      switch (order) {
+        case 'current_price_asc':
+          return tokens.sort((a, b) => a.current_price - b.current_price);
+        case 'current_price_desc':
+          return tokens.sort((a, b) => b.current_price - a.current_price);
+        case 'price_change_percentage_24h_asc':
+          return tokens.sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
+        case 'price_change_percentage_24h_desc':
+          return tokens.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+      }
+
+      return tokens;
+    } catch (error) {
+      logger.error(error);
+      return [];
+    }
+  }
+
   async test() {
     return this.getTransactionsByAccount('0xF977814e90dA44bFA03b6295A0616a897441aceC');
   }
