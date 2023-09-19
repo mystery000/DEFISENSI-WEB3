@@ -90,7 +90,7 @@ export const TokenPortfolio = () => {
             fontWeight: '600',
           },
           formatter: function () {
-            return Highcharts.dateFormat('%d/%m/%y %H:%M', Number(this.value));
+            return Highcharts.dateFormat('%d/%m/%y', Number(this.value));
           },
         },
       },
@@ -425,7 +425,9 @@ export const TokenPortfolio = () => {
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         {exchangePrice?.usdPrice?.uniswap
-                          ? `$${exchangePrice.usdPrice.uniswap}`
+                          ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(
+                              5,
+                            )}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>

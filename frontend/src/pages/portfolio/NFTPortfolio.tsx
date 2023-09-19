@@ -85,7 +85,7 @@ export const NFTPortfolio = () => {
             fontWeight: '600',
           },
           formatter: function () {
-            return Highcharts.dateFormat('%d/%m/%y %H:%M', Number(this.value));
+            return Highcharts.dateFormat('%d/%m/%y', Number(this.value));
           },
         },
       },
