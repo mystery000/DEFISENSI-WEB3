@@ -74,9 +74,6 @@ export class UserService {
       },
     ]);
 
-    if (!result || result.length === 0) {
-      logger.log('Transaction not found');
-    }
     return result || [];
   }
 
@@ -119,10 +116,6 @@ export class UserService {
       },
     ]);
 
-    if (!result || result.length === 0) {
-      logger.log('Transactions not found');
-    }
-
     return result || [];
   }
 
@@ -164,10 +157,6 @@ export class UserService {
         },
       },
     ]);
-
-    if (!result || result.length === 0) {
-      logger.log('Transactions not found');
-    }
 
     return result || [];
   }

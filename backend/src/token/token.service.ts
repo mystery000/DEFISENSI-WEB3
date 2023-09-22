@@ -208,13 +208,11 @@ export class TokenService {
         },
       ]);
 
-      if (!foundToken || foundToken.length === 0) {
-        // throw new BadRequestException('Transactions not found!');
+      if (!foundToken) {
         logger.error('Transactions not found');
-        return [];
       }
 
-      return foundToken[0];
+      return foundToken?.[0];
     } catch (err) {
       logger.error(err);
       return null;
