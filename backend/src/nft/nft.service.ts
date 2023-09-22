@@ -173,41 +173,26 @@ export class NftService {
 
   async getTransactions(network: string, address: string, limit: Number = 4) {
     try {
-      const foundToken = await this.nftModel.aggregate([
-        { $match: { address: address, network } },
-        {
-          $unwind: '$transactions',
-        },
-        {
-          $match: { 'transactions.details': { $ne: null } },
-        },
-        {
-          $sort: { 'transactions.blockNumber': -1 },
-        },
-        {
-          $limit: Number(limit),
-        },
-        {
-          $group: {
-            _id: '$_id',
-            likes: { $first: '$likes' },
-            dislikes: { $first: '$dislikes' },
-            comments: { $first: '$comments' },
-            transactions: { $push: '$transactions' },
-          },
-        },
-      ]);
+      const foundToken = await this.nftModel.findOne({ address, network });
 
-      if (!foundToken || foundToken.length === 0) {
-        // throw new BadRequestException('Transactions not found!');
-        logger.error('Transactions not found');
-        return [];
+      const { _id, likes, dislikes, comments } = foundToken || { _id: '', likes: [], dislikes: [], comments: [] };
+
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereumTxns = await this.etherscanService.getTransactionsByNFT(address);
+          return { transactions: ethereumTxns, _id, likes, dislikes, comments };
+        case NetworkType.POLYGON:
+          const polygonTxns = await this.polygonService.getTransactionsByNFT(address);
+          return { transactions: polygonTxns, _id, likes, dislikes, comments };
+        case NetworkType.BSC:
+          const bscTxns = await this.bscService.getTransactionsByNFT(address);
+          return { transactions: bscTxns, _id, likes, dislikes, comments };
+        case NetworkType.ARBITRUM:
+          const arbitrumTxns = await this.arbitrumService.getTransactionsByNFT(address);
+          return { transactions: arbitrumTxns, _id, likes, dislikes, comments };
       }
-
-      return foundToken[0];
-    } catch (err) {
-      logger.error(err);
-      return [];
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
   }
 
