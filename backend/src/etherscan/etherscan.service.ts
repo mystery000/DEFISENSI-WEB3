@@ -971,48 +971,7 @@ export class EtherscanService {
     }
   }
 
-  async getTopNFTs() {
-    try {
-      // const response = await Moralis.EvmApi.marketData.getTopNFTCollectionsByMarketCap();
-      const sampleData = [1, 2, 3, 4, 5].map((rank) => ({
-        rank: rank.toString(),
-        collection_title: 'CryptoPunks',
-        floor_price_usd: '0.0',
-        floor_price_24hr_percent_change: '20.11',
-        market_cap_usd: '0.0',
-        market_cap_24hr_percent_change: '0.0',
-        volume_usd: '0.0',
-        volume_24hr_percent_change: '20.11',
-        holders: 0,
-      }));
+  async getTopNFTs() {}
 
-      return sampleData;
-    } catch (error) {
-      logger.error(error);
-      return [];
-    }
-  }
-
-  async test() {
-    /*
-      Examples of wallet address
-      address: '0x2890810659c27947830b0950f19170B4D3B1BE4A',
-      address: '0xb779547DA0a2f5b866AA803a02124EDE4daab10f',
-    */
-    // return this.getTransactionsByWallet('0xb779547DA0a2f5b866AA803a02124EDE4daab10f');
-
-    /*
-      Examples of ERC20 token address
-      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', Tether USDT
-      address: '0x50327c6c5a14DCaDE707ABad2E27eB517df87AB5', TRON (TRX)
-    */
-    // return this.getTransactionsByToken('0x76BE3b62873462d2142405439777e971754E8E77');
-
-    // return this.getBalances('0xb779547da0a2f5b866aa803a02124ede4daab10f');
-    // return this.getPriceHistory('0xB8c77482e45F1F44dE1745F52C74426C631bDD52');
-    // return this.getPriceFromExchanges('0xB8c77482e45F1F44dE1745F52C74426C631bDD52'); // BNB Token Contract Address
-    // return this.getTopERC20Tokens();
-
-    return this.getTopERC20Tokens();
-  }
+  async test() {}
 }

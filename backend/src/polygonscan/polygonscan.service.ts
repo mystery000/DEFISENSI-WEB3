@@ -585,14 +585,7 @@ export class PolygonscanService {
     }
   }
 
-  async test() {
-    /*
-      Examples of wallet address
-      address: '0x71956a1Cd5a4233177F7Bf9a2d5778851e201934',
-    */
-    // return this.getTransactionsByWallet('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
+  async getTopNFTs() {}
 
-    // return this.getBalances('0x71956a1Cd5a4233177F7Bf9a2d5778851e201934');
-    return this.getPriceHistory('0x3BA4c387f786bFEE076A58914F5Bd38d668B42c3');
-  }
+  async test() {}
 }

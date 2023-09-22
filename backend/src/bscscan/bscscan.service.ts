@@ -723,21 +723,7 @@ export class BscscanService {
     }
   }
 
-  async test() {
-    // return this.getTransactionsByToken('0x2170Ed0880ac9A755fd29B2688956BD959F933F8');
-    return this.getPriceHistory('0x2170ed0880ac9a755fd29b2688956bd959f933f8');
-    // Instantiate the contract
-    // const contract = new this.web3.eth.Contract(DEX_ABI, '0x7Da3fF95A3566287aFEc13b154794eee52A2e00d');
-    // // Get the addresses of the pair's tokens
-    // const [token0, token1] = await Promise.all([contract.methods.token0().call(), contract.methods.token1().call()]);
-    // // let token0 = (await contract.methods.token0().call()) as any;
-    // // let token1 = (await contract.methods.token1().call()) as any;
-    // console.log(token0, token1);
-    // const contract1 = new this.web3.eth.Contract(DEX_ABI, '0x531FEbfeb9a61D948c384ACFBe6dCc51057AEa7e');
-    // const [token01, token11] = await Promise.all([
-    //   contract1.methods.token0().call(),
-    //   contract1.methods.token1().call(),
-    // ]);
-    // console.log(token01, token11);
-  }
+  async getTopNFTs() {}
+
+  async test() {}
 }

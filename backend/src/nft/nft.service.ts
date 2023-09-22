@@ -11,13 +11,12 @@ import { CreateNftDto } from './dto/create-nft.dto';
 import { Nft, NftDocument } from './schemas/nft.schema';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { CommentService } from '../comment/comment.service';
-import { SuccessResponse } from '../utils/dtos/success-response';
-import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { NetworkType } from 'src/utils/enums/network.enum';
-import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 import { BscscanService } from 'src/bscscan/bscscan.service';
 import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
-
+import { SuccessResponse } from '../utils/dtos/success-response';
+import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 @Injectable()
 export class NftService {
   constructor(
@@ -159,8 +158,17 @@ export class NftService {
     return foundNft.comments;
   }
 
-  async getTopNFTs() {
-    return this.etherscanService.getTopNFTs();
+  async getTopNFTs(network: string) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getTopNFTs();
+      case NetworkType.POLYGON:
+        return this.polygonService.getTopNFTs();
+      case NetworkType.BSC:
+        return this.bscService.getTopNFTs();
+      case NetworkType.ARBITRUM:
+        return this.arbitrumService.getTopNFTs();
+    }
   }
 
   async getTransactions(network: string, address: string, limit: Number = 4) {

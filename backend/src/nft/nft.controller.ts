@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { NftService } from './nft.service';
@@ -11,7 +11,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 
-@ApiTags('Nft')
+@ApiTags('NFT')
 @Controller('nft')
 export class NftController {
   constructor(private readonly nftService: NftService) {}
@@ -61,8 +61,15 @@ export class NftController {
     return this.nftService.dislike(dislikeDto);
   }
 
+  @Get('top/:network')
+  @ApiOperation({ summary: 'Get the top NFTs' })
+  @ApiParam({ name: 'network', description: 'Name of network issuing tokens' })
+  getTopNFTs(@Param('network') network: string) {
+    return this.nftService.getTopNFTs(network);
+  }
+
   @Get('/:network/:address')
-  @ApiOperation({ summary: 'Get nft' })
+  @ApiOperation({ summary: 'Get NFTs for a given contract address' })
   @ApiOkResponse({ type: SuccessResponse })
   @ApiParam({ name: 'network', description: 'The nft network' })
   @ApiParam({ name: 'address', description: 'The nft address' })
@@ -102,12 +109,6 @@ export class NftController {
   @ApiParam({ name: 'address', description: 'The address of nft' })
   getComments(@Param() query: FindOneParams): Promise<Comment[]> {
     return this.nftService.getComments(query);
-  }
-
-  @Get('top-nfts')
-  @ApiOperation({ summary: 'Get the top ERC20 tokens' })
-  getTopNFTs() {
-    return this.nftService.getTopNFTs();
   }
 
   @Get('/:network/:address/transactions')

@@ -463,7 +463,7 @@ export class ArbitrumService {
     }
   }
 
-  async test() {
-    return this.getTransactionsByAccount('0xF977814e90dA44bFA03b6295A0616a897441aceC');
-  }
+  async getTopNFTs() {}
+
+  async test() {}
 }
