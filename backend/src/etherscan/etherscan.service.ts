@@ -317,16 +317,22 @@ export class EtherscanService {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
 
-    const contractLogs = await Moralis.EvmApi.events.getContractLogs({
-      address: contractAddress,
-      chain: EvmChain.ETHEREUM,
-      limit: 4,
-      fromBlock: fromBlock.toString(),
-    });
+    // Get Token transfers by contract and extract transaction hashs
+    let transfers = [];
+    await Moralis.EvmApi.token
+      .getTokenTransfers({
+        chain: EvmChain.ETHEREUM,
+        address: contractAddress,
+        limit: 4,
+        fromBlock,
+      })
+      .then((response) => {
+        transfers = response.toJSON().result;
+      });
 
-    for (const log of contractLogs.toJSON().result) {
-      if (!txHashs.includes(log.transaction_hash)) {
-        txHashs.push(log.transaction_hash);
+    for (const transfer of transfers) {
+      if (!txHashs.includes(transfer.transaction_hash)) {
+        txHashs.push(transfer.transaction_hash);
       }
     }
 

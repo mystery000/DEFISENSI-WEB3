@@ -166,9 +166,9 @@ export class TokenService {
     return foundToken.comments;
   }
 
-  async setTransactions(contractAddress: string, network: string, transactions: TokenTransaction[]) {
+  async setTransactions(address: string, network: string, transactions: TokenTransaction[]) {
     try {
-      const foundToken = await this.tokenModel.findOne({ address: contractAddress, network });
+      const foundToken = await this.tokenModel.findOne({ address: address, network });
       if (!foundToken) {
         throw new BadRequestException('Wallet not found!');
       }
@@ -181,41 +181,28 @@ export class TokenService {
     return new SuccessResponse(true);
   }
 
-  async getTransactions(network: string, contractAddress: string, limit: Number = 4) {
+  async getTransactions(network: string, address: string, limit: Number = 4) {
     try {
-      const foundToken = await this.tokenModel.aggregate([
-        { $match: { address: contractAddress, network } },
-        {
-          $unwind: '$transactions',
-        },
-        {
-          $match: { 'transactions.details': { $ne: null } },
-        },
-        {
-          $sort: { 'transactions.blockNumber': -1 },
-        },
-        {
-          $limit: Number(limit),
-        },
-        {
-          $group: {
-            _id: '$_id',
-            likes: { $first: '$likes' },
-            dislikes: { $first: '$dislikes' },
-            comments: { $first: '$comments' },
-            transactions: { $push: '$transactions' },
-          },
-        },
-      ]);
+      const foundToken = await this.tokenModel.findOne({ address, network });
 
-      if (!foundToken) {
-        logger.error('Transactions not found');
+      const { _id, likes, dislikes, comments } = foundToken || { _id: '', likes: [], dislikes: [], comments: [] };
+
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereumTxns = await this.etherscanService.getTransactionsByContract(address);
+          return { transactions: ethereumTxns, _id, likes, dislikes, comments };
+        case NetworkType.POLYGON:
+          const polygonTxns = await this.polygonService.getTransactionsByContract(address);
+          return { transactions: polygonTxns, _id, likes, dislikes, comments };
+        case NetworkType.BSC:
+          const bscTxns = await this.bscService.getTransactionsByContract(address);
+          return { transactions: bscTxns, _id, likes, dislikes, comments };
+        case NetworkType.ARBITRUM:
+          const arbitrumTxns = await this.arbitrumService.getTransactionsByContract(address);
+          return { transactions: arbitrumTxns, _id, likes, dislikes, comments };
       }
-
-      return foundToken?.[0];
-    } catch (err) {
-      logger.error(err);
-      return null;
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
   }
 

@@ -125,7 +125,7 @@ export class PolygonscanService {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
     try {
-      // Get NFT transfers by contract and extract transaction hashs
+      // Get Token transfers by contract and extract transaction hashs
       let transfers = [];
       await Moralis.EvmApi.token
         .getTokenTransfers({
