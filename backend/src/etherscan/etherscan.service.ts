@@ -40,36 +40,41 @@ export class EtherscanService {
 
     const transactions: TokenTransaction[] = [];
 
+    let isParsed = false;
     for (const tx of response.toJSON().result) {
+      if (isParsed) continue;
       // Native token transaction
       if (tx.logs.length == 0 && tx.value != '0') {
-        const response = await Moralis.EvmApi.token.getTokenPrice({
-          chain: EvmChain.ETHEREUM,
-          address: this.WETH_ADDRESS,
-          toBlock: Number(tx.block_number),
-        });
-
-        transactions.push({
-          txHash: tx.hash,
-          blockNumber: tx.block_number,
-          timestamp: new Date(tx.block_timestamp).getTime(),
-          type: TransactionType.TOKEN,
-          network: NetworkType.ETHEREUM,
-          details: {
-            from: tx.from_address,
-            to: tx.to_address,
-            token0: {
-              name: 'Ether',
-              symbol: 'ETH',
-              decimals: '18',
-              contractAddress: response.toJSON().tokenAddress,
-              logo: null,
-              amount: tx.value,
-              price: ((response.toJSON().usdPrice * Number(tx.value)) / 1e18).toString(),
-            },
-          },
-        });
-        continue;
+        Moralis.EvmApi.token
+          .getTokenPrice({
+            chain: EvmChain.ETHEREUM,
+            address: this.WETH_ADDRESS,
+            toBlock: Number(tx.block_number),
+          })
+          .then((response) => {
+            const { tokenAddress, usdPrice } = response.toJSON();
+            transactions.push({
+              txHash: tx.hash,
+              blockNumber: tx.block_number,
+              timestamp: new Date(tx.block_timestamp).getTime(),
+              type: TransactionType.TOKEN,
+              network: NetworkType.ETHEREUM,
+              details: {
+                from: tx.from_address,
+                to: tx.to_address,
+                token0: {
+                  name: 'Ether',
+                  symbol: 'ETH',
+                  decimals: '18',
+                  contractAddress: tokenAddress,
+                  logo: null,
+                  amount: tx.value,
+                  price: ((usdPrice * Number(tx.value)) / 1e18).toString(),
+                },
+              },
+            });
+            isParsed = true;
+          });
       }
 
       /*
@@ -135,41 +140,43 @@ export class EtherscanService {
               address: token1,
               toBlock: Number(tx.block_number),
             });
-            transactions.push({
-              txHash: tx.hash,
-              blockNumber: tx.block_number,
-              type: TransactionType.TOKEN,
-              network: NetworkType.UNISWAP,
-              timestamp: new Date(tx.block_timestamp).getTime(),
-              details: {
-                from: tx.from_address,
-                to: toAddress,
-                token0: {
-                  name: token0Contract.toJSON().tokenName,
-                  symbol: token0Contract.toJSON().tokenSymbol,
-                  decimals: token0Contract.toJSON().tokenDecimals,
-                  contractAddress: token0Contract.toJSON().tokenAddress,
-                  logo: token0Contract.toJSON().tokenLogo,
-                  amount: amount0.toString(),
-                  price: (
-                    (token0Contract.toJSON().usdPrice * amount0) /
-                    10 ** Number(token0Contract.toJSON().tokenDecimals)
-                  ).toString(),
+            if (token0Contract && token1Contract) {
+              transactions.push({
+                txHash: tx.hash,
+                blockNumber: tx.block_number,
+                type: TransactionType.TOKEN,
+                network: NetworkType.UNISWAP,
+                timestamp: new Date(tx.block_timestamp).getTime(),
+                details: {
+                  from: tx.from_address,
+                  to: toAddress,
+                  token0: {
+                    name: token0Contract.toJSON().tokenName,
+                    symbol: token0Contract.toJSON().tokenSymbol,
+                    decimals: token0Contract.toJSON().tokenDecimals,
+                    contractAddress: token0Contract.toJSON().tokenAddress,
+                    logo: token0Contract.toJSON().tokenLogo,
+                    amount: amount0.toString(),
+                    price: (
+                      (token0Contract.toJSON().usdPrice * amount0) /
+                      10 ** Number(token0Contract.toJSON().tokenDecimals)
+                    ).toString(),
+                  },
+                  token1: {
+                    name: token1Contract.toJSON().tokenName,
+                    symbol: token1Contract.toJSON().tokenSymbol,
+                    decimals: token1Contract.toJSON().tokenDecimals,
+                    contractAddress: token1Contract.toJSON().tokenAddress,
+                    logo: token1Contract.toJSON().tokenLogo,
+                    amount: amount1.toString(),
+                    price: (
+                      (token1Contract.toJSON().usdPrice * amount1) /
+                      10 ** Number(token1Contract.toJSON().tokenDecimals)
+                    ).toString(),
+                  },
                 },
-                token1: {
-                  name: token1Contract.toJSON().tokenName,
-                  symbol: token1Contract.toJSON().tokenSymbol,
-                  decimals: token1Contract.toJSON().tokenDecimals,
-                  contractAddress: token1Contract.toJSON().tokenAddress,
-                  logo: token1Contract.toJSON().tokenLogo,
-                  amount: amount1.toString(),
-                  price: (
-                    (token1Contract.toJSON().usdPrice * amount1) /
-                    10 ** Number(token1Contract.toJSON().tokenDecimals)
-                  ).toString(),
-                },
-              },
-            });
+              });
+            }
             continue;
           }
           tokenIn = token0;
@@ -229,41 +236,43 @@ export class EtherscanService {
           address: tokenOut,
           toBlock: Number(tx.block_number),
         });
-        transactions.push({
-          txHash: tx.hash,
-          blockNumber: tx.block_number,
-          timestamp: new Date(tx.block_timestamp).getTime(),
-          type: TransactionType.TOKEN,
-          network: NetworkType.UNISWAP,
-          details: {
-            from: tx.from_address,
-            to: to,
-            token0: {
-              name: tokenInContract.toJSON().tokenName,
-              symbol: tokenInContract.toJSON().tokenSymbol,
-              decimals: tokenInContract.toJSON().tokenDecimals,
-              contractAddress: tokenInContract.toJSON().tokenAddress,
-              logo: tokenInContract.toJSON().tokenLogo,
-              amount: amountIn.toString(),
-              price: (
-                (tokenInContract.toJSON().usdPrice * amountIn) /
-                10 ** Number(tokenInContract.toJSON().tokenDecimals)
-              ).toString(),
+        if (tokenInContract && tokenOutContract) {
+          transactions.push({
+            txHash: tx.hash,
+            blockNumber: tx.block_number,
+            timestamp: new Date(tx.block_timestamp).getTime(),
+            type: TransactionType.TOKEN,
+            network: NetworkType.UNISWAP,
+            details: {
+              from: tx.from_address,
+              to: to,
+              token0: {
+                name: tokenInContract.toJSON().tokenName,
+                symbol: tokenInContract.toJSON().tokenSymbol,
+                decimals: tokenInContract.toJSON().tokenDecimals,
+                contractAddress: tokenInContract.toJSON().tokenAddress,
+                logo: tokenInContract.toJSON().tokenLogo,
+                amount: amountIn.toString(),
+                price: (
+                  (tokenInContract.toJSON().usdPrice * amountIn) /
+                  10 ** Number(tokenInContract.toJSON().tokenDecimals)
+                ).toString(),
+              },
+              token1: {
+                name: tokenOutContract.toJSON().tokenName,
+                symbol: tokenOutContract.toJSON().tokenSymbol,
+                decimals: tokenOutContract.toJSON().tokenDecimals,
+                contractAddress: tokenOutContract.toJSON().tokenAddress,
+                logo: tokenOutContract.toJSON().tokenLogo,
+                amount: amountOut.toString(),
+                price: (
+                  (tokenOutContract.toJSON().usdPrice * amountOut) /
+                  10 ** Number(tokenOutContract.toJSON().tokenDecimals)
+                ).toString(),
+              },
             },
-            token1: {
-              name: tokenOutContract.toJSON().tokenName,
-              symbol: tokenOutContract.toJSON().tokenSymbol,
-              decimals: tokenOutContract.toJSON().tokenDecimals,
-              contractAddress: tokenOutContract.toJSON().tokenAddress,
-              logo: tokenOutContract.toJSON().tokenLogo,
-              amount: amountOut.toString(),
-              price: (
-                (tokenOutContract.toJSON().usdPrice * amountOut) /
-                10 ** Number(tokenOutContract.toJSON().tokenDecimals)
-              ).toString(),
-            },
-          },
-        });
+          });
+        }
       } else {
         if (tx.logs.length == 0 && tx.value == '0') continue;
 
@@ -284,29 +293,29 @@ export class EtherscanService {
           toBlock: Number(tx.block_number),
         });
 
-        transactions.push({
-          txHash: tx.hash,
-          blockNumber: tx.block_number,
-          type: TransactionType.TOKEN,
-          timestamp: new Date(transferLog.block_timestamp).getTime(),
-          network: NetworkType.ETHEREUM,
-          details: {
-            from: tx.from_address,
-            to: transfer_to,
-            token0: {
-              name: erc20Token.toJSON().tokenName,
-              symbol: erc20Token.toJSON().tokenSymbol,
-              decimals: erc20Token.toJSON().tokenDecimals,
-              contractAddress: transferLog.address,
-              logo: erc20Token.toJSON().tokenLogo,
-              amount: tranfer_value,
-              price: (
-                (erc20Token.toJSON().usdPrice * Number(tranfer_value)) /
-                10 ** Number(erc20Token.toJSON().tokenDecimals)
-              ).toString(),
+        if (erc20Token) {
+          const { tokenName, tokenSymbol, tokenDecimals, tokenLogo, usdPrice } = erc20Token.toJSON();
+          transactions.push({
+            txHash: tx.hash,
+            blockNumber: tx.block_number,
+            type: TransactionType.TOKEN,
+            timestamp: new Date(transferLog.block_timestamp).getTime(),
+            network: NetworkType.ETHEREUM,
+            details: {
+              from: tx.from_address,
+              to: transfer_to,
+              token0: {
+                name: tokenName,
+                symbol: tokenSymbol,
+                decimals: tokenDecimals,
+                contractAddress: transferLog.address,
+                logo: tokenLogo,
+                amount: tranfer_value,
+                price: ((usdPrice * Number(tranfer_value)) / 10 ** Number(tokenDecimals)).toString(),
+              },
             },
-          },
-        });
+          });
+        }
       }
     }
 

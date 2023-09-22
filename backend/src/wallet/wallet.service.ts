@@ -35,15 +35,16 @@ export class WalletService {
   async create(wallet: CreateWalletDto): Promise<Wallet> {
     let foundWallet = await this.walletModel.findOne({ address: wallet.address });
     if (!foundWallet) {
-      const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-      const newWallet = await this.walletModel.findOneAndUpdate(
-        { address: wallet.address },
-        { address: wallet.address },
-        options,
+      let createdWallet = await this.walletModel.findOneAndUpdate(
+        { address: wallet.address }, // filter
+        {}, // update (empty as you're only interested in finding or creating a document)
+        {
+          upsert: true, // will create a new document if none is found
+          new: true, // will return the new document if one is created
+          setDefaultsOnInsert: true, // will set default values defined in your schema
+        },
       );
-      // Fetch latest 4 transactions when a new wallet is created
-      await this.initializeTransactions(wallet.address);
-      return newWallet;
+      return createdWallet;
     }
     return foundWallet;
   }
@@ -52,8 +53,6 @@ export class WalletService {
     let foundWallet = await this.walletModel.findOne({ address });
     if (!foundWallet) {
       foundWallet = await this.walletModel.create({ address });
-      // Fetch latest 4 transactions when wallet is created
-      await this.initializeTransactions(address);
     }
     return foundWallet;
   }
@@ -193,41 +192,29 @@ export class WalletService {
     return new SuccessResponse(true);
   }
 
-  async getTransactions(address: string, limit: Number = 4) {
+  async getTransactions(address: string, limit: number = 4) {
     try {
-      const foundWallet = await this.walletModel.aggregate([
-        { $match: { address: address } },
-        {
-          $unwind: '$transactions',
-        },
-        {
-          $match: { 'transactions.details': { $ne: null } },
-        },
-        {
-          $sort: { 'transactions.blockNumber': -1 },
-        },
-        {
-          $limit: Number(limit),
-        },
-        {
-          $group: {
-            _id: '$_id',
-            likes: { $first: '$likes' },
-            dislikes: { $first: '$dislikes' },
-            comments: { $first: '$comments' },
-            transactions: { $push: '$transactions' },
-          },
-        },
+      const foundWallet = await this.walletModel.findOne({ address });
+
+      const { _id, likes, dislikes, comments } = foundWallet || { _id: '', likes: [], dislikes: [], comments: [] };
+
+      const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+        this.etherscanService.getTransactionsByAccount(address),
+        this.polygonscanService.getTransactionsByAccount(address),
+        this.bscService.getTransactionsByAccount(address),
       ]);
 
-      if (!foundWallet) {
-        throw new BadRequestException('Wallet not found!');
-      }
+      const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns];
 
-      return foundWallet?.[0];
+      return {
+        _id,
+        likes,
+        dislikes,
+        comments,
+        transactions: transactions.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit),
+      };
     } catch (error) {
-      logger.log(error);
-      return null;
+      throw new BadRequestException(error.message);
     }
   }
 

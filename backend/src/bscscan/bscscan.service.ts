@@ -91,7 +91,6 @@ export class BscscanService {
           txHashs.push(transfer.transaction_hash);
         }
       }
-      console.log(txHashs);
       for (const txHash of txHashs) {
         const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
           chain: EvmChain.BSC,
@@ -427,7 +426,6 @@ export class BscscanService {
           txHashs.push(transfer.transaction_hash);
         }
       }
-      console.log(txHashs);
       // Get decoded transaction by hash
       for (const txHash of txHashs) {
         const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({

@@ -50,15 +50,11 @@ export class ArbitrumService {
         value,
       } = transfer;
 
-      let usdPrice = '0';
-
-      await Moralis.EvmApi.token
-        .getTokenPrice({
-          chain: EvmChain.ARBITRUM,
-          address,
-          exchange: 'uniswapv3',
-        })
-        .then((response) => (usdPrice = response.toJSON().usdPrice.toString()));
+      const response = await Moralis.EvmApi.token.getTokenPrice({
+        chain: EvmChain.ARBITRUM,
+        address,
+        exchange: 'uniswapv3',
+      });
 
       transactions.push({
         txHash: transaction_hash,
@@ -76,7 +72,7 @@ export class ArbitrumService {
             contractAddress: address,
             decimals: token_decimals,
             amount: value,
-            price: usdPrice,
+            price: response?.toJSON().usdPrice.toString() || '0',
           },
         },
       });
@@ -85,7 +81,7 @@ export class ArbitrumService {
     for (const transfer of NFTTxns.toJSON().result) {
       const { token_address, from_address, to_address, transaction_hash, block_timestamp, block_number, amount } =
         transfer;
-      await Moralis.EvmApi.nft
+      Moralis.EvmApi.nft
         .getNFTContractMetadata({
           chain: EvmChain.ARBITRUM,
           address: token_address,
