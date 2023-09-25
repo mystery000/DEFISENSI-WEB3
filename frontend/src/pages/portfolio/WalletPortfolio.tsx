@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Highcharts from 'highcharts';
 import AppLayout from '../../layouts/AppLayout';
 import HighchartsReact from 'highcharts-react-official';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import {
   FollowerIcon,
@@ -22,24 +23,23 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Balance, BalanceHistory, TokenBalance } from '../../types/balance';
 
 import {
-  findWalletTransactions,
-  followWallet,
   getBalance,
+  followWallet,
   getBalanceHistory,
+  findWalletTransactions,
 } from '../../lib/api';
 
 import cn from 'classnames';
 import * as Antd from 'antd';
-import Select from 'react-select';
 import { Box } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../../context/app';
 import { balanceFormatter } from '../../lib/utils';
 import { Transaction } from '../../types/transaction';
+import { ChainSelection } from '../../components/ChainSelection';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import { ChainSelection } from '../../components/ChainSelection';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -54,11 +54,12 @@ export const WalletPortfolio = () => {
   const [following, setFollowing] = useState(false);
   const [balance, setBalance] = useState<Balance>({});
   const [width, setWidth] = useState(window.innerWidth);
+  const [notificationOn, setNotificationOn] = useState(false);
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const {
     data: portfolio,
     loading: loadingPortfolio,
@@ -451,8 +452,11 @@ export const WalletPortfolio = () => {
             </button>
           </div>
 
-          <div className="flex justify-end">
-            <NotificationOnIcon />
+          <div
+            className="flex justify-end hover:cursor-pointer"
+            onClick={() => setNotificationOn((state) => !state)}
+          >
+            {notificationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
@@ -523,16 +527,6 @@ export const WalletPortfolio = () => {
                 <span className="text-sora text-xl font-semibold">
                   Asset Overview
                 </span>
-                <Antd.Select
-                  defaultValue="day"
-                  style={{ width: 120 }}
-                  options={[
-                    { value: 'hour', label: '1 hour' },
-                    { value: 'day', label: '1 day' },
-                    { value: 'month', label: '1 month' },
-                    { value: 'year', label: '1 year' },
-                  ]}
-                />
               </div>
               <div className="mt-2 flex flex-wrap justify-between gap-4">
                 <Asset

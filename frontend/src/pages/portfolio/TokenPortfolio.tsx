@@ -24,6 +24,7 @@ import HighchartsReact from 'highcharts-react-official';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import usePriceHistory from '../../lib/hooks/usePriceHistory';
 import { EmptyContainer } from '../../components/EmptyContainer';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
 import { followToken, getTokenTransactions } from '../../lib/api';
 import useTokenTransactions from '../../lib/hooks/useTokenTransactions';
@@ -42,6 +43,7 @@ export const TokenPortfolio = () => {
   const [following, setFollowing] = useState(false);
   const [fetchMore, setFetchMore] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
+  const [noticationOn, setNotificationOn] = useState(false);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
   const { exchangePrice, loading: loadingExchangePrice } =
     usePriceFromExchanges();
@@ -342,8 +344,11 @@ export const TokenPortfolio = () => {
             </button>
           </div>
 
-          <div className="flex justify-end">
-            <NotificationOnIcon />
+          <div
+            className="flex justify-end hover:cursor-pointer"
+            onClick={() => setNotificationOn((state) => !state)}
+          >
+            {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">

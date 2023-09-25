@@ -23,6 +23,7 @@ import { NftTransfer } from '../../types/transaction';
 import { followNFT, getNFTTransactions } from '../../lib/api';
 import useNFTPortfolio from '../../lib/hooks/useNFTPortfolio';
 import { EmptyContainer } from '../../components/EmptyContainer';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import useNFTTransactions from '../../lib/hooks/useNFTTransactions';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 
@@ -35,14 +36,14 @@ enum ContentType {
 export const NFTPortfolio = () => {
   const { user } = useAppContext();
   const { network, address } = useParams();
-  const [width, setWidth] = useState(window.innerWidth);
-  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
-  const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
   const [following, setFollowing] = useState(false);
   const [fetchMore, setFetchMore] = useState(false);
   const [balance, setBalance] = useState<Balance>({});
+  const [width, setWidth] = useState(window.innerWidth);
+  const [noticationOn, setNotificationOn] = useState(false);
+  const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
-
   const {
     transactions,
     loading: loadingTransactions,
@@ -402,8 +403,11 @@ export const NFTPortfolio = () => {
             </button>
           </div>
 
-          <div className="flex justify-end">
-            <NotificationOnIcon />
+          <div
+            className="flex justify-end hover:cursor-pointer"
+            onClick={() => setNotificationOn((state) => !state)}
+          >
+            {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">

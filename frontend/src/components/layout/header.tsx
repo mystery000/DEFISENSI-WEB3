@@ -116,11 +116,12 @@ const Header = () => {
       label: (
         <div className="flex cursor-pointer items-center gap-2">
           <UserOutlined />
-          <span>User</span>
+          <span title={user.address}>{user.address.slice(0, 5)}</span>
         </div>
       ),
       key: 'User',
       type: 'group',
+      address: user.address,
       icon: <UserOutlined />,
       children: [
         !user.address
@@ -168,7 +169,13 @@ const Header = () => {
               >
                 {item.icon}
                 <Dropdown menu={{ items: item.children }} placement="bottom">
-                  <span>{item.key}</span>
+                  {item.key === 'User' ? (
+                    <span title={item.address}>
+                      {item.address?.slice(0, 5)}
+                    </span>
+                  ) : (
+                    <span>{item.key}</span>
+                  )}
                 </Dropdown>
               </div>
             );

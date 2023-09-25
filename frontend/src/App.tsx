@@ -25,6 +25,7 @@ import {
 } from '@web3modal/ethereum';
 
 import 'react-toastify/dist/ReactToastify.css';
+import { EntryRoute } from './routes/EntryRoute';
 import { NFTNotificationPage } from './pages/notification/NFTNotificationPage';
 import { TokenNotificationPage } from './pages/notification/TokenNotificationPage';
 import { WalletNotificationPage } from './pages/notification/WalletNotificationPage';
@@ -43,12 +44,12 @@ const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
 function App() {
   return (
-    <>
+    <div>
       <WagmiConfig config={wagmiConfig}>
         <ManagedAppContext>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Navigate to="/transactions" />} />
+              <Route path="/" element={<EntryRoute />} />
               <Route path="/login" element={<Login />} />
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />
@@ -100,7 +101,7 @@ function App() {
         pauseOnHover
         theme="light"
       />
-    </>
+    </div>
   );
 }
 
