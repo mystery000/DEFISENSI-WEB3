@@ -14,9 +14,12 @@ import {
   NFTTransaction,
   Token,
   TokenTransaction,
+  TopWallet,
 } from 'src/utils/types';
+import puppeteer from 'puppeteer';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
+
 @Injectable()
 export class BscscanService {
   private readonly web3: Web3;
@@ -723,5 +726,37 @@ export class BscscanService {
 
   async getTopNFTs() {}
 
-  async test() {}
+  async getTopWallets() {
+    let accounts: TopWallet[] = [];
+    try {
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://bscscan.com/accounts', {
+        waitUntil: 'domcontentloaded',
+      });
+
+      accounts = await page.evaluate(() => {
+        const accountList = document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
+        return Array.from(accountList).map((account) => {
+          return {
+            address: account.querySelector('td a.js-clipboard.link-secondary').getAttribute('data-clipboard-text'),
+            balance: account
+              .querySelector('td:nth-child(4)')
+              .innerHTML.replace(/<[^>]+>/g, '')
+              .trim(),
+            percentage: account.querySelector('td:nth-child(5)').innerHTML,
+          };
+        });
+      });
+      await broswer.close();
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return accounts || [];
+    }
+  }
+
+  async test() {
+    return this.getTopWallets();
+  }
 }
