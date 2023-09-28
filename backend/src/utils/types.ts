@@ -218,4 +218,4 @@ export type TopERC20Token = {
 
 export type TopNFT = {};
 
-export type TopWallet = {};
+export type TopWallet = { address: string; balance: string; percentage: string };
