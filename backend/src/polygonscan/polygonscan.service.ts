@@ -14,7 +14,9 @@ import {
   NFTTransaction,
   TokenBalance,
   TokenTransaction,
+  TopWallet,
 } from 'src/utils/types';
+import puppeteer from 'puppeteer';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 
@@ -587,5 +589,34 @@ export class PolygonscanService {
 
   async getTopNFTs() {}
 
+  async getTopWallets() {
+    let accounts: TopWallet[] = [];
+    try {
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://polygonscan.com/accounts', {
+        waitUntil: 'domcontentloaded',
+      });
+
+      accounts = await page.evaluate(() => {
+        const accountList = document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
+        return Array.from(accountList).map((account) => {
+          return {
+            address: account.querySelector('td a').innerHTML,
+            balance: account
+              .querySelector('td:nth-child(4)')
+              .innerHTML.replace(/<[^>]+>/g, '')
+              .trim(),
+            percentage: account.querySelector('td:nth-child(5)').innerHTML,
+          };
+        });
+      });
+      await broswer.close();
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return accounts || [];
+    }
+  }
   async test() {}
 }

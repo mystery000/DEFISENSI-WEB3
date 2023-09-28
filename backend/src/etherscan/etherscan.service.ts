@@ -1020,7 +1020,5 @@ export class EtherscanService {
     }
   }
 
-  async test() {
-    return this.getTopWallets();
-  }
+  async test() {}
 }
