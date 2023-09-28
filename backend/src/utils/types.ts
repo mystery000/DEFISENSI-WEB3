@@ -206,14 +206,11 @@ export enum ChainbaseChain {
 }
 
 export type TopERC20Token = {
-  id: string;
-  symbol: string;
+  address: string;
   name: string;
-  image: string;
-  current_price: number;
-  price_change_24h: number;
-  price_change_percentage_24h: number;
-  followers?: number;
+  price: string;
+  change: string;
+  follows?: number;
 };
 
 export type TopNFT = {};

@@ -289,39 +289,16 @@ export class TokenService {
     return null;
   }
 
-  async getTopERC20Tokens(network: string, order: string) {
+  async getTopERC20Tokens(network: string) {
     switch (network) {
       case NetworkType.ETHEREUM:
-        return this.etherscanService.getTopERC20Tokens(order);
+        return this.etherscanService.getTopERC20Tokens();
       case NetworkType.POLYGON:
-        return this.polygonService.getTopERC20Tokens(order);
+        return this.polygonService.getTopERC20Tokens();
       case NetworkType.BSC:
-        return this.bscService.getTopERC20Tokens(order);
+        return this.bscService.getTopERC20Tokens();
       case NetworkType.ARBITRUM:
-        return this.arbitrumService.getTopERC20Tokens(order);
-    }
-  }
-
-  async getTokenAddress(network: string, id: string) {
-    if (!network || !id) {
-      throw new BadRequestException('network and id are required');
-    }
-    try {
-      const response = await axios.get(
-        `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false`,
-      );
-      switch (network) {
-        case NetworkType.ETHEREUM:
-          return response.data.platforms['ethereum'];
-        case NetworkType.POLYGON:
-          return response.data.platforms['polygon-pos'];
-        case NetworkType.BSC:
-          return response.data.platforms['binance-smart-chain'];
-        case NetworkType.ARBITRUM:
-          return response.data.platforms['arbitrum-one'];
-      }
-    } catch (error) {
-      logger.error(error);
+        return this.arbitrumService.getTopERC20Tokens();
     }
   }
 }

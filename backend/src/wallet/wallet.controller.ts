@@ -62,14 +62,11 @@ export class WalletController {
     return this.walletService.comment(commentWalletDto);
   }
 
-  @Get('top-wallets')
+  @Get('top-wallets/:network')
   @ApiOperation({ summary: 'Get the top wallets' })
-  // @ApiOkResponse({ type: [Wallet] })
-  // getTopWallets(): Promise<Wallet[]> {
-  //   return this.walletService.getTopWallets();
-  // }
-  getTopWallets() {
-    return this.walletService.getTopWallets();
+  @ApiParam({ name: 'network', description: 'Network Type' })
+  getTopWallets(@Param('network') network: string) {
+    return this.walletService.getTopWallets(network);
   }
 
   @Get(':address')

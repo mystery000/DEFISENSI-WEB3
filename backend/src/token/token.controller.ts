@@ -55,25 +55,11 @@ export class TokenController {
     return this.tokenService.dislike(dislikeDto);
   }
 
-  @Get('top/:network')
+  @Get('top-tokens/:network')
   @ApiOperation({ summary: 'Get the top ERC20 tokens' })
   @ApiParam({ name: 'network', description: 'The token network' })
-  @ApiQuery({
-    name: 'order',
-    description:
-      'Valid values: current_price_asc, current_price_desc, price_change_percentage_24h_asc, price_change_percentage_24h_desc\n\n Sort results by field',
-    required: false,
-  })
-  getTopERC20Tokens(@Param('network') network: string, @Query('order') order: string) {
-    return this.tokenService.getTopERC20Tokens(network, order);
-  }
-
-  @Get('top/:network/:id')
-  @ApiOperation({ summary: 'Get current data (name, price, platforms...) for a ERC0 token' })
-  @ApiParam({ name: 'network', description: 'The token network' })
-  @ApiParam({ name: 'id', description: 'pass the coin id (can be obtained from /coins) eg. bitcoin' })
-  getTokenAddress(@Param('network') network: string, @Param('id') id: string) {
-    return this.tokenService.getTokenAddress(network, id);
+  getTopERC20Tokens(@Param('network') network: string) {
+    return this.tokenService.getTopERC20Tokens(network);
   }
 
   @Get('/:network/:address')

@@ -14,6 +14,7 @@ import {
   NFTTransaction,
   TokenBalance,
   TokenTransaction,
+  TopERC20Token,
   TopWallet,
 } from 'src/utils/types';
 import puppeteer from 'puppeteer';
@@ -563,24 +564,29 @@ export class PolygonscanService {
   }
 
   async getTopERC20Tokens(order?: string) {
+    let topTokens: TopERC20Token[] = [];
+
     try {
-      const response = await axios.get(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=polygon-ecosystem&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`,
-      );
-      const tokens = response.data;
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://polygonscan.com/tokens', {
+        waitUntil: 'domcontentloaded',
+      });
 
-      switch (order) {
-        case 'current_price_asc':
-          return tokens.sort((a, b) => a.current_price - b.current_price);
-        case 'current_price_desc':
-          return tokens.sort((a, b) => b.current_price - a.current_price);
-        case 'price_change_percentage_24h_asc':
-          return tokens.sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
-        case 'price_change_percentage_24h_desc':
-          return tokens.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
-      }
+      topTokens = await page.evaluate(() => {
+        const accountList = document.querySelectorAll('#tblResult tbody tr');
+        return Array.from(accountList).map((account) => {
+          return {
+            name: account.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
+            address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
+            price: account.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
+            change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
+          };
+        });
+      });
 
-      return tokens;
+      await broswer.close();
+      return topTokens;
     } catch (error) {
       logger.error(error);
       return [];
@@ -618,5 +624,6 @@ export class PolygonscanService {
       return accounts || [];
     }
   }
+
   async test() {}
 }
