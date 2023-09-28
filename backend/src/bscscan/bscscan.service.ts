@@ -15,6 +15,7 @@ import {
   Token,
   TokenTransaction,
   TopERC20Token,
+  TopNFT,
   TopWallet,
 } from 'src/utils/types';
 import puppeteer from 'puppeteer';
@@ -30,6 +31,7 @@ export class BscscanService {
     const provider = `https://bsc-dataseed1.binance.org/`;
     this.web3 = new Web3(provider);
   }
+
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
     let txHashs = [];
     let transactions: TokenTransaction[] = [];
@@ -730,7 +732,32 @@ export class BscscanService {
     }
   }
 
-  async getTopNFTs() {}
+  async getTopNFTs() {
+    let topNFTs: TopNFT[] = [];
+    try {
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://www.coingecko.com/en/nft/binance-smart-chain', { waitUntil: 'domcontentloaded' });
+      topNFTs = await page.evaluate(() => {
+        const tokenList = document.querySelectorAll('.coingecko-table tbody tr');
+        return Array.from(tokenList).map((token) => {
+          return {
+            coin_id: token.querySelector('td:nth-child(3) a').getAttribute('href').slice(8),
+            name: token.querySelector('td:nth-child(3) a').innerHTML,
+            floor: token.querySelector('td:nth-child(4) div.tw-flex-1').innerHTML.trim(),
+            change: token.querySelector('td:nth-child(5) span').innerHTML,
+            volume: token.querySelector('td:nth-child(8)').innerHTML,
+            holders: token.querySelector('td:nth-child(9)').innerHTML.trim(),
+          };
+        });
+      });
+      await broswer.close();
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return topNFTs;
+    }
+  }
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
