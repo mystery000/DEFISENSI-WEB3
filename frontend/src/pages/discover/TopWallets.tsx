@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import { Input, Spin } from 'antd';
 import { Box } from '@mui/material';
@@ -17,9 +17,9 @@ import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopWallets = () => {
-  const { data: topWallets, loading } = useTopWallets();
   const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const { data: topWallets, loading } = useTopWallets(chain);
 
   if (loading) {
     return (
@@ -45,6 +45,7 @@ export const TopWallets = () => {
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
+              value={chain}
               onChange={(chain) => {
                 if (chain) setChain(chain.value);
               }}
@@ -88,28 +89,16 @@ export const TopWallets = () => {
                     }}
                   >
                     <TableCell>
-                      {convertHex(wallet.address).slice(0, 6)}
+                      <a
+                        href={`/portfolio/wallet/${wallet.address}`}
+                        target="_blank"
+                      >
+                        {convertHex(wallet.address).slice(0, 6)}
+                      </a>
                     </TableCell>
-                    <TableCell>
-                      {Number(wallet.amount).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      ${wallet.price_usd}
-                      {Number(wallet.price_24h_percent_change) < 0 ? (
-                        <span className="text-orange-400">
-                          -
-                          {Number(
-                            wallet.price_24h_percent_change,
-                          ).toLocaleString()}
-                          %
-                        </span>
-                      ) : (
-                        <span className="text-malachite-500">
-                          +{Number(wallet.price_24h_percent_change)}%
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>{wallet.followers}</TableCell>
+                    <TableCell>{wallet.balance}</TableCell>
+                    <TableCell>{wallet.percentage}</TableCell>
+                    <TableCell>{wallet.followers || 0}</TableCell>
                   </TableRow>
                 ))
               ) : (

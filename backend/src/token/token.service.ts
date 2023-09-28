@@ -301,4 +301,6 @@ export class TokenService {
         return this.arbitrumService.getTopERC20Tokens();
     }
   }
+
+  async getTokenAddress(network: string, id: string) {}
 }

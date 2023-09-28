@@ -16,9 +16,9 @@ import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopNFTs = () => {
-  const { data: topNFTs, loading } = useTopNFTs();
   const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const { data: topNFTs, loading } = useTopNFTs(chain);
 
   if (loading) {
     return (
@@ -44,6 +44,7 @@ export const TopNFTs = () => {
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
+              value={chain}
               onChange={(chain) => {
                 if (chain) setChain(chain.value);
               }}
@@ -86,23 +87,9 @@ export const TopNFTs = () => {
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
                   >
-                    <TableCell>{nft.collection_title}</TableCell>
-                    <TableCell>
-                      {Math.abs(Number(nft.floor_price_24hr_percent_change))}
-                      {Number(nft.floor_price_24hr_percent_change) > 0 ? (
-                        <span className="text-malachite-500">ETH</span>
-                      ) : (
-                        <span className="text-orange-400">ETH</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {Math.abs(Number(nft.volume_24hr_percent_change))}
-                      {Number(nft.volume_24hr_percent_change) > 0 ? (
-                        <span className="text-malachite-500">ETH</span>
-                      ) : (
-                        <span className="text-orange-400">ETH</span>
-                      )}
-                    </TableCell>
+                    <TableCell>{nft.name}</TableCell>
+                    <TableCell>{nft.floor}</TableCell>
+                    <TableCell>{nft.change}</TableCell>
                     <TableCell>{nft.holders}</TableCell>
                   </TableRow>
                 ))

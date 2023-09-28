@@ -40,6 +40,7 @@ import { ChainSelection } from '../../components/ChainSelection';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
+import { NetworkType } from '../../types';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -57,6 +58,7 @@ export const WalletPortfolio = () => {
   const [notificationOn, setNotificationOn] = useState(false);
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
   const [balanceHistory, setBalanceHistory] = useState<BalanceHistory>({});
 
@@ -513,7 +515,12 @@ export const WalletPortfolio = () => {
                     </option>
                   ))}
                 </select> */}
-                <ChainSelection />
+                <ChainSelection
+                  value={chain}
+                  onChange={(chain) => {
+                    if (chain) setChain(chain.value);
+                  }}
+                />
               </div>
               <HighchartsReact
                 highcharts={Highcharts}

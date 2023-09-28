@@ -62,6 +62,14 @@ export class TokenController {
     return this.tokenService.getTopERC20Tokens(network);
   }
 
+  @Get('top-tokens/:network/:id')
+  @ApiOperation({ summary: 'Get the token address' })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'id', description: 'pass the coin id (can be obtained from /coins) eg. bitcoin' })
+  getTokenAddress(@Param('network') network: string, @Param('id') id: string) {
+    return this.tokenService.getTokenAddress(network, id);
+  }
+
   @Get('/:network/:address')
   @ApiOperation({ summary: 'Get token' })
   @ApiOkResponse({ type: SuccessResponse })

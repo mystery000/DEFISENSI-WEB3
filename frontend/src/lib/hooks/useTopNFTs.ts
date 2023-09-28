@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { TopNFT } from '../../types/discover';
 import { getTopNFTCollections } from '../api';
 
-export default function useTopNFTs() {
+export default function useTopNFTs(network: string) {
   const [data, setData] = useState<TopNFT[]>([]);
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -12,7 +12,7 @@ export default function useTopNFTs() {
     (async () => {
       try {
         setLoading(true);
-        const topNFTs = await getTopNFTCollections();
+        const topNFTs = await getTopNFTCollections(network);
         setData(topNFTs);
         setLoading(false);
       } catch (error) {
@@ -22,7 +22,7 @@ export default function useTopNFTs() {
         return [];
       }
     })();
-  }, []);
+  }, [network]);
 
   return { data, error, loading, mutate: setData };
 }

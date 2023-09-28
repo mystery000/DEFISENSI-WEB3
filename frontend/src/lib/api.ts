@@ -349,25 +349,27 @@ export const getTopERC20Tokens = async (network: string) => {
     return [];
   }
   try {
-    const res = await axios.get(`${API_BASE_URL}/token/top/${network}`);
+    const res = await axios.get(`${API_BASE_URL}/token/top-tokens/${network}`);
     return res.data as TopToken[];
   } catch (error) {
     return [];
   }
 };
 
-export const getTopNFTCollections = async () => {
+export const getTopNFTCollections = async (network: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/nft/top-nfts`);
+    const res = await axios.get(`${API_BASE_URL}/nft/top-nfts/${network}`);
     return res.data as TopNFT[];
   } catch (error) {
     throw error;
   }
 };
 
-export const getTopWallets = async () => {
+export const getTopWallets = async (network: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/wallet/top-wallets`);
+    const res = await axios.get(
+      `${API_BASE_URL}/wallet/top-wallets/${network}`,
+    );
     return res.data as TopWallet[];
   } catch (error) {
     throw error;

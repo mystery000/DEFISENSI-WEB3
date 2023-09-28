@@ -61,7 +61,7 @@ export class NftController {
     return this.nftService.dislike(dislikeDto);
   }
 
-  @Get('top/:network')
+  @Get('top-nfts/:network')
   @ApiOperation({ summary: 'Get the top NFTs' })
   @ApiParam({ name: 'network', description: 'Name of network issuing tokens' })
   getTopNFTs(@Param('network') network: string) {

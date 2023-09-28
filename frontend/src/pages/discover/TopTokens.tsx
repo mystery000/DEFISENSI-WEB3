@@ -10,7 +10,6 @@ import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { getTokenAddress } from '../../lib/api';
 import { SearchOutlined } from '@ant-design/icons';
 import useTopTokens from '../../lib/hooks/useTopTokens';
 import TableContainer from '@mui/material/TableContainer';
@@ -23,12 +22,6 @@ export const TopTokens = () => {
   const { data: topERC20Tokens, loading } = useTopTokens(chain);
 
   const navigate = useNavigate();
-
-  const handleClick = async (network: string, id: string) => {
-    if (!id || !network) return;
-    const token_address = await getTokenAddress(network, id);
-    if (token_address) navigate(`/portfolio/token/${network}/${token_address}`);
-  };
 
   if (loading) {
     return (
@@ -54,6 +47,7 @@ export const TopTokens = () => {
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
+              value={chain}
               onChange={(chain) => {
                 if (chain) setChain(chain.value);
               }}
@@ -95,26 +89,19 @@ export const TopTokens = () => {
                     sx={{
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
-                    onClick={() => handleClick(chain, token.id)}
                     hover
                     className="hover:cursor-pointer"
                   >
-                    <TableCell>{token.name}</TableCell>
                     <TableCell>
-                      ${token.current_price.toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {Math.abs(token.price_change_percentage_24h).toFixed(3)}
-                      <span
-                        className={
-                          token.price_change_percentage_24h > 0
-                            ? 'text-malachite-500'
-                            : 'text-orange-400'
-                        }
+                      <a
+                        href={`/portfolio/token/${chain}/${token.address}`}
+                        target="_blank"
                       >
-                        {token.price_change_percentage_24h > 0 ? '+' : '-'}
-                      </span>
+                        {token.name}
+                      </a>
                     </TableCell>
+                    <TableCell>{token.price}</TableCell>
+                    <TableCell>{token.change}</TableCell>
                     <TableCell>{token.followers || 0}</TableCell>
                   </TableRow>
                 ))

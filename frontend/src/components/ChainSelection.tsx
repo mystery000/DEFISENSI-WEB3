@@ -4,9 +4,13 @@ import { NetworkType } from '../types';
 
 interface ChainSelectionProps {
   onChange?: (chain: any) => void;
+  value: NetworkType;
 }
 
-export const ChainSelection: FC<ChainSelectionProps> = ({ onChange }) => {
+export const ChainSelection: FC<ChainSelectionProps> = ({
+  onChange,
+  value,
+}) => {
   const options = [
     {
       value: NetworkType.Ethereum,
@@ -61,6 +65,7 @@ export const ChainSelection: FC<ChainSelectionProps> = ({ onChange }) => {
       options={options}
       onChange={onChange}
       className="w-44"
+      value={options.find((option) => option.value === value)}
     />
   );
 };

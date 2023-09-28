@@ -222,4 +222,4 @@ export type TopNFT = {
   holders: string;
 };
 
-export type TopWallet = { address: string; balance: string; percentage: string };
+export type TopWallet = { address: string; balance: string; percentage: string; followers?: number };
