@@ -1,13 +1,14 @@
-import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
+import puppeteer from 'puppeteer';
 import { logger } from 'src/utils/logger';
+import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, TokenTransaction } from 'src/utils/types';
+import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, TokenTransaction, TopWallet } from 'src/utils/types';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -460,6 +461,36 @@ export class ArbitrumService {
   }
 
   async getTopNFTs() {}
+
+  async getTopWallets() {
+    let accounts: TopWallet[] = [];
+    try {
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://arbiscan.io/accounts', {
+        waitUntil: 'domcontentloaded',
+      });
+
+      accounts = await page.evaluate(() => {
+        const accountList = document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
+        return Array.from(accountList).map((account) => {
+          return {
+            address: account.querySelector('td a').innerHTML,
+            balance: account
+              .querySelector('td:nth-child(4)')
+              .innerHTML.replace(/<[^>]+>/g, '')
+              .trim(),
+            percentage: account.querySelector('td:nth-child(5)').innerHTML,
+          };
+        });
+      });
+      await broswer.close();
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return accounts || [];
+    }
+  }
 
   async test() {}
 }

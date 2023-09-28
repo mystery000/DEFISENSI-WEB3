@@ -756,7 +756,5 @@ export class BscscanService {
     }
   }
 
-  async test() {
-    return this.getTopWallets();
-  }
+  async test() {}
 }
