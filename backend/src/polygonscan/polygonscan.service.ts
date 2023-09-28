@@ -563,7 +563,7 @@ export class PolygonscanService {
     }
   }
 
-  async getTopERC20Tokens(order?: string) {
+  async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
 
     try {
@@ -577,9 +577,9 @@ export class PolygonscanService {
         const accountList = document.querySelectorAll('#tblResult tbody tr');
         return Array.from(accountList).map((account) => {
           return {
-            name: account.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
+            name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
             address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
-            price: account.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
+            price: account.querySelector('td:nth-child(3) span:first-child').innerHTML,
             change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
           };
         });
@@ -625,5 +625,7 @@ export class PolygonscanService {
     }
   }
 
-  async test() {}
+  async test() {
+    return this.getTopERC20Tokens();
+  }
 }

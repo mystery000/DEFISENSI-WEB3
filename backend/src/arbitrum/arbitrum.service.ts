@@ -8,7 +8,15 @@ import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { Action, ChainbaseChain, HistoricalPrice, NFTTransaction, TokenTransaction, TopWallet } from 'src/utils/types';
+import {
+  Action,
+  ChainbaseChain,
+  HistoricalPrice,
+  NFTTransaction,
+  TokenTransaction,
+  TopERC20Token,
+  TopWallet,
+} from 'src/utils/types';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -435,25 +443,30 @@ export class ArbitrumService {
     }
   }
 
-  async getTopERC20Tokens(order?: string) {
+  async getTopERC20Tokens() {
+    let topTokens: TopERC20Token[] = [];
+
     try {
-      const response = await axios.get(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=arbitrum-ecosystem&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`,
-      );
-      const tokens = response.data;
+      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await broswer.newPage();
+      await page.goto('https://arbiscan.io/tokens', {
+        waitUntil: 'domcontentloaded',
+      });
 
-      switch (order) {
-        case 'current_price_asc':
-          return tokens.sort((a, b) => a.current_price - b.current_price);
-        case 'current_price_desc':
-          return tokens.sort((a, b) => b.current_price - a.current_price);
-        case 'price_change_percentage_24h_asc':
-          return tokens.sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h);
-        case 'price_change_percentage_24h_desc':
-          return tokens.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
-      }
+      topTokens = await page.evaluate(() => {
+        const accountList = document.querySelectorAll('#tblResult tbody tr');
+        return Array.from(accountList).map((account) => {
+          return {
+            name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
+            address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
+            price: account.querySelector('td:nth-child(3) span:first-child').innerHTML,
+            change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
+          };
+        });
+      });
 
-      return tokens;
+      await broswer.close();
+      return topTokens;
     } catch (error) {
       logger.error(error);
       return [];
