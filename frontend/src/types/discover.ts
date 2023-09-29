@@ -7,7 +7,7 @@ export type TopToken = {
 };
 
 export type TopNFT = {
-  coin_id: string;
+  address: string;
   name: string;
   floor: string;
   volume: string;

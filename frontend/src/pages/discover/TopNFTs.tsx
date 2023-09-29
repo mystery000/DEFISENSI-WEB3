@@ -87,7 +87,14 @@ export const TopNFTs = () => {
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
                   >
-                    <TableCell>{nft.name}</TableCell>
+                    <TableCell>
+                      <a
+                        href={`/portfolio/nft/${chain}/${nft.address}`}
+                        target="_blank"
+                      >
+                        {nft.name}
+                      </a>
+                    </TableCell>
                     <TableCell>{nft.floor}</TableCell>
                     <TableCell>{nft.change}</TableCell>
                     <TableCell>{nft.holders}</TableCell>

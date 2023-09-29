@@ -1000,23 +1000,24 @@ export class EtherscanService {
     try {
       const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
       const page = await broswer.newPage();
-      await page.goto('https://www.coingecko.com/en/nft/ethereum', { waitUntil: 'domcontentloaded' });
+      await page.goto('https://etherscan.io/nft-top-contracts', { waitUntil: 'domcontentloaded' });
+
       topNFTs = await page.evaluate(() => {
-        const tokenList = document.querySelectorAll('.coingecko-table tbody tr');
-        return Array.from(tokenList).map((token) => {
+        const nfts = document.querySelectorAll('#datatable tbody tr');
+        return Array.from(nfts).map((nft) => {
           return {
-            coin_id: token.querySelector('td:nth-child(3) a').getAttribute('href').slice(8),
-            name: token.querySelector('td:nth-child(3) a').innerHTML,
-            floor: token.querySelector('td:nth-child(4) div.tw-flex-1').innerHTML.trim(),
-            change: token.querySelector('td:nth-child(5) span').innerHTML,
-            volume: token.querySelector('td:nth-child(8)').innerHTML,
-            holders: token.querySelector('td:nth-child(9)').innerHTML.trim(),
+            address: nft.querySelector('td:nth-child(2) a').getAttribute('href').slice(7),
+            name: nft.querySelector('td:nth-child(2) a div:nth-child(2)').innerHTML,
+            volume: nft.querySelector('td:nth-child(4)').innerHTML,
+            change: (<HTMLElement>nft.querySelector('td:nth-child(5')).innerText,
+            floor: nft.querySelector('td:nth-child(6)').innerHTML,
+            holders: nft.querySelector('td:nth-child(10)').innerHTML,
           };
         });
       });
       await broswer.close();
-    } catch (error) {
-      logger.error(error);
+    } catch (err) {
+      logger.error(err);
     } finally {
       return topNFTs;
     }
