@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsNumber, IsString, ValidateNested, maxLength } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested, maxLength } from 'class-validator';
 
 import { NetworkType } from '../../utils/enums/network.enum';
 
@@ -25,43 +25,52 @@ export class CreateWalletNotificationDto {
 
   @ApiProperty()
   @IsString()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  subscribeTo: string[];
+  @IsOptional()
+  subscribeTo?: string[];
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  receivingFrom: string[];
+  @IsOptional()
+  receivingFrom?: string[];
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  sendingTo: string;
+  @IsOptional()
+  sendingTo?: string;
 
   @ApiProperty()
   @IsNumber()
-  minUsd: number;
+  @IsOptional()
+  minUsd?: number;
 
   @ApiProperty()
   @IsNumber()
-  maxUsd: number;
+  @IsOptional()
+  maxUsd?: number;
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
+  @IsOptional()
   @IsString({ each: true })
-  tokens: string[];
+  tokens?: string[];
 
   @ApiProperty()
   @IsNumber()
-  minTokenValue: number;
+  @IsOptional()
+  minTokenValue?: number;
 
   @ApiProperty()
   @IsNumber()
-  maxTokenValue: number;
+  @IsOptional()
+  maxTokenValue?: number;
 
   @ApiProperty({ type: String, isArray: true, enum: NetworkType })
   @IsArray()
@@ -80,39 +89,47 @@ export class CreateTokenNotificationDto {
 
   @ApiProperty()
   @IsString()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  subscribeTo: string[];
+  @IsOptional()
+  subscribeTo?: string[];
 
   @ApiProperty()
   @IsNumber()
-  minUsd: number;
+  @IsOptional()
+  minUsd?: number;
 
   @ApiProperty()
   @IsNumber()
-  maxUsd: number;
+  @IsOptional()
+  maxUsd?: number;
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  tokens: string[];
+  @IsOptional()
+  tokens?: string[];
 
   @ApiProperty()
   @IsString()
-  changePercent: string;
+  @IsOptional()
+  changePercent?: string;
 
   @ApiProperty()
   @IsString()
-  changePercentDir: string;
+  @IsOptional()
+  changePercentDir?: string;
 
   @ApiProperty({ type: () => FilterDto, isArray: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FilterDto)
-  tokenFilter: Array<FilterDto>;
+  @IsOptional()
+  tokenFilter?: Array<FilterDto>;
 
   @ApiProperty({ type: String, isArray: true, enum: NetworkType })
   @IsArray()
@@ -131,30 +148,35 @@ export class CreateNftNotificationDto {
 
   @ApiProperty()
   @IsString()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ type: String, isArray: true })
   @IsArray()
   @IsString({ each: true })
-  subscribeTo: string[];
+  @IsOptional()
+  subscribeTo?: string[];
 
   @ApiProperty({ type: () => FilterDto, isArray: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FilterDto)
-  nftDailyFloor: Array<FilterDto>;
+  @IsOptional()
+  nftDailyFloor?: Array<FilterDto>;
 
   @ApiProperty({ type: () => FilterDto, isArray: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FilterDto)
-  nftDailyVolume: Array<FilterDto>;
+  @IsOptional()
+  nftDailyVolume?: Array<FilterDto>;
 
   @ApiProperty({ type: () => FilterDto, isArray: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FilterDto)
-  nftDailySales: Array<FilterDto>;
+  @IsOptional()
+  nftDailySales?: Array<FilterDto>;
 
   @ApiProperty({ type: String, isArray: true, enum: NetworkType })
   @IsArray()

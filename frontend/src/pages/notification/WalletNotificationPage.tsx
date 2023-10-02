@@ -1,38 +1,25 @@
 import { useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
-import { Button, Input, Select } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
-import AppLayout from '../../layouts/AppLayout';
 import {
   WalletNotificationType,
   Notification,
   NotificationType,
 } from '../../types/notification';
+import { Input, Select } from 'antd';
 import { toast } from 'react-toastify';
-import { isValid } from '../../lib/utils';
+import TextArea from 'antd/es/input/TextArea';
+import AppLayout from '../../layouts/AppLayout';
 import { useAppContext } from '../../context/app';
 import { createNotification, updateNotification } from '../../lib/api';
 
-const initialValue = {
-  address: '',
-  name: '',
-  description: '',
-  subscribeTo: [],
-  receivingFrom: [],
-  sendingTo: [],
-  minUsd: 0,
-  maxUsd: 0,
-  tokens: [],
-  minTokenValue: 0,
-  maxTokenValue: 0,
-  network: [],
-};
+const initialValue = { address: '', name: '', network: [] };
 
 interface WalletNotificationPageProps {
   data?: Notification;
   handleEditAlert?: Function;
 }
+
 export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
   data,
   handleEditAlert,
@@ -50,43 +37,54 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
     setNotification((prev) => ({ ...prev, address: user.address }));
   }, [user]);
 
-  const handleCreateNotification = useCallback(async () => {
-    if (!isValid(notification)) {
-      toast.error('You must fill out all fields');
-      return;
-    }
-    setCreating(true);
-    try {
-      await createNotification(NotificationType.WALLET, notification);
-      toast.success('Created the notification successfully');
-      setCreating(false);
-      setNotification(initialValue);
-      setTimeout(() => navigate('/notifications'), 500);
-    } catch (error) {
-      toast.error('Failed to create a notification');
-      setCreating(false);
-      console.error(error);
-    }
-  }, [notification, navigate]);
+  const handleCreateNotification = useCallback(
+    async (e: any) => {
+      e.preventDefault();
+      if (!notification.network.length) {
+        toast.error('You must select at least one chain');
+        return;
+      }
+      try {
+        setCreating(true);
+        await createNotification(NotificationType.WALLET, notification);
+        toast.success('Created the notification successfully');
+        setCreating(false);
+        setNotification(initialValue);
+        setTimeout(() => navigate('/notifications'), 500);
+      } catch (error) {
+        toast.error('Failed to create a notification');
+        setCreating(false);
+        console.error(error);
+      }
+    },
+    [notification, navigate],
+  );
 
-  const handleUpdateNotification = useCallback(async () => {
-    if (!data || !handleEditAlert) return;
+  const handleUpdateNotification = useCallback(
+    async (e: any) => {
+      e.preventDefault();
+      if (!data || !handleEditAlert) return;
 
-    setUpdating(true);
-    try {
-      const updatedNotification = await updateNotification((data as any)._id, {
-        ...data,
-        ...notification,
-      });
-      toast.success('Updated the notification successfully');
-      setUpdating(false);
-      setTimeout(() => handleEditAlert(updatedNotification), 500);
-    } catch (error) {
-      toast.error('Failed to update a notification');
-      setUpdating(false);
-      console.error(error);
-    }
-  }, [notification, data, handleEditAlert]);
+      setUpdating(true);
+      try {
+        const updatedNotification = await updateNotification(
+          (data as any)._id,
+          {
+            ...data,
+            ...notification,
+          },
+        );
+        toast.success('Updated the notification successfully');
+        setUpdating(false);
+        setTimeout(() => handleEditAlert(updatedNotification), 500);
+      } catch (error) {
+        toast.error('Failed to update a notification');
+        setUpdating(false);
+        console.error(error);
+      }
+    },
+    [notification, data, handleEditAlert],
+  );
 
   return (
     <AppLayout noLayout={!!data}>
@@ -95,216 +93,227 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
           {data ? 'Edit Wallet Alert' : 'Create Wallet Alert'}
         </div>
         <hr className="my-2"></hr>
-        <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">Alert name</label>
-            <Input
-              placeholder="Alert name"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification?.name}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setNotification((prev) => ({ ...prev, name: e.target.value }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">Which chains?</label>
-            <Select
-              placeholder="Ethereum"
-              style={{
-                fontSize: '14px',
-                width: '100%',
-              }}
-              options={[
-                { value: 'ethereum', label: 'Ethereum' },
-                { value: 'polygon', label: 'Polygon' },
-              ]}
-              size="large"
-              mode="multiple"
-              value={notification.network}
-              onChange={(networks) =>
-                setNotification((prev) => ({ ...prev, network: [...networks] }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              Whose alerts do you want to see?
-            </label>
-            <Input
-              placeholder="Add addresses"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification.subscribeTo.join(',')}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setNotification((prev) => ({
-                  ...prev,
-                  subscribeTo: e.target.value.split(','),
-                }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">Receiving from?</label>
-            <Input
-              placeholder="Add addresses"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification.receivingFrom.join(',')}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setNotification((prev) => ({
-                  ...prev,
-                  receivingFrom: e.target.value.split(','),
-                }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">Sending to?</label>
-            <Input
-              placeholder="Add addresses"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification.sendingTo.join(',')}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setNotification((prev) => ({
-                  ...prev,
-                  sendingTo: e.target.value.split(','),
-                }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">What USD Value?</label>
-            <div className="flex items-center gap-[10px]">
+        <form
+          onSubmit={data ? handleUpdateNotification : handleCreateNotification}
+        >
+          <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">Alert name</label>
               <Input
-                placeholder="Min value"
+                placeholder="Alert name"
                 style={{ fontSize: '14px' }}
                 size="large"
-                type="number"
-                min={0}
-                value={notification.minUsd}
+                value={notification?.name}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setNotification((prev) => ({
-                    ...prev,
-                    minUsd: Number(e.target.value),
-                  }))
+                  setNotification((prev) => ({ ...prev, name: e.target.value }))
                 }
+                required
               />
-              <span className="w-10 border p-0"> </span>
-              <Input
-                placeholder="Max value"
-                style={{ fontSize: '14px' }}
+            </div>
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">Which chains?</label>
+              <Select
+                placeholder="Ethereum"
+                style={{
+                  fontSize: '14px',
+                  width: '100%',
+                }}
+                options={[
+                  { value: 'ethereum', label: 'Ethereum' },
+                  { value: 'polygon', label: 'Polygon' },
+                  { value: 'binance', label: 'BNB Smart Chain' },
+                  { value: 'arbitrum', label: 'Arbitrum' },
+                ]}
                 size="large"
-                value={notification.maxUsd}
-                type="number"
-                min={0}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                mode="multiple"
+                value={notification.network}
+                onChange={(networks) =>
                   setNotification((prev) => ({
                     ...prev,
-                    maxUsd: Number(e.target.value),
+                    network: [...networks],
                   }))
                 }
               />
             </div>
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">Which tokens?</label>
-            <Input
-              placeholder="Add tokens"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification.tokens.join(',')}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setNotification((prev) => ({
-                  ...prev,
-                  tokens: e.target.value.split(','),
-                }))
-              }
-            />
-          </div>
-          <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              What token Value?
-            </label>
-            <div className="flex items-center gap-[10px]">
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">
+                Whose alerts do you want to see?
+              </label>
               <Input
-                placeholder="Min value"
+                placeholder="Add addresses"
                 style={{ fontSize: '14px' }}
                 size="large"
-                type="number"
-                min={0}
-                value={notification.minTokenValue}
+                value={notification?.subscribeTo?.join(',')}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setNotification((prev) => ({
                     ...prev,
-                    minTokenValue: Number(e.target.value),
+                    subscribeTo: e.target.value.split(','),
                   }))
                 }
+                required
               />
-              <span className="w-10 border p-0"> </span>
+            </div>
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">
+                Receiving from?
+              </label>
               <Input
-                placeholder="Max value"
+                placeholder="Add addresses"
                 style={{ fontSize: '14px' }}
                 size="large"
-                type="number"
-                min={0}
-                value={notification.maxTokenValue}
+                value={notification?.receivingFrom?.join(',')}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setNotification((prev) => ({
                     ...prev,
-                    maxTokenValue: Number(e.target.value),
+                    receivingFrom: e.target.value.split(','),
                   }))
                 }
               />
             </div>
-          </div>
-          <div className="w-full">
-            <label className="text-sm text-bali-hai-600">
-              Alert description
-            </label>
-            <TextArea
-              placeholder="Alert description"
-              style={{ fontSize: '14px' }}
-              size="large"
-              value={notification.description}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                setNotification((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-            />
-          </div>
-          <div className="w-full text-center">
-            {data ? (
-              <div className="flex justify-center gap-4">
-                <Button
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">Sending to?</label>
+              <Input
+                placeholder="Add addresses"
+                style={{ fontSize: '14px' }}
+                size="large"
+                value={notification?.sendingTo?.join(',')}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setNotification((prev) => ({
+                    ...prev,
+                    sendingTo: e.target.value.split(','),
+                  }))
+                }
+              />
+            </div>
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">
+                What USD Value?
+              </label>
+              <div className="flex items-center gap-[10px]">
+                <Input
+                  placeholder="Min value"
+                  style={{ fontSize: '14px' }}
                   size="large"
-                  type="primary"
-                  style={{ color: 'white', backgroundColor: '#61a146' }}
-                  className="w-[350px]"
-                  onClick={handleUpdateNotification}
-                  disabled={updating}
-                >
-                  {updating ? 'Updating...' : 'Update Alert'}
-                </Button>
+                  type="number"
+                  min={0}
+                  value={notification.minUsd}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNotification((prev) => ({
+                      ...prev,
+                      minUsd: Number(e.target.value),
+                    }))
+                  }
+                />
+                <span className="w-10 border p-0"> </span>
+                <Input
+                  placeholder="Max value"
+                  style={{ fontSize: '14px' }}
+                  size="large"
+                  value={notification.maxUsd}
+                  type="number"
+                  min={0}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNotification((prev) => ({
+                      ...prev,
+                      maxUsd: Number(e.target.value),
+                    }))
+                  }
+                />
               </div>
-            ) : (
-              <Button
+            </div>
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">Which tokens?</label>
+              <Input
+                placeholder="Add tokens"
+                style={{ fontSize: '14px' }}
                 size="large"
-                type="primary"
-                style={{ color: 'white', backgroundColor: '#FF5D29' }}
-                className="w-[350px]"
-                onClick={handleCreateNotification}
-                disabled={creating}
-              >
-                {creating ? 'Creating...' : 'Create Alert'}
-              </Button>
-            )}
+                value={notification?.tokens?.join(',')}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setNotification((prev) => ({
+                    ...prev,
+                    tokens: e.target.value.split(','),
+                  }))
+                }
+              />
+            </div>
+            <div className="w-full lg:w-[49%]">
+              <label className="text-sm text-bali-hai-600">
+                What token Value?
+              </label>
+              <div className="flex items-center gap-[10px]">
+                <Input
+                  placeholder="Min value"
+                  style={{ fontSize: '14px' }}
+                  size="large"
+                  type="number"
+                  min={0}
+                  value={notification.minTokenValue}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNotification((prev) => ({
+                      ...prev,
+                      minTokenValue: Number(e.target.value),
+                    }))
+                  }
+                />
+                <span className="w-10 border p-0"> </span>
+                <Input
+                  placeholder="Max value"
+                  style={{ fontSize: '14px' }}
+                  size="large"
+                  type="number"
+                  min={0}
+                  value={notification.maxTokenValue}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNotification((prev) => ({
+                      ...prev,
+                      maxTokenValue: Number(e.target.value),
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              <label className="text-sm text-bali-hai-600">
+                Alert description
+              </label>
+              <TextArea
+                placeholder="Alert description"
+                style={{ fontSize: '14px' }}
+                size="large"
+                value={notification.description}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                  setNotification((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="w-full text-center">
+              {data ? (
+                <div className="flex justify-center gap-4">
+                  <button
+                    type="submit"
+                    style={{ color: 'white', backgroundColor: '#61a146' }}
+                    className="w-[350px] rounded-lg px-4 py-3"
+                    disabled={updating}
+                  >
+                    {updating ? 'Updating...' : 'Update Alert'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  style={{ color: 'white', backgroundColor: '#FF5D29' }}
+                  className="w-[350px] rounded-lg px-4 py-3"
+                  disabled={creating}
+                >
+                  {creating ? 'Creating...' : 'Create Alert'}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </AppLayout>
   );

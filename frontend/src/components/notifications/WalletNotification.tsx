@@ -58,60 +58,68 @@ export const WalletNotification: FC<WalletNotificationProps> = ({
         {notification.name}
       </div>
       <div className="mx-auto my-4 w-fit rounded-[24px] bg-persian-red-600 px-4 py-2 text-center text-white">
-        {notification.description}
+        {notification.description || 'Wallet Notification'}
       </div>
       <hr />
       <div className="my-3 flex flex-col gap-3">
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">
-            Wallets ({notification.receivingFrom.length})
+            Wallets ({notification?.receivingFrom?.length || 0})
           </div>
           <span className="font-sora font-semibold">
-            {notification.receivingFrom
-              .map((address) => convertHex(address).slice(0, 5))
-              .join(',')}
+            {notification.receivingFrom &&
+              notification.receivingFrom
+                .map((address) => convertHex(address).slice(0, 5))
+                .join(',')}
           </span>
         </div>
-        <div className="flex items-center gap-12">
-          <div className="w-1/3 text-sm text-bali-hai-600">USD Value</div>
-          <span className="font-sora font-semibold">
-            {'<'} {notification.maxUsd.toLocaleString()}
-          </span>
-        </div>
+        {notification?.maxUsd && (
+          <div className="flex items-center gap-12">
+            <div className="w-1/3 text-sm text-bali-hai-600">USD Value</div>
+            <span className="font-sora font-semibold">
+              {'<'} {notification?.maxUsd?.toLocaleString()}
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Token Value</div>
           <div className="flex items-center">
             <img
-              src={`/images/tokens/eth.png`}
+              src={`/images/network/ethereum.png`}
               width={20}
               height={20}
               alt="noIcon"
+              className="rounded-full"
             />
             <span className="font-sora font-semibold">
-              {notification.maxTokenValue.toLocaleString()}
+              {notification?.maxTokenValue?.toLocaleString()}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Tokens</div>
           <div className="flex items-center gap-2">
-            <img
-              src={`/images/tokens/eth.png`}
-              width={20}
-              height={20}
-              alt="noIcon"
-            />
+            {notification.tokens?.map((token) => (
+              <img
+                src={`/images/network/${token}.png`}
+                width={20}
+                height={20}
+                alt="noIcon"
+                className="rounded-full"
+              />
+            ))}
           </div>
         </div>
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Chains</div>
           <div className="flex items-center">
-            {notification.network.map((network) => (
+            {notification.network.map((chain) => (
               <img
-                src={`/images/tokens/eth.png`}
+                src={`/images/network/${chain}.png`}
                 width={20}
                 height={20}
                 alt="noIcon"
+                className="rounded-full"
               />
             ))}
             <span className="font-sora font-semibold"></span>

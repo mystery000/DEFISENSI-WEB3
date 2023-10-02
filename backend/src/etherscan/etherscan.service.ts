@@ -982,7 +982,9 @@ export class EtherscanService {
             name: token.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
             address: token.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
             price: token.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
-            change: (<HTMLElement>token.querySelector('td:nth-child(4) span')).innerText,
+            change:
+              (<HTMLElement>token.querySelector('td:nth-child(4) span'))?.innerText ||
+              token.querySelector('td:nth-child(4)')?.innerHTML,
           };
         });
       });

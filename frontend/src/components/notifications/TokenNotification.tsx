@@ -57,13 +57,13 @@ export const TokenNotification: FC<TokenNotificationProps> = ({
         {notification.name}
       </div>
       <div className="mx-auto my-4 w-fit rounded-[24px] bg-persian-red-600 px-4 py-2 text-center text-white">
-        {notification.description}
+        {notification.description || 'Token Notification'}
       </div>
       <hr />
       <div className="my-3 flex flex-col gap-3">
         <div className="flex items-center gap-12">
-          <div className="w-1/3 text-sm text-bali-hai-600">NFT Collection</div>
-          <span className="font-sora font-semibold">BAYC</span>
+          <div className="w-1/3 text-sm text-bali-hai-600">Token Name</div>
+          <span className="font-sora font-semibold">ETH</span>
         </div>
         <div className="flex items-center gap-12">
           <div className="w-1/3 text-sm text-bali-hai-600">Daily Floor</div>

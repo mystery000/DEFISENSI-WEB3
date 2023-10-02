@@ -90,7 +90,6 @@ export const TopTokens = () => {
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
                     hover
-                    className="hover:cursor-pointer"
                   >
                     <TableCell>
                       <a

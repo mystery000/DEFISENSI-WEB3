@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Plus } from 'lucide-react';
@@ -15,23 +16,10 @@ import {
   NFTNotificationType,
   Notification,
 } from '../../types/notification';
-import { useNavigate } from 'react-router-dom';
 
-const initialValue = {
-  address: '',
-  name: '',
-  description: '',
-  subscribeTo: [],
-  nftDailyFloor: [],
-  nftDailyVolume: [],
-  nftDailySales: [],
-  network: [],
-};
+const initialValue = { address: '', name: '', network: [] };
 
-const initialFilterValue = {
-  dir: 'Greater than',
-  value: 0,
-};
+const initialFilterValue = { dir: 'Greater than', value: 0 };
 
 interface NFTNotificationPageProps {
   data?: Notification;
@@ -161,7 +149,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
               placeholder="Add NFT Collection"
               style={{ fontSize: '14px' }}
               size="large"
-              value={notification.subscribeTo.join(',')}
+              value={notification?.subscribeTo?.join(',')}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setNotification((prev) => ({
                   ...prev,
@@ -214,7 +202,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
                 onClick={() => {
                   setNotification((prev) => ({
                     ...prev,
-                    nftDailyFloor: [...prev.nftDailyFloor, floor],
+                    nftDailyFloor: [...(prev?.nftDailyFloor || []), floor],
                   }));
                   setFloor(initialFilterValue);
                 }}
@@ -267,7 +255,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
                 onClick={() => {
                   setNotification((prev) => ({
                     ...prev,
-                    nftDailyVolume: [...prev.nftDailyVolume, volume],
+                    nftDailyVolume: [...(prev.nftDailyVolume || []), volume],
                   }));
                   setVolume(initialFilterValue);
                 }}
@@ -320,7 +308,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
                 onClick={() => {
                   setNotification((prev) => ({
                     ...prev,
-                    nftDailySales: [...prev.nftDailySales, floor],
+                    nftDailySales: [...(prev.nftDailySales || []), floor],
                   }));
                   setSales(initialFilterValue);
                 }}

@@ -12,41 +12,41 @@ export type FilterNotification = {
 export type WalletNotificationType = {
   address: string;
   name: string;
-  description: string;
-  subscribeTo: string[];
-  receivingFrom: string[];
-  sendingTo: string[];
-  minUsd: number;
-  maxUsd: number;
-  tokens: string[];
-  minTokenValue: number;
-  maxTokenValue: number;
   network: string[];
+  description?: string;
+  subscribeTo?: string[];
+  receivingFrom?: string[];
+  sendingTo?: string[];
+  minUsd?: number;
+  maxUsd?: number;
+  tokens?: string[];
+  minTokenValue?: number;
+  maxTokenValue?: number;
 };
 
 export type TokenNotificationType = {
   address: string;
   name: string;
-  description: string;
-  subscribeTo: string[];
-  minUsd: number;
-  maxUsd: number;
-  tokens: string[];
-  changePercent: string;
-  changePercentDir: string;
-  tokenFilter: FilterNotification[];
   network: string[];
+  description?: string;
+  subscribeTo?: string[];
+  minUsd?: number;
+  maxUsd?: number;
+  tokens?: string[];
+  changePercent?: string;
+  changePercentDir?: string;
+  tokenFilter?: FilterNotification[];
 };
 
 export type NFTNotificationType = {
   address: string;
   name: string;
-  description: string;
-  subscribeTo: string[];
-  nftDailyFloor: FilterNotification[];
-  nftDailyVolume: FilterNotification[];
-  nftDailySales: FilterNotification[];
   network: string[];
+  description?: string;
+  subscribeTo?: string[];
+  nftDailyFloor?: FilterNotification[];
+  nftDailyVolume?: FilterNotification[];
+  nftDailySales?: FilterNotification[];
 };
 
 export type Notification = WalletNotificationType &

@@ -23,6 +23,7 @@ export class NotificationService {
     createNotificationDto: CreateWalletNotificationDto | CreateTokenNotificationDto | CreateNftNotificationDto,
     type: string,
   ) {
+    console.log(createNotificationDto);
     const user = await this.userService.getByAddress(createNotificationDto.address);
     const newNotification = await this.notificationModel.create({
       status: true,
