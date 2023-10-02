@@ -20,6 +20,7 @@ import { BscscanController } from './bscscan/bscscan.controller';
 import { BscscanModule } from './bscscan/bscscan.module';
 import { ArbitrumController } from './arbitrum/arbitrum.controller';
 import { ArbitrumModule } from './arbitrum/arbitrum.module';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +42,7 @@ import { ArbitrumModule } from './arbitrum/arbitrum.module';
     CronJobModule,
     BscscanModule,
     ArbitrumModule,
+    MailModule,
   ],
   controllers: [AppController, BscscanController, ArbitrumController],
   providers: [AppService, BscscanService],

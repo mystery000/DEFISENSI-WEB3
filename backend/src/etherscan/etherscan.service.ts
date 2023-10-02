@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import * as moment from 'moment';
+import puppeteer from 'puppeteer';
 import { UNISWAP_ABI } from './abi';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
@@ -22,7 +23,6 @@ import {
   TopWallet,
 } from 'src/utils/types';
 import { NetworkType } from 'src/utils/enums/network.enum';
-import puppeteer from 'puppeteer';
 
 @Injectable()
 export class EtherscanService {
