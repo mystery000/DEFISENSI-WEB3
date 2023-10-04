@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
 import axios from 'axios';
+import * as Xvfb from 'xvfb';
 import Moralis from 'moralis';
 import * as moment from 'moment';
 import puppeteer from 'puppeteer';
@@ -681,7 +682,7 @@ export class EtherscanService {
                     .then((response) => {
                       metadata[item.address] = { ...response.toJSON(), sales: item.amount };
                     })
-                    .catch((error) => {});
+                    .catch((error) => { });
                 }
               }
             }
@@ -746,7 +747,7 @@ export class EtherscanService {
                 .then((response) => {
                   metadata[log.address] = { ...response.toJSON() };
                 })
-                .catch((error) => {});
+                .catch((error) => { });
             }
             // Parse ERC721 and ERC1155
             if (metadata[log.address]) {
@@ -944,10 +945,10 @@ export class EtherscanService {
       exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
       // Get prices from Binance and Kucoin in parallel
       const [binanceResponse, kucoinResponse] = await Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => { }),
         axios
           .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
-          .catch((error) => {}),
+          .catch((error) => { }),
       ]);
 
       if (binanceResponse && binanceResponse.data) {
@@ -969,11 +970,26 @@ export class EtherscanService {
     let topTokens: TopERC20Token[] = [];
 
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://etherscan.io/tokens', {
-        waitUntil: 'domcontentloaded',
+      const xvfb = new Xvfb({
+        silent: true,
+        xvfb_args: ["-screen", "0", '1280x720x24', "-ac"],
       });
+      xvfb.start((err: any) => { if (err) console.error(err) });
+
+
+      const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: null,
+        dumpio: true,
+        args: ['--no-sandbox', '--start-fullscreen', '--display=' + xvfb._display]
+      });
+
+      const page = await browser.newPage();
+      await page.goto('https://etherscan.io/tokens', {
+        waitUntil: 'networkidle2',
+      });
+
+      await page.waitForSelector("#ContentPlaceHolder1_divERC20Tokens");
 
       topTokens = await page.evaluate(() => {
         const tokenList = document.querySelectorAll('#ContentPlaceHolder1_tblErc20Tokens tbody tr');
@@ -989,7 +1005,9 @@ export class EtherscanService {
         });
       });
 
-      await broswer.close();
+      browser.close();
+      xvfb.stop();
+
       return topTokens;
     } catch (error) {
       logger.error(error);
@@ -1000,8 +1018,8 @@ export class EtherscanService {
   async getTopNFTs() {
     let topNFTs: TopNFT[] = [];
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
+      const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await browser.newPage();
       await page.goto('https://etherscan.io/nft-top-contracts', { waitUntil: 'domcontentloaded' });
 
       topNFTs = await page.evaluate(() => {
@@ -1017,7 +1035,7 @@ export class EtherscanService {
           };
         });
       });
-      await broswer.close();
+      await browser.close();
     } catch (err) {
       logger.error(err);
     } finally {
@@ -1028,8 +1046,8 @@ export class EtherscanService {
   async getTopWallets() {
     let accounts: TopWallet[] = [];
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
+      const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
+      const page = await browser.newPage();
       await page.goto('https://etherscan.io/accounts', {
         waitUntil: 'domcontentloaded',
       });
@@ -1047,7 +1065,7 @@ export class EtherscanService {
           };
         });
       });
-      await broswer.close();
+      await browser.close();
     } catch (error) {
       logger.error(error);
     } finally {
@@ -1055,5 +1073,5 @@ export class EtherscanService {
     }
   }
 
-  async test() {}
+  async test() { return this.getTopERC20Tokens() }
 }
