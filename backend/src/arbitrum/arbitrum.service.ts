@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
-import puppeteer from 'puppeteer';
+import { JSDOM } from 'jsdom';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -446,59 +446,51 @@ export class ArbitrumService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
-
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://arbiscan.io/tokens', {
-        waitUntil: 'domcontentloaded',
+      const response = await axios.get('https://arbiscan.io/tokens');
+      const dom = new JSDOM(response.data);
+      const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
+      topTokens = Array.from(accountList).map((account) => {
+        return {
+          name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
+          address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
+          price: account.querySelector('td:nth-child(3) span:first-child').innerHTML,
+          change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
+        };
       });
-
-      topTokens = await page.evaluate(() => {
-        const accountList = document.querySelectorAll('#tblResult tbody tr');
-        return Array.from(accountList).map((account) => {
-          return {
-            name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
-            address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
-            price: account.querySelector('td:nth-child(3) span:first-child').innerHTML,
-            change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
-          };
-        });
-      });
-
-      await broswer.close();
-      return topTokens;
     } catch (error) {
       logger.error(error);
-      return [];
+    } finally {
+      return topTokens;
     }
   }
 
-  async getTopNFTs() {}
+  async getTopNFTs() {
+    let topNFTs: TopNFT[] = [];
+    try {
+    } catch(error) {
+      logger.error(error.message)
+    } finally {
+      return topNFTs
+    }
+  }
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://arbiscan.io/accounts', {
-        waitUntil: 'domcontentloaded',
+      const response = await axios.get("https://arbiscan.io/accounts");
+      const dom = new JSDOM(response.data);
+      const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
+      accounts = Array.from(accountList).map((account) => {
+        return {
+          address: account.querySelector('td a').innerHTML,
+          balance: account
+            .querySelector('td:nth-child(4)')
+            .innerHTML.replace(/<[^>]+>/g, '')
+            .trim(),
+          percentage: account.querySelector('td:nth-child(5)').innerHTML,
+        };
       });
-
-      accounts = await page.evaluate(() => {
-        const accountList = document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
-        return Array.from(accountList).map((account) => {
-          return {
-            address: account.querySelector('td a').innerHTML,
-            balance: account
-              .querySelector('td:nth-child(4)')
-              .innerHTML.replace(/<[^>]+>/g, '')
-              .trim(),
-            percentage: account.querySelector('td:nth-child(5)').innerHTML,
-          };
-        });
-      });
-      await broswer.close();
     } catch (error) {
       logger.error(error);
     } finally {
@@ -506,5 +498,5 @@ export class ArbitrumService {
     }
   }
 
-  async test() {}
+  async test() {return this.getTopERC20Tokens()}
 }

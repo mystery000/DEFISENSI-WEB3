@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
+import { JSDOM } from 'jsdom';
 import { DEX_ABI } from './abi/dex';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
@@ -706,29 +707,21 @@ export class BscscanService {
     let topTokens: TopERC20Token[] = [];
 
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://bscscan.com/tokens', {
-        waitUntil: 'domcontentloaded',
+      const response = await axios.get('https://bscscan.com/tokens');
+      const dom = new JSDOM(response.data)
+      const tokenList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_tblErc20Tokens tbody tr');
+      topTokens = Array.from(tokenList).map((token) => {
+        return {
+          name: token.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
+          address: token.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
+          price: token.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
+          change: (<HTMLElement>token.querySelector('td:nth-child(4) span')).innerText,
+        };
       });
-
-      topTokens = await page.evaluate(() => {
-        const tokenList = document.querySelectorAll('#ContentPlaceHolder1_tblErc20Tokens tbody tr');
-        return Array.from(tokenList).map((token) => {
-          return {
-            name: token.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
-            address: token.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
-            price: token.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
-            change: (<HTMLElement>token.querySelector('td:nth-child(4) span')).innerText,
-          };
-        });
-      });
-
-      await broswer.close();
-      return topTokens;
     } catch (error) {
       logger.error(error);
-      return [];
+    } finally {
+      return topTokens
     }
   }
 
@@ -766,34 +759,27 @@ export class BscscanService {
   async getTopWallets() {
     let accounts: TopWallet[] = [];
     try {
-      const broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://bscscan.com/accounts', {
-        waitUntil: 'domcontentloaded',
+      const response = await axios.get("https://bscscan.com/accounts");
+      const dom = new JSDOM(response.data);
+      const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
+      accounts = Array.from(accountList).map((account) => {
+        return {
+          address: account.querySelector('td a.js-clipboard.link-secondary').getAttribute('data-clipboard-text'),
+          balance: account
+            .querySelector('td:nth-child(4)')
+            .innerHTML.replace(/<[^>]+>/g, '')
+            .trim(),
+          percentage: account.querySelector('td:nth-child(5)').innerHTML,
+        };
       });
-
-      accounts = await page.evaluate(() => {
-        const accountList = document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
-        return Array.from(accountList).map((account) => {
-          return {
-            address: account.querySelector('td a.js-clipboard.link-secondary').getAttribute('data-clipboard-text'),
-            balance: account
-              .querySelector('td:nth-child(4)')
-              .innerHTML.replace(/<[^>]+>/g, '')
-              .trim(),
-            percentage: account.querySelector('td:nth-child(5)').innerHTML,
-          };
-        });
-      });
-      await broswer.close();
     } catch (error) {
       logger.error(error);
     } finally {
-      return accounts || [];
+      return accounts;
     }
   }
 
   async test() {
-    return this.getTopNFTs();
+    return this.getTopWallets();
   }
 }
