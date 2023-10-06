@@ -21,6 +21,9 @@ import { BscscanModule } from './bscscan/bscscan.module';
 import { ArbitrumController } from './arbitrum/arbitrum.controller';
 import { ArbitrumModule } from './arbitrum/arbitrum.module';
 import { MailModule } from './mail/mail.module';
+import { AvalancheController } from './avalanche/avalanche.controller';
+import { AvalancheService } from './avalanche/avalanche.service';
+import { AvalancheModule } from './avalanche/avalanche.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,8 +46,9 @@ import { MailModule } from './mail/mail.module';
     BscscanModule,
     ArbitrumModule,
     MailModule,
+    AvalancheModule,
   ],
-  controllers: [AppController, BscscanController, ArbitrumController],
-  providers: [AppService, BscscanService],
+  controllers: [AppController, BscscanController, ArbitrumController, AvalancheController],
+  providers: [AppService, BscscanService, AvalancheService],
 })
 export class AppModule {}

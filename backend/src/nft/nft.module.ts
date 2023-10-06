@@ -10,6 +10,7 @@ import { EtherscanModule } from 'src/etherscan/etherscan.module';
 import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
 import { BscscanModule } from 'src/bscscan/bscscan.module';
 import { ArbitrumModule } from 'src/arbitrum/arbitrum.module';
+import { AvalancheModule } from 'src/avalanche/avalanche.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ArbitrumModule } from 'src/arbitrum/arbitrum.module';
     PolygonscanModule,
     BscscanModule,
     ArbitrumModule,
+    AvalancheModule,
     MongooseModule.forFeature([{ name: Nft.name, schema: NftSchema }]),
   ],
   controllers: [NftController],

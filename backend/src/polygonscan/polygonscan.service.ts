@@ -22,7 +22,6 @@ import {
 } from 'src/utils/types';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
-import { Z_NEED_DICT } from 'zlib';
 @Injectable()
 export class PolygonscanService {
   private readonly web3: Web3;
