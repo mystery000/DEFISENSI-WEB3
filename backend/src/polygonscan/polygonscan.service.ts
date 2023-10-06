@@ -4,7 +4,7 @@ import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
-import {ZenRows} from 'zenrows';
+import { ZenRows } from 'zenrows';
 import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
@@ -567,12 +567,12 @@ export class PolygonscanService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
-    const url = "https://polygonscan.com/tokens";
+    const url = 'https://polygonscan.com/tokens';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY); 
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
-      const accountList = dom.window.document.querySelectorAll("#tblResult tbody tr")
+      const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
       topTokens = Array.from(accountList).map((account) => {
         return {
           name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
@@ -581,7 +581,6 @@ export class PolygonscanService {
           change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
         };
       });
-      return topTokens;
     } catch (error) {
       logger.error(error);
     } finally {
@@ -591,24 +590,39 @@ export class PolygonscanService {
 
   async getTopNFTs() {
     let topNFTs: TopNFT[] = [];
+    const url = 'https://polygon.nftscan.com/ranking';
     try {
-      
-    } catch(error) {
-      logger.error(error.message)
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, { js_render: true, wait: 30000, wait_for: '.tr____CfO6' });
+      const dom = new JSDOM(data);
+      const nfts = dom.window.document.querySelectorAll('table tbody tr.tr____CfO6');
+      topNFTs = Array.from(nfts).map((nft) => {
+        const holdersHTML = nft.querySelector('td:nth-child(2) div.f-small').innerHTML;
+        return {
+          address: nft.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(1),
+          name: nft.querySelector('td:nth-child(2) a:first-child').innerHTML,
+          volume: nft.querySelector('td:nth-child(4) span').innerHTML + ' MATIC',
+          floor: nft.querySelector('td:nth-child(6)').textContent.trim() + ' MATIC',
+          change: nft.querySelector('td:nth-child(7)').textContent.trim(),
+          holders: holdersHTML.slice(0, holdersHTML.indexOf('Owners') - 1),
+        };
+      });
+    } catch (error) {
+      logger.error(error);
     } finally {
-      return topNFTs
+      return topNFTs;
     }
   }
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
-    const url = "https://polygonscan.com/accounts";
+    const url = 'https://polygonscan.com/accounts';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY); 
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
-      accounts =  Array.from(accountList).map((account) => {
+      accounts = Array.from(accountList).map((account) => {
         return {
           address: account.querySelector('td a').innerHTML,
           balance: account
