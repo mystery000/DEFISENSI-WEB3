@@ -29,7 +29,7 @@
     "@nestjs/schedule": "^3.0.1",
     "@types/jsdom": "^21.1.3",
     "abi-decoder": "^2.4.0",
-        "handlebars": "^4.7.8",
+    "handlebars": "^4.7.8",
     "jsdom": "^22.1.0",
     "moment": "^2.29.4",
     "mongoose": "^7.3.4",
@@ -39,7 +39,8 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "web3": "^4.0.3",
-    "xvfb": "^0.4.0"
+    "xvfb": "^0.4.0",
+    "zenrows": "^1.3.1"
   },
   "devDependencies": {
     "@nestjs/axios": "^3.0.0",

@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
+import { ZenRows } from 'zenrows';
 import { DEX_ABI } from './abi/dex';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
@@ -705,17 +706,18 @@ export class BscscanService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
-
+    const url = "https://bscscan.com/tokens";
     try {
-      const response = await axios.get('https://bscscan.com/tokens');
-      const dom = new JSDOM(response.data)
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {});
+      const dom = new JSDOM(data);
       const tokenList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_tblErc20Tokens tbody tr');
       topTokens = Array.from(tokenList).map((token) => {
         return {
           name: token.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
           address: token.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
           price: token.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
-          change: (<HTMLElement>token.querySelector('td:nth-child(4) span')).innerText,
+          change: (<HTMLElement>token.querySelector('td:nth-child(4)')).innerText,
         };
       });
     } catch (error) {
@@ -727,30 +729,24 @@ export class BscscanService {
 
   async getTopNFTs() {
     let topNFTs: TopNFT[] = [];
-    let broswer: Browser;
-
+    const url = "https://bscscan.com/nft-top-contracts";
     try {
-      broswer = await puppeteer.launch({ headless: false, defaultViewport: null });
-      const page = await broswer.newPage();
-      await page.goto('https://bscscan.com/nft-top-contracts', { waitUntil: 'domcontentloaded' });
-
-      topNFTs = await page.evaluate(() => {
-        const nfts = document.querySelectorAll('#datatable tbody tr');
-        return Array.from(nfts).map((nft) => {
-          return {
-            address: nft.querySelector('td:nth-child(2) a').getAttribute('href').slice(7),
-            name: nft.querySelector('td:nth-child(2) a div:nth-child(2)').innerHTML,
-            volume: nft.querySelector('td:nth-child(4)').innerHTML,
-            change: (<HTMLElement>nft.querySelector('td:nth-child(5')).innerText,
-            floor: nft.querySelector('td:nth-child(6)').innerHTML,
-            holders: nft.querySelector('td:nth-child(10)').innerHTML,
-          };
-        });
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {js_render: true, wait: 30000, wait_for: '#datatable'});
+      const dom = new JSDOM(data);
+      const nfts = dom.window.document.querySelectorAll('#datatable tbody tr');
+      topNFTs = Array.from(nfts).map((nft) => {
+        return {
+          address: nft.querySelector('td:nth-child(2) a').getAttribute('href').slice(7),
+          name: nft.querySelector('td:nth-child(2) a div:nth-child(2)').innerHTML,
+          volume: nft.querySelector('td:nth-child(4)').innerHTML,
+          change: (<HTMLElement>nft.querySelector('td:nth-child(5)')).innerText,
+          floor: nft.querySelector('td:nth-child(6)').innerHTML,
+          holders: nft.querySelector('td:nth-child(10)').innerHTML,
+        };
       });
-      await broswer.close();
     } catch (err) {
       logger.error(err);
-      await broswer?.close();
     } finally {
       return topNFTs;
     }
@@ -758,9 +754,11 @@ export class BscscanService {
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
+    const url = "https://bscscan.com/accounts";
     try {
-      const response = await axios.get("https://bscscan.com/accounts");
-      const dom = new JSDOM(response.data);
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {});
+      const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
       accounts = Array.from(accountList).map((account) => {
         return {
@@ -779,7 +777,5 @@ export class BscscanService {
     }
   }
 
-  async test() {
-    return this.getTopWallets();
-  }
+  async test() {}
 }

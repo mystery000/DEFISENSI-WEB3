@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
+import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -446,9 +447,11 @@ export class ArbitrumService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
+    const url = "https://arbiscan.io/tokens";
     try {
-      const response = await axios.get('https://arbiscan.io/tokens');
-      const dom = new JSDOM(response.data);
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {})
+      const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
       topTokens = Array.from(accountList).map((account) => {
         return {
@@ -477,9 +480,11 @@ export class ArbitrumService {
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
+    const url = "https://arbiscan.io/accounts";
     try {
-      const response = await axios.get("https://arbiscan.io/accounts");
-      const dom = new JSDOM(response.data);
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {})
+      const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
       accounts = Array.from(accountList).map((account) => {
         return {
@@ -494,9 +499,9 @@ export class ArbitrumService {
     } catch (error) {
       logger.error(error);
     } finally {
-      return accounts || [];
+      return accounts;
     }
   }
 
-  async test() {return this.getTopERC20Tokens()}
+  async test() {}
 }

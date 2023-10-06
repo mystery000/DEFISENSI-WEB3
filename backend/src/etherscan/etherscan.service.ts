@@ -5,6 +5,7 @@ import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom'
 import * as moment from 'moment';
+import { ZenRows } from 'zenrows';
 import { UNISWAP_ABI } from './abi';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
@@ -23,7 +24,6 @@ import {
   TopWallet,
 } from 'src/utils/types';
 import { NetworkType } from 'src/utils/enums/network.enum';
-
 @Injectable()
 export class EtherscanService {
   private readonly web3: Web3;
@@ -967,9 +967,11 @@ export class EtherscanService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
+    const url = "https://etherscan.io/tokens";
     try {
-      const response = await axios.get("https://etherscan.io/tokens")
-      const dom = new JSDOM(response.data)
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {})
+      const dom = new JSDOM(data)
       const tokenList = dom.window.document.querySelectorAll("#ContentPlaceHolder1_divERC20Tokens tbody tr")
       topTokens = Array.from(tokenList).map((token) => {
         return {
@@ -986,19 +988,20 @@ export class EtherscanService {
     }
   }
 
-  
   async getTopNFTs() {
     let topNFTs: TopNFT[] = [];
+    const url = "https://etherscan.io/nft-top-contracts";
     try {
-      const response = await axios.get('https://etherscan.io/nft-top-contracts')
-      const dom = new JSDOM(response.data)
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {js_render: true, wait_for: "#datatable", wait: 30000});
+      const dom = new JSDOM(data)
       const nfts = dom.window.document.querySelectorAll("#datatable tbody tr");
       topNFTs =  Array.from(nfts).map((nft) => {
         return {
           address: nft.querySelector('td:nth-child(2) a').getAttribute('href').slice(7),
           name: nft.querySelector('td:nth-child(2) a div:nth-child(2)').innerHTML,
           volume: nft.querySelector('td:nth-child(4)').innerHTML,
-          change: (<HTMLElement>nft.querySelector('td:nth-child(5')).innerText,
+          change: (<HTMLElement>nft.querySelector('td:nth-child(5)')).innerText,
           floor: nft.querySelector('td:nth-child(6)').innerHTML,
           holders: nft.querySelector('td:nth-child(10)').innerHTML,
         };
@@ -1012,9 +1015,11 @@ export class EtherscanService {
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
+    const url = "https://etherscan.io/accounts";
     try {
-      const response = await axios.get("https://etherscan.io/accounts")
-      const dom = new JSDOM(response.data)
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const { data } = await client.get(url, {});
+      const dom = new JSDOM(data)
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
       accounts = Array.from(accountList).map((account) => {
         return {
