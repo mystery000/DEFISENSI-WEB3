@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { Wallet } from './schemas/wallet.schema';
-import { ApiBalance, ApiBalanceHistory } from 'src/utils/types';
 import { WalletService } from './wallet.service';
 import { User } from '../user/schemas/user.schema';
 import { FollowWalletDto } from './dto/follow.dto';
@@ -109,20 +108,25 @@ export class WalletController {
     return this.walletService.getTransactions(address, limit);
   }
 
-  @Get(':address/balance')
-  @ApiOperation({ summary: 'Get balances of tokens owned by address' })
-  @ApiOkResponse({ type: ApiBalance, isArray: false })
-  @ApiParam({ name: 'address', description: 'The address of wallet' })
-  getBalance(@Param() { address }: FindOneParams) {
-    return this.walletService.getBalance(address);
+  @Get(':network/address/:address/balances')
+  @ApiOperation({ summary: 'Get token balances for address' })
+  @ApiParam({ name: 'network', description: 'The chain name' })
+  @ApiParam({ name: 'address', description: 'The requested address' })
+  getBalance(@Param('address') address: string, @Param('network') network: string) {
+    return this.walletService.getTokenBalancesForWalletAddress(network, address);
   }
 
-  @Get(':address/balancehistory')
+  @Get(':network/address/:address/historical_balances')
   @ApiOperation({ summary: 'Get balances of tokens owned by address' })
-  @ApiOkResponse({ type: ApiBalanceHistory, isArray: false })
+  @ApiParam({ name: 'network', description: 'The chain name' })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
-  getBalanceHistory(@Param() { address }: FindOneParams) {
-    return this.walletService.getBalanceHistory(address);
+  @ApiQuery({ name: 'days', description: 'The number of days to return data for. Defaults to 30 days.' })
+  getBalanceHistory(
+    @Param('address') address: string,
+    @Param('network') network: string,
+    @Query('days') days: number = 30,
+  ) {
+    return this.walletService.getHistoricalPortfolioForWalletAddress(network, address, days);
   }
 
   @Get('resolve/:address/reverse')

@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
-import { JSDOM } from 'jsdom'
+import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
 import { UNISWAP_ABI } from './abi';
@@ -13,25 +14,30 @@ import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
   Action,
-  ChainbaseChain,
+  BalancesResponse,
   ExchangePrice,
-  HistoricalPrice,
   NFTTransaction,
-  TokenBalance,
+  PortfolioResponse,
+  TokenPricesResponse,
   TokenTransaction,
   TopERC20Token,
   TopNFT,
   TopWallet,
 } from 'src/utils/types';
+import { CovalenthqChain } from 'src/utils/chains';
+import { CovalentClient } from '@covalenthq/client-sdk';
+import { ServiceConfig } from 'src/config/service.config';
 import { NetworkType } from 'src/utils/enums/network.enum';
 @Injectable()
 export class EtherscanService {
   private readonly web3: Web3;
+  private readonly serviceConfig: ServiceConfig;
   private readonly WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; // Wrapped Ether address
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     const provider = `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
     this.web3 = new Web3(provider);
+    this.serviceConfig = this.configService.get<ServiceConfig>('service');
   }
 
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
@@ -681,7 +687,7 @@ export class EtherscanService {
                     .then((response) => {
                       metadata[item.address] = { ...response.toJSON(), sales: item.amount };
                     })
-                    .catch((error) => { });
+                    .catch((error) => {});
                 }
               }
             }
@@ -746,7 +752,7 @@ export class EtherscanService {
                 .then((response) => {
                   metadata[log.address] = { ...response.toJSON() };
                 })
-                .catch((error) => { });
+                .catch((error) => {});
             }
             // Parse ERC721 and ERC1155
             if (metadata[log.address]) {
@@ -823,99 +829,6 @@ export class EtherscanService {
     }
   }
 
-  // Get the current block's token balances (native token and ERC20 tokens)
-  async getBalances(address: string) {
-    let tokens: TokenBalance[] = [];
-
-    // Get the latest block number
-    const now = moment();
-    const response = await Moralis.EvmApi.block.getDateToBlock({
-      chain: EvmChain.ETHEREUM,
-      date: now.toString(),
-    });
-
-    const latestBlockNumber = response.toJSON().block;
-    const timestamp = response.toJSON().block_timestamp;
-
-    // Get native balance by wallet
-    const nativeToken = await Moralis.EvmApi.balance.getNativeBalance({
-      chain: EvmChain.ETHEREUM,
-      address: address,
-      toBlock: latestBlockNumber,
-    });
-
-    const nativePrice = await Moralis.EvmApi.token.getTokenPrice({
-      chain: EvmChain.ETHEREUM,
-      address: this.WETH_ADDRESS,
-      toBlock: latestBlockNumber,
-    });
-
-    tokens.push({
-      logo: null,
-      name: 'Ether',
-      symbol: 'ETH',
-      contractAddress: this.WETH_ADDRESS,
-      decimals: 18,
-      value: nativeToken.toJSON().balance,
-      usdPrice: ((nativePrice.toJSON().usdPrice * Number(nativeToken.toJSON().balance)) / 1e18).toFixed(2),
-    });
-
-    // Get ERC20 token balance by wallet
-    const erc20Tokens = await Moralis.EvmApi.token.getWalletTokenBalances({
-      chain: EvmChain.ETHEREUM,
-      address,
-      toBlock: latestBlockNumber,
-    });
-
-    for (const token of erc20Tokens.toJSON()) {
-      let price = 0;
-      if (!token.possible_spam) {
-        try {
-          const response = await Moralis.EvmApi.token.getTokenPrice({
-            chain: EvmChain.ETHEREUM,
-            address: token.token_address,
-            toBlock: latestBlockNumber,
-          });
-          price = response.toJSON().usdPrice;
-        } catch (error) {
-          // logger.error(error);
-        }
-      }
-      tokens.push({
-        logo: token.logo,
-        name: token.name,
-        symbol: token.symbol,
-        contractAddress: token.token_address,
-        decimals: token.decimals,
-        value: token.balance,
-        usdPrice: ((price * Number(token.balance)) / 10 ** token.decimals).toFixed(2),
-      });
-    }
-
-    return { timestamp, tokens };
-  }
-
-  // Get the price history of ERC20 token for 90 days
-  async getPriceHistory(address: string) {
-    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
-    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
-    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
-    let toTimestamp = Math.round(new Date().getTime() / 1000);
-    let fromTimestamp = toTimestamp - 86400 * 90;
-
-    try {
-      const response = await axios.get(
-        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.ETHEREUM}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
-        {
-          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
-        },
-      );
-      return response.data.data as HistoricalPrice[];
-    } catch (error) {
-      logger.error(error);
-    }
-  }
-
   async getPriceFromExchanges(address: string) {
     let exchangesPrice: ExchangePrice = {
       tokenName: '',
@@ -944,10 +857,10 @@ export class EtherscanService {
       exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
       // Get prices from Binance and Kucoin in parallel
       const [binanceResponse, kucoinResponse] = await Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => { }),
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
         axios
           .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
-          .catch((error) => { }),
+          .catch((error) => {}),
       ]);
 
       if (binanceResponse && binanceResponse.data) {
@@ -967,36 +880,36 @@ export class EtherscanService {
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
-    const url = "https://etherscan.io/tokens";
+    const url = 'https://etherscan.io/tokens';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
-      const { data } = await client.get(url, {})
-      const dom = new JSDOM(data)
-      const tokenList = dom.window.document.querySelectorAll("#ContentPlaceHolder1_divERC20Tokens tbody tr")
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
+      const { data } = await client.get(url, {});
+      const dom = new JSDOM(data);
+      const tokenList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divERC20Tokens tbody tr');
       topTokens = Array.from(tokenList).map((token) => {
         return {
           name: token.querySelector('td:nth-child(2) .hash-tag.text-truncate.fw-medium').innerHTML,
           address: token.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
           price: token.querySelector('td:nth-child(3) .d-inline').getAttribute('data-bs-title'),
-          change: token.querySelector('td:nth-child(4)').textContent.trim()
+          change: token.querySelector('td:nth-child(4)').textContent.trim(),
         };
-      })
+      });
     } catch (error) {
-      logger.error(error.message)
+      logger.error(error.message);
     } finally {
-      return topTokens
+      return topTokens;
     }
   }
 
   async getTopNFTs() {
     let topNFTs: TopNFT[] = [];
-    const url = "https://etherscan.io/nft-top-contracts";
+    const url = 'https://etherscan.io/nft-top-contracts';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
-      const { data } = await client.get(url, {js_render: true, wait_for: "#datatable", wait: 30000});
-      const dom = new JSDOM(data)
-      const nfts = dom.window.document.querySelectorAll("#datatable tbody tr");
-      topNFTs =  Array.from(nfts).map((nft) => {
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
+      const { data } = await client.get(url, { js_render: true, wait_for: '#datatable', wait: 30000 });
+      const dom = new JSDOM(data);
+      const nfts = dom.window.document.querySelectorAll('#datatable tbody tr');
+      topNFTs = Array.from(nfts).map((nft) => {
         return {
           address: nft.querySelector('td:nth-child(2) a').getAttribute('href').slice(7),
           name: nft.querySelector('td:nth-child(2) a div:nth-child(2)').innerHTML,
@@ -1015,11 +928,11 @@ export class EtherscanService {
 
   async getTopWallets() {
     let accounts: TopWallet[] = [];
-    const url = "https://etherscan.io/accounts";
+    const url = 'https://etherscan.io/accounts';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, {});
-      const dom = new JSDOM(data)
+      const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
       accounts = Array.from(accountList).map((account) => {
         return {
@@ -1035,6 +948,84 @@ export class EtherscanService {
       logger.error(error.message);
     } finally {
       return accounts;
+    }
+  }
+
+  async getTokenPrices(address: string, from: string, to: string): Promise<TokenPricesResponse> {
+    if (!moment(from, 'YYYY-MM-DD', true).isValid() || !moment(to, 'YYYY-MM-DD', true).isValid()) {
+      throw new BadRequestException('Please use YYYY-MM-DD date format');
+    }
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.PricingService.getTokenPrices(CovalenthqChain.Ethereum, 'USD', address, { to, from });
+      return resp.data[0];
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getTokenBalancesForWalletAddress(address: string): Promise<BalancesResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getTokenBalancesForWalletAddress(CovalenthqChain.Ethereum, address, {
+        nft: true,
+        quoteCurrency: 'USD',
+      });
+      return resp.data.items.map((item) => ({
+        logo_url: item.logo_url,
+        contract_decimals: item.contract_decimals,
+        contract_name: item.contract_name,
+        contract_address: item.contract_address,
+        contract_ticker_symbol: item.contract_ticker_symbol,
+        balance: item.balance?.toString() || '0',
+        quote: item.quote?.toString() || '0',
+        pretty_quote: item.pretty_quote || '0',
+        type: item.type,
+      }));
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getHistoricalPortfolioForWalletAddress(address: string, days: number): Promise<PortfolioResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
+        CovalenthqChain.Ethereum,
+        address,
+        {
+          days: days,
+          quoteCurrency: 'USD',
+        },
+      );
+
+      const transformedData = resp.data.items.reduce((acc, curr) => {
+        const singleTokenTimeSeries = curr.holdings.map((holdingsItem) => {
+          return {
+            timestamp: holdingsItem.timestamp,
+            [curr.contract_ticker_symbol]: holdingsItem.close.quote || 0,
+          };
+        });
+        const newArr = singleTokenTimeSeries.map((item, i) => Object.assign(item, acc[i]));
+        return newArr;
+      }, []);
+      return transformedData.map((data) => {
+        let total = 0;
+        for (const [key, value] of Object.entries(data)) {
+          if (key === 'timestamp') continue;
+          total += Number(value);
+        }
+        return {
+          timestamp: data.timestamp,
+          total_quote: total.toString(),
+          pretty_total_quote: `$${total.toLocaleString()}`,
+        };
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
     }
   }
 

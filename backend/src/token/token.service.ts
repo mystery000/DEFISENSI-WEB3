@@ -2,22 +2,22 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { TokenTransaction } from 'src/utils/types';
+import { logger } from 'src/utils/logger';
 import { FollowTokenDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
+import { TokenTransaction } from 'src/utils/types';
 import { CommentTokenDto } from './dto/comment.dto';
 import { CreateTokenDto } from './dto/create-token.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
+import { NetworkType } from 'src/utils/enums/network.enum';
 import { CommentService } from '../comment/comment.service';
+import { BscscanService } from 'src/bscscan/bscscan.service';
 import { Token, TokenDocument } from './schemas/token.schema';
+import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { logger } from 'src/utils/logger';
-import { NetworkType } from 'src/utils/enums/network.enum';
+import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
-import { BscscanService } from 'src/bscscan/bscscan.service';
-import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
-import axios from 'axios';
 
 @Injectable()
 export class TokenService {
@@ -30,6 +30,7 @@ export class TokenService {
     private readonly etherscanService: EtherscanService,
     private readonly bscService: BscscanService,
     private readonly arbitrumService: ArbitrumService,
+    private readonly avalancheService: AvalancheService,
   ) {}
 
   async create(token: CreateTokenDto): Promise<Token> {
@@ -261,18 +262,19 @@ export class TokenService {
     }
   }
 
-  async getPriceHistory(network: string, address: string) {
+  async getTokenPrices(network: string, address: string, from: string, to: string) {
     switch (network) {
       case NetworkType.ETHEREUM:
-        return this.etherscanService.getPriceHistory(address);
+        return this.etherscanService.getTokenPrices(address, from, to);
       case NetworkType.POLYGON:
-        return this.polygonService.getPriceHistory(address);
+        return this.polygonService.getTokenPrices(address, from, to);
       case NetworkType.BSC:
-        return this.bscService.getPriceHistory(address);
+        return this.bscService.getTokenPrices(address, from, to);
       case NetworkType.ARBITRUM:
-        return this.arbitrumService.getPriceHistory(address);
+        return this.arbitrumService.getTokenPrices(address, from, to);
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getTokenPrices(address, from, to);
     }
-    return null;
   }
 
   async getTokenPriceFromExchanges(network: string, address: string) {
@@ -284,6 +286,8 @@ export class TokenService {
       case NetworkType.BSC:
         return this.bscService.getPriceFromExchanges(address);
       case NetworkType.ARBITRUM:
+        break;
+      case NetworkType.AVALANCHE:
         break;
     }
     return null;
@@ -299,8 +303,8 @@ export class TokenService {
         return this.bscService.getTopERC20Tokens();
       case NetworkType.ARBITRUM:
         return this.arbitrumService.getTopERC20Tokens();
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getTopERC20Tokens();
     }
   }
-
-  async getTokenAddress(network: string, id: string) {}
 }

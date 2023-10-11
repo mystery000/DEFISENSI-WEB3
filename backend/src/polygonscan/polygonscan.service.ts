@@ -1,35 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
 import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
-import { ZenRows } from 'zenrows';
 import * as moment from 'moment';
+import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import {
   Action,
-  ChainbaseChain,
+  BalancesResponse,
   ExchangePrice,
-  HistoricalPrice,
   NFTTransaction,
-  TokenBalance,
+  PortfolioResponse,
+  TokenPricesResponse,
   TokenTransaction,
   TopERC20Token,
   TopNFT,
   TopWallet,
 } from 'src/utils/types';
+import { CovalenthqChain } from 'src/utils/chains';
+import { CovalentClient } from '@covalenthq/client-sdk';
+import { ServiceConfig } from 'src/config/service.config';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 @Injectable()
 export class PolygonscanService {
   private readonly web3: Web3;
+  private readonly serviceConfig: ServiceConfig;
   private readonly MATIC_ADDRESS = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     const provider = `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
     this.web3 = new Web3(provider);
+    this.serviceConfig = this.configService.get<ServiceConfig>('service');
   }
 
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
@@ -422,99 +428,6 @@ export class PolygonscanService {
     }
   }
 
-  async getBalances(address: string) {
-    let tokens: TokenBalance[] = [];
-
-    // Get the latest block number
-    const now = moment();
-    const response = await Moralis.EvmApi.block.getDateToBlock({
-      chain: EvmChain.POLYGON,
-      date: now.toString(),
-    });
-
-    const latestBlockNumber = response.toJSON().block;
-    const timestamp = response.toJSON().block_timestamp;
-
-    // Get native balance by wallet
-    const nativeToken = await Moralis.EvmApi.balance.getNativeBalance({
-      chain: EvmChain.POLYGON,
-      address,
-      toBlock: latestBlockNumber,
-    });
-
-    const nativePrice = await Moralis.EvmApi.token.getTokenPrice({
-      chain: EvmChain.POLYGON,
-      address: this.MATIC_ADDRESS,
-      toBlock: latestBlockNumber,
-    });
-
-    tokens.push({
-      logo: null,
-      name: 'MATIC',
-      symbol: 'MATIC',
-      contractAddress: this.MATIC_ADDRESS,
-      decimals: 18,
-      value: nativeToken.toJSON().balance,
-      usdPrice: ((nativePrice.toJSON().usdPrice * Number(nativeToken.toJSON().balance)) / 1e18).toFixed(2),
-    });
-
-    // Get ERC20 token balance by wallet
-    const erc20Tokens = await Moralis.EvmApi.token.getWalletTokenBalances({
-      chain: EvmChain.POLYGON,
-      address,
-      toBlock: latestBlockNumber,
-    });
-
-    for (const token of erc20Tokens.toJSON()) {
-      let price = 0;
-      if (!token.possible_spam) {
-        try {
-          const response = await Moralis.EvmApi.token.getTokenPrice({
-            chain: EvmChain.POLYGON,
-            address: token.token_address,
-            toBlock: latestBlockNumber,
-          });
-          price = response.toJSON().usdPrice;
-        } catch (error) {
-          // logger.error(error);
-        }
-      }
-      tokens.push({
-        logo: token.logo,
-        name: token.name,
-        symbol: token.symbol,
-        contractAddress: token.token_address,
-        decimals: token.decimals,
-        value: token.balance,
-        usdPrice: ((price * Number(token.balance)) / 10 ** token.decimals).toFixed(2),
-      });
-    }
-
-    return { timestamp, tokens };
-  }
-
-  async getPriceHistory(address: string) {
-    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
-    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
-    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
-
-    let toTimestamp = Math.round(new Date().getTime() / 1000);
-    let fromTimestamp = toTimestamp - 86400 * 90;
-
-    try {
-      const response = await axios.get(
-        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.POLYGON}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
-        {
-          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
-        },
-      );
-      return response.data.data as HistoricalPrice[];
-    } catch (error) {
-      logger.error(error);
-      return [] as HistoricalPrice[];
-    }
-  }
-
   async getPriceFromExchanges(address: string) {
     let exchangesPrice: ExchangePrice = {
       tokenName: '',
@@ -568,7 +481,7 @@ export class PolygonscanService {
     let topTokens: TopERC20Token[] = [];
     const url = 'https://polygonscan.com/tokens';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
@@ -591,7 +504,7 @@ export class PolygonscanService {
     let topNFTs: TopNFT[] = [];
     const url = 'https://polygon.nftscan.com/ranking';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, { js_render: true, wait: 30000, wait_for: '.tr____CfO6' });
       const dom = new JSDOM(data);
       const nfts = dom.window.document.querySelectorAll('table tbody tr.tr____CfO6');
@@ -617,7 +530,7 @@ export class PolygonscanService {
     let accounts: TopWallet[] = [];
     const url = 'https://polygonscan.com/accounts';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
@@ -635,6 +548,84 @@ export class PolygonscanService {
       logger.error(error);
     } finally {
       return accounts;
+    }
+  }
+
+  async getTokenPrices(address: string, from: string, to: string): Promise<TokenPricesResponse> {
+    if (!moment(from, 'YYYY-MM-DD', true).isValid() || !moment(to, 'YYYY-MM-DD', true).isValid()) {
+      throw new BadRequestException('Please use YYYY-MM-DD date format');
+    }
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.PricingService.getTokenPrices(CovalenthqChain.Polygon, 'USD', address, { to, from });
+      return resp.data[0];
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getTokenBalancesForWalletAddress(address: string): Promise<BalancesResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getTokenBalancesForWalletAddress(CovalenthqChain.Polygon, address, {
+        nft: false,
+        quoteCurrency: 'USD',
+      });
+      return resp.data.items.map((item) => ({
+        logo_url: item.logo_url,
+        contract_decimals: item.contract_decimals,
+        contract_name: item.contract_name,
+        contract_address: item.contract_address,
+        contract_ticker_symbol: item.contract_ticker_symbol,
+        balance: item.balance?.toString() || '0',
+        quote: item.quote?.toString() || '0',
+        pretty_quote: item.pretty_quote || '0',
+        type: item.type,
+      }));
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getHistoricalPortfolioForWalletAddress(address: string, days: number): Promise<PortfolioResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
+        CovalenthqChain.Polygon,
+        address,
+        {
+          days: days,
+          quoteCurrency: 'USD',
+        },
+      );
+
+      const transformedData = resp.data.items.reduce((acc, curr) => {
+        const singleTokenTimeSeries = curr.holdings.map((holdingsItem) => {
+          return {
+            timestamp: holdingsItem.timestamp,
+            [curr.contract_ticker_symbol]: holdingsItem.close.quote || 0,
+          };
+        });
+        const newArr = singleTokenTimeSeries.map((item, i) => Object.assign(item, acc[i]));
+        return newArr;
+      }, []);
+      return transformedData.map((data) => {
+        let total = 0;
+        for (const [key, value] of Object.entries(data)) {
+          if (key === 'timestamp') continue;
+          total += Number(value);
+        }
+        return {
+          timestamp: data.timestamp,
+          total_quote: total.toString(),
+          pretty_total_quote: `$${total.toLocaleString()}`,
+        };
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
     }
   }
 

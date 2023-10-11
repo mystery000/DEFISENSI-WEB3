@@ -8,15 +8,16 @@ import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
 import { CommentWalletDto } from './dto/comment.dto';
 import { CreateWalletDto } from './dto/create-wallet.dto';
+import { NetworkType } from 'src/utils/enums/network.enum';
 import { CommentService } from '../comment/comment.service';
 import { BscscanService } from 'src/bscscan/bscscan.service';
+import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { TokenTransaction, NFTTransaction } from 'src/utils/types';
+import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
-import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
-import { NetworkType } from 'src/utils/enums/network.enum';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -31,6 +32,7 @@ export class WalletService {
     private readonly polygonscanService: PolygonscanService,
     private readonly bscService: BscscanService,
     private readonly arbitrumService: ArbitrumService,
+    private readonly avalancheService: AvalancheService,
   ) {}
 
   async create(wallet: CreateWalletDto): Promise<Wallet> {
@@ -251,54 +253,6 @@ export class WalletService {
     }
   }
 
-  // Update the balance of this wallet
-  async updateBalance(address: string) {
-    try {
-      const [etherBalance, polygonBalance] = await Promise.all([
-        await this.etherscanService.getBalances(address),
-        await this.polygonscanService.getBalances(address),
-      ]);
-      await this.walletModel.updateOne({ address }, { $push: { 'balance.ethereum': { ...etherBalance } } });
-      await this.walletModel.updateOne({ address }, { $push: { 'balance.polygon': { ...polygonBalance } } });
-    } catch (error) {
-      logger.error(error);
-    }
-  }
-
-  // Get latest balance of tokens owned by this wallet
-  async getBalance(address: string) {
-    try {
-      const result = await this.walletModel.aggregate([
-        { $match: { address: address } },
-        {
-          $project: {
-            ethereum: { $arrayElemAt: ['$balance.ethereum', -1] },
-            polygon: { $arrayElemAt: ['$balance.polygon', -1] },
-            binance: { $arrayElemAt: ['$balance.binance', -1] },
-          },
-        },
-      ]);
-
-      if (result.length === 0) {
-        throw new BadRequestException('No balance data');
-      }
-
-      return result[0];
-    } catch (error) {
-      logger.error(error);
-      throw new BadRequestException('An error occurred while fetching the balance!');
-    }
-  }
-
-  // Get balance history of this wallet
-  async getBalanceHistory(address: string) {
-    const foundWallet = await this.walletModel.findOne({ address });
-    if (!foundWallet) {
-      throw new BadRequestException('Wallet not found!');
-    }
-    return foundWallet.balance;
-  }
-
   // Get the top accounts by balance
   async getTopWallets(network: string) {
     switch (network) {
@@ -310,6 +264,8 @@ export class WalletService {
         return this.bscService.getTopWallets();
       case NetworkType.ARBITRUM:
         return this.arbitrumService.getTopWallets();
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getTopWallets();
     }
   }
 
@@ -332,6 +288,36 @@ export class WalletService {
       return response.toJSON().address;
     } catch (error) {
       logger.error(error);
+    }
+  }
+
+  async getTokenBalancesForWalletAddress(network: string, address: string) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getTokenBalancesForWalletAddress(address);
+      case NetworkType.POLYGON:
+        return this.polygonscanService.getTokenBalancesForWalletAddress(address);
+      case NetworkType.BSC:
+        return this.bscService.getTokenBalancesForWalletAddress(address);
+      case NetworkType.ARBITRUM:
+        return this.arbitrumService.getTokenBalancesForWalletAddress(address);
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getTokenBalancesForWalletAddress(address);
+    }
+  }
+
+  async getHistoricalPortfolioForWalletAddress(network: string, address: string, days: number = 30) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getHistoricalPortfolioForWalletAddress(address, days);
+      case NetworkType.POLYGON:
+        return this.polygonscanService.getHistoricalPortfolioForWalletAddress(address, days);
+      case NetworkType.BSC:
+        return this.bscService.getHistoricalPortfolioForWalletAddress(address, days);
+      case NetworkType.ARBITRUM:
+        return this.arbitrumService.getHistoricalPortfolioForWalletAddress(address, days);
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getHistoricalPortfolioForWalletAddress(address, days);
     }
   }
 }

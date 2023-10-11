@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { logger } from 'src/utils/logger';
 import { NftService } from 'src/nft/nft.service';
@@ -39,20 +38,6 @@ export class CronJobService {
       }
     } catch (error) {
       logger.log('Error in the ERC20 cronjob for updating transactions: ', error);
-    }
-  }
-
-  // Update the balances of all wallets every 2 minutes
-  // @Cron('0 */2 * * * *')
-  async handleWalletCronForBalance() {
-    try {
-      const wallets = await this.walletService.getAll();
-      for (const wallet of wallets) {
-        await this.walletService.updateBalance(wallet.address);
-        logger.log(`The wallet of ${wallet.address} has been successfully updated`);
-      }
-    } catch (error) {
-      logger.error('Error in the wallet cronjob for updating balances: ', error);
     }
   }
 

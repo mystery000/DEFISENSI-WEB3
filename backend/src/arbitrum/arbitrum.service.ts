@@ -1,34 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
-import Web3 from 'web3';
-import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
+import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
+import { ServiceConfig } from 'src/config/service.config';
 import { NetworkType } from 'src/utils/enums/network.enum';
 import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
   Action,
-  ChainbaseChain,
-  HistoricalPrice,
+  BalancesResponse,
   NFTTransaction,
+  PortfolioResponse,
+  TokenPricesResponse,
   TokenTransaction,
   TopERC20Token,
   TopNFT,
   TopWallet,
 } from 'src/utils/types';
+import { CovalenthqChain } from 'src/utils/chains';
+import { CovalentClient } from '@covalenthq/client-sdk';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
 @Injectable()
 export class ArbitrumService {
-  private readonly web3: Web3;
+  private readonly serviceConfig: ServiceConfig;
 
-  constructor() {
-    const provider = `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
-    this.web3 = new Web3(provider);
+  constructor(private readonly configService: ConfigService) {
+    this.serviceConfig = this.configService.get<ServiceConfig>('service');
   }
 
   async getTransactionsByAccount(address: string, fromBlock: number = 0) {
@@ -424,32 +427,11 @@ export class ArbitrumService {
     }
   }
 
-  // Get the price history of ERC20 token for 90 days
-  async getPriceHistory(address: string) {
-    // const CHAINBASE_BASE_URL = 'https://api.chainbase.online';
-    const CHAINBASE_BASE_URL = 'http://95.217.141.220:3000';
-    const CHAINBASE_API_KEY = process.env.CHAINBASE_API_KEY;
-    let toTimestamp = Math.round(new Date().getTime() / 1000);
-    let fromTimestamp = toTimestamp - 86400 * 90;
-
-    try {
-      const response = await axios.get(
-        `${CHAINBASE_BASE_URL}/v1/token/price/history?chain_id=${ChainbaseChain.ARBITRUM}&contract_address=${address}&from_timestamp=${fromTimestamp}&end_timestamp=${toTimestamp}`,
-        {
-          headers: { accept: 'application/json', 'x-api-key': CHAINBASE_API_KEY },
-        },
-      );
-      return response.data.data as HistoricalPrice[];
-    } catch (error) {
-      logger.error(error);
-    }
-  }
-
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];
     const url = 'https://arbiscan.io/tokens';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
@@ -472,7 +454,7 @@ export class ArbitrumService {
     let topNFTs: TopNFT[] = [];
     const url = 'https://arbitrum.nftscan.com/ranking';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, { js_render: true, wait: 30000, wait_for: '.tr____CfO6' });
       const dom = new JSDOM(data);
       const nfts = dom.window.document.querySelectorAll('table tbody tr.tr____CfO6');
@@ -498,7 +480,7 @@ export class ArbitrumService {
     let accounts: TopWallet[] = [];
     const url = 'https://arbiscan.io/accounts';
     try {
-      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      const client = new ZenRows(this.serviceConfig.zenrows_api_key);
       const { data } = await client.get(url, {});
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#ContentPlaceHolder1_divTable tbody tr');
@@ -516,6 +498,84 @@ export class ArbitrumService {
       logger.error(error);
     } finally {
       return accounts;
+    }
+  }
+
+  async getTokenPrices(address: string, from: string, to: string): Promise<TokenPricesResponse> {
+    if (!moment(from, 'YYYY-MM-DD', true).isValid() || !moment(to, 'YYYY-MM-DD', true).isValid()) {
+      throw new BadRequestException('Please use YYYY-MM-DD date format');
+    }
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.PricingService.getTokenPrices(CovalenthqChain.Arbitrum, 'USD', address, { to, from });
+      return resp.data[0];
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getTokenBalancesForWalletAddress(address: string): Promise<BalancesResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getTokenBalancesForWalletAddress(CovalenthqChain.Arbitrum, address, {
+        nft: true,
+        quoteCurrency: 'USD',
+      });
+      return resp.data.items.map((item) => ({
+        logo_url: item.logo_url,
+        contract_decimals: item.contract_decimals,
+        contract_name: item.contract_name,
+        contract_address: item.contract_address,
+        contract_ticker_symbol: item.contract_ticker_symbol,
+        balance: item.balance?.toString() || '0',
+        quote: item.quote?.toString() || '0',
+        pretty_quote: item.pretty_quote || '0',
+        type: item.type,
+      }));
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getHistoricalPortfolioForWalletAddress(address: string, days: number): Promise<PortfolioResponse> {
+    try {
+      const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
+      const resp = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
+        CovalenthqChain.Arbitrum,
+        address,
+        {
+          days: days,
+          quoteCurrency: 'USD',
+        },
+      );
+
+      const transformedData = resp.data.items.reduce((acc, curr) => {
+        const singleTokenTimeSeries = curr.holdings.map((holdingsItem) => {
+          return {
+            timestamp: holdingsItem.timestamp,
+            [curr.contract_ticker_symbol]: holdingsItem.close.quote || 0,
+          };
+        });
+        const newArr = singleTokenTimeSeries.map((item, i) => Object.assign(item, acc[i]));
+        return newArr;
+      }, []);
+      return transformedData.map((data) => {
+        let total = 0;
+        for (const [key, value] of Object.entries(data)) {
+          if (key === 'timestamp') continue;
+          total += Number(value);
+        }
+        return {
+          timestamp: data.timestamp,
+          total_quote: total.toString(),
+          pretty_total_quote: `$${total.toLocaleString()}`,
+        };
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new BadRequestException(`Malformed address provided: ${address}`);
     }
   }
 

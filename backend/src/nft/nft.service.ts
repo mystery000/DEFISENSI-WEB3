@@ -16,6 +16,7 @@ import { BscscanService } from 'src/bscscan/bscscan.service';
 import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
+import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 @Injectable()
 export class NftService {
@@ -28,6 +29,7 @@ export class NftService {
     private readonly polygonService: PolygonscanService,
     private readonly bscService: BscscanService,
     private readonly arbitrumService: ArbitrumService,
+    private readonly avalancheService: AvalancheService,
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
@@ -167,6 +169,8 @@ export class NftService {
       case NetworkType.BSC:
         return this.bscService.getTopNFTs();
       case NetworkType.ARBITRUM:
+        return this.arbitrumService.getTopNFTs();
+      case NetworkType.AVALANCHE:
         return this.arbitrumService.getTopNFTs();
     }
   }

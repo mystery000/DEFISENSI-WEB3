@@ -1,135 +1,57 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { NetworkType } from './enums/network.enum';
 import { TransactionType } from './enums/transaction.enum';
 
-export type TokenBalance = {
-  logo?: string;
-  name: string;
-  symbol: string;
-  contractAddress: string;
-  decimals: number;
-  value: string;
-  usdPrice: string;
-};
+export type BalancesResponse = {
+  /** * The contract logo URL. */
+  logo_url: string;
+  /** * Use contract decimals to format the token balance for display purposes - divide the balance by `10^{contract_decimals}`. */
+  contract_decimals: number;
+  /** * The string returned by the `name()` method. */
+  contract_name: string;
+  /** * The ticker symbol for this contract. This field is set by a developer and non-unique across a network. */
+  contract_ticker_symbol: string;
+  /** * Use the relevant `contract_address` to lookup prices, logos, token transfers, etc. */
+  contract_address: string;
+  /** * The asset balance. Use `contract_decimals` to scale this balance for display purposes. */
+  balance: string;
+  /** * The current balance converted to fiat in `quote-currency`. */
+  quote: string;
+  /** * A prettier version of the quote for rendering purposes. */
+  pretty_quote: string;
+  /** * One of `cryptocurrency`, `stablecoin`, `nft` or `dust`. */
+  type: string;
+}[];
 
-export type Balance = {
-  ethereum?: [
-    {
-      timestamp: number;
-      tokens: [TokenBalance];
-    },
-  ];
+export type PortfolioResponse = {
+  timestamp: string;
+  /** * The current total balance converted to fiat in `quote-currency`. */
+  total_quote: string;
+  /** * A prettier version of the total quote for rendering purposes. */
+  pretty_total_quote: string;
+}[];
 
-  polygon?: [
-    {
-      timestamp: number;
-      tokens: [TokenBalance];
-    },
-  ];
-
-  binance?: [
-    {
-      timestamp: number;
-      tokens: [TokenBalance];
-    },
-  ];
-
-  arbitrum?: [
-    {
-      timestamp: number;
-      tokens: [TokenBalance];
-    },
-  ];
-};
-
-export class ApiTokenBalance {
-  @ApiProperty()
-  logo?: string;
-
-  @ApiProperty()
-  name: string;
-
-  @ApiProperty()
-  symbol: string;
-
-  @ApiProperty()
-  contractAddress: string;
-
-  @ApiProperty()
-  decimals: number;
-
-  @ApiProperty()
-  value: string;
-
-  @ApiProperty()
-  usdPrice: string;
-}
-
-export class ApiBalance {
-  @ApiProperty()
-  ethereum?: {
-    timestamp: number;
-    tokens: [ApiTokenBalance];
-  };
-
-  @ApiProperty()
-  polygon?: {
-    timestamp: number;
-    tokens: [ApiTokenBalance];
-  };
-
-  @ApiProperty()
-  binance?: {
-    timestamp: number;
-    tokens: [ApiTokenBalance];
-  };
-
-  @ApiProperty()
-  arbitrum?: {
-    timestamp: number;
-    tokens: [ApiTokenBalance];
-  };
-}
-
-export class ApiBalanceHistory {
-  @ApiProperty()
-  ethereum?: [
-    {
-      timestamp: number;
-      tokens: [ApiTokenBalance];
-    },
-  ];
-
-  @ApiProperty()
-  polygon?: [
-    {
-      timestamp: number;
-      tokens: [ApiTokenBalance];
-    },
-  ];
-
-  @ApiProperty()
-  binance?: [
-    {
-      timestamp: number;
-      tokens: [ApiTokenBalance];
-    },
-  ];
-
-  @ApiProperty()
-  arbitrum?: [
-    {
-      timestamp: number;
-      tokens: [ApiTokenBalance];
-    },
-  ];
-}
-
-export type HistoricalPrice = {
-  price: number;
-  symbol: string;
-  decimals: number;
-  updated_at: string;
+export type TokenPricesResponse = {
+  /** * Use contract decimals to format the token balance for display purposes - divide the balance by `10^{contract_decimals}`. */
+  contract_decimals: number;
+  /** * The string returned by the `name()` method. */
+  contract_name: string;
+  /** * The ticker symbol for this contract. This field is set by a developer and non-unique across a network. */
+  contract_ticker_symbol: string;
+  /** * Use the relevant `contract_address` to lookup prices, logos, token transfers, etc. */
+  contract_address: string;
+  /** * The contract logo URL. */
+  logo_url: string;
+  /** * The requested quote currency eg: `USD`. */
+  quote_currency: string;
+  /** * List of response items. */
+  prices: {
+    /** * The date of the price capture. */
+    date: Date;
+    /** * The price in the requested `quote-currency`. */
+    price: number;
+    /** * A prettier version of the price for rendering purposes. */
+    pretty_price: string;
+  }[];
 };
 
 export type ExchangePrice = {
@@ -195,15 +117,6 @@ export type NFTTransaction = {
     actions: Action[];
   };
 };
-
-export enum ChainbaseChain {
-  ETHEREUM = '1',
-  POLYGON = '137',
-  BSC = '56',
-  AVALANCHE = '43114',
-  ARBITRUM = '42161',
-  OPTIMISM = '10',
-}
 
 export type TopERC20Token = {
   address: string;

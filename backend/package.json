@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@covalenthq/client-sdk": "^0.4.2",
     "@moralisweb3/common-evm-utils": "^2.22.4",
     "@nestjs-modules/mailer": "^1.9.1",
     "@nestjs/common": "^10.0.0",

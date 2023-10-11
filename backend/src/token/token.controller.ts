@@ -62,14 +62,6 @@ export class TokenController {
     return this.tokenService.getTopERC20Tokens(network);
   }
 
-  @Get('top-tokens/:network/:id')
-  @ApiOperation({ summary: 'Get the token address' })
-  @ApiParam({ name: 'network', description: 'The token network' })
-  @ApiParam({ name: 'id', description: 'pass the coin id (can be obtained from /coins) eg. bitcoin' })
-  getTokenAddress(@Param('network') network: string, @Param('id') id: string) {
-    return this.tokenService.getTokenAddress(network, id);
-  }
-
   @Get('/:network/:address')
   @ApiOperation({ summary: 'Get token' })
   @ApiOkResponse({ type: SuccessResponse })
@@ -126,12 +118,19 @@ export class TokenController {
     return this.tokenService.getTransactions(network, address, limit);
   }
 
-  @Get(':network/:address/price/history')
+  @Get(':network/:address/pricing/historical_by_address')
   @ApiOperation({ summary: 'Get price history of ERC20 token contract' })
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'The contract address of this token' })
-  getHistoricalPrice(@Param('network') network: string, @Param('address') address: string) {
-    return this.tokenService.getPriceHistory(network, address);
+  @ApiQuery({ name: 'from', description: 'The start day of the historical price range (YYYY-MM-DD).', required: true })
+  @ApiQuery({ name: 'to', description: 'The end day of the historical price range (YYYY-MM-DD).', required: true })
+  getHistoricalPrice(
+    @Param('network') network: string,
+    @Param('address') address: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.tokenService.getTokenPrices(network, address, from, to);
   }
 
   @Get('/:network/:address/price/exchanges')
