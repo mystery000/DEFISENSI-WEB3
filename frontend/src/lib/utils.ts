@@ -2,6 +2,7 @@ import moment from 'moment';
 import { TransferType } from '../types';
 import { Transaction } from '../types/transaction';
 
+// Function getting age of transaction
 export const getAge = (timestamp: number) => {
   const now = moment();
   const then = moment(timestamp);
@@ -55,15 +56,16 @@ export const convertDecimals = (value: string, decimals: string) => {
   return (Number(value) / 10 ** Number(decimals)).toFixed(2);
 };
 
-export const balanceFormatter = (balance: number) => {
-  if (balance >= 1e9) {
-    return (balance / 1e9).toFixed(2) + 'B';
-  } else if (balance >= 1e6) {
-    return (balance / 1e6).toFixed(2) + 'M';
-  } else if (balance >= 1e3) {
-    return (balance / 1e3).toFixed(2) + 'K';
+// X-Axis and Y-Axis Key Formatter in Rechart
+export const keyFormatter = (key: number) => {
+  if (key >= 1e9) {
+    return '$' + key / 1e9 + 'B';
+  } else if (key >= 1e6) {
+    return '$' + key / 1e6 + 'M';
+  } else if (key >= 1e3) {
+    return '$' + key / 1e3 + 'K';
   } else {
-    return balance.toFixed(2);
+    return '$' + key;
   }
 };
 

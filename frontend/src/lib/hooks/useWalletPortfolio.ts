@@ -1,40 +1,63 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getFollowersByWallet, getFollowingsByWallet, getENS } from '../api';
 
-// Get the followers and followings of this wallet
-export default function useWalletPortfolio() {
-  const [data, setData] = useState<{
-    followers: any[];
-    followings: any[];
-    ens?: string;
-  }>({ followers: [], followings: [], ens: '' });
+import { NetworkType } from '../../types';
+import { BalancesResponse, PortfolioResponse } from '../../types/balance';
+import {
+  getFollowersByWallet,
+  getFollowingsByWallet,
+  getENS,
+  getTokenBalancesForWalletAddress,
+  getHistoricalPortfolioForWalletAddress,
+} from '../api';
 
+export type WalletPortfolio = {
+  followers: any[];
+  followings: any[];
+  ens?: string;
+  balances: BalancesResponse | null;
+  historicalBalances: PortfolioResponse | null;
+  transactions: any[];
+};
+
+export default function useWalletPortfolio(network: string) {
+  const { address } = useParams();
+
+  const [data, setData] = useState<WalletPortfolio>({
+    followers: [],
+    followings: [],
+    balances: null,
+    historicalBalances: null,
+    transactions: [],
+  });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const { address } = useParams();
 
   useEffect(() => {
     (async () => {
-      if (!address) {
-        setError('The address parameter is now omitted.');
-        return;
-      }
-      setLoading(true);
+      if (!address || !network) return;
       try {
-        const followers = await getFollowersByWallet(address);
-        const followings = await getFollowingsByWallet(address);
-        const ens = await getENS(address);
+        setLoading(true);
+        const [followers, followings, ens, balances, historicalBalances] = await Promise.all([
+          getFollowersByWallet(address),
+          getFollowingsByWallet(address),
+          getENS(address),
+          getTokenBalancesForWalletAddress(network, address),
+          getHistoricalPortfolioForWalletAddress(network, address),
+        ]);
         setData({
-          followers: followers || [],
-          followings: followings || [],
+          followers,
+          followings,
           ens: ens,
+          balances,
+          historicalBalances,
+          transactions: [],
         });
-
         setLoading(false);
       } catch (error) {
-        setLoading(false);
         console.log(error);
+        setLoading(false);
+        setError(error);
       }
     })();
   }, [address]);

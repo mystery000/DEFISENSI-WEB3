@@ -1,38 +1,66 @@
 import { useEffect, useState } from 'react';
-import { getFollowersByToken, getFollowingsByToken } from '../api';
 import { useParams } from 'react-router-dom';
+
+import {
+  getFollowersByToken,
+  getFollowingsByToken,
+  getTokenPrices,
+  getTokenTransactions,
+} from '../api';
+import moment from 'moment';
+import { Transaction } from '../../types/transaction';
+import { TokenPricesResponse } from '../../types/price';
+
+export type TokenPortfolio = {
+  followers: string[];
+  followings: string[];
+  tokenPrices: TokenPricesResponse | null;
+  transactions: Transaction[];
+};
 
 // Get the followers and followings of this token
 export default function useTokenPortfolio() {
-  const [data, setData] = useState<{
-    followers: string[];
-    followings: string[];
-  }>({ followers: [], followings: [] });
+  const { network, address } = useParams();
+  const [data, setData] = useState<TokenPortfolio>({
+    followers: [],
+    followings: [],
+    tokenPrices: null,
+    transactions: [],
+  });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const { network, address } = useParams();
 
   useEffect(() => {
     (async () => {
-      if (!network || !address) {
-        setError('network or address is missing now');
-        return;
-      }
-      setLoading(true);
+      if (!network || !address) return;
+
       try {
-        const followers = await getFollowersByToken(network, address);
-        const followings = await getFollowingsByToken(network, address);
+        setLoading(true);
+        const from = moment().format('YYYY-MM-DD');
+        const to = moment().subtract(3, 'years').format('YYYY-MM-DD');
+
+        const [followers, followings, tokenPrices, transactions] =
+          await Promise.all([
+            getFollowersByToken(network, address),
+            getFollowingsByToken(network, address),
+            getTokenPrices(network, address, from, to),
+            getTokenTransactions(network, address),
+          ]);
+
         setData({
           followers: followers || [],
           followings: followings || [],
+          tokenPrices: tokenPrices,
+          transactions: transactions,
         });
         setLoading(false);
       } catch (error) {
+        console.error(error);
         setLoading(false);
-        console.log(error);
+        setError(error);
       }
     })();
   }, [network, address]);
 
-  return { data, error, loading, mutate: setData };
+  return { portfolio: data, error, loading, mutate: setData };
 }

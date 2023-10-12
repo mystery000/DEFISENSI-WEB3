@@ -770,7 +770,7 @@ export class BscscanService {
     try {
       const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
       const resp = await client.PricingService.getTokenPrices(CovalenthqChain.BSC, 'USD', address, { to, from });
-      return resp.data[0];
+      return resp.data?.[0];
     } catch (error) {
       logger.error(error);
       throw new BadRequestException(`Malformed address provided: ${address}`);

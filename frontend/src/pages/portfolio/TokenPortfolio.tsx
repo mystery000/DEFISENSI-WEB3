@@ -1,33 +1,26 @@
 import { useParams } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import AppLayout from '../../layouts/AppLayout';
-import {
-  FollowerIcon,
-  FollowingIcon,
-  NotificationOnIcon,
-} from '../../components/icons/defisensi-icons';
+import { useCallback, useEffect, useState } from 'react';
 
 import cn from 'classnames';
 import { Spin } from 'antd';
 import { toast } from 'react-toastify';
 import Table from '@mui/material/Table';
+import { followToken } from '../../lib/api';
 import TableRow from '@mui/material/TableRow';
 import { TableContainer } from '@mui/material';
+import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import { useAppContext } from '../../context/app';
-import { Transaction } from '../../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import usePriceHistory from '../../lib/hooks/usePriceHistory';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
-import { followToken, getTokenTransactions } from '../../lib/api';
-import useTokenTransactions from '../../lib/hooks/useTokenTransactions';
 import usePriceFromExchanges from '../../lib/hooks/usePriceFromExchanges';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
 
 enum ContentType {
   INFO = 'info',
@@ -36,504 +29,324 @@ enum ContentType {
 }
 
 export const TokenPortfolio = () => {
-  return <></>;
-  // const { user } = useAppContext();
-  // const { address, network } = useParams();
-  // const [following, setFollowing] = useState(false);
-  // const [fetchMore, setFetchMore] = useState(false);
-  // const [width, setWidth] = useState(window.innerWidth);
-  // const [noticationOn, setNotificationOn] = useState(false);
-  // const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
-  // const { exchangePrice, loading: loadingExchangePrice } =
-  //   usePriceFromExchanges();
-  // const { priceHistory, loading: loadingPriceHistory } = usePriceHistory();
-  // const {
-  //   transactions,
-  //   mutateTransactions,
-  //   loading: loadingTransactions,
-  // } = useTokenTransactions();
+  const { user } = useAppContext();
+  const { address, network } = useParams();
+  const [following, setFollowing] = useState(false);
+  const [fetchMore, setFetchMore] = useState(false);
+  const [noticationOn, setNotificationOn] = useState(false);
+  // Responsive Design
+  const [width, setWidth] = useState(window.innerWidth);
+  const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
+  // Custom Hooks
+  const { portfolio, error, loading, mutate } = useTokenPortfolio();
+  const { exchangePrice, loading: loadingExchangePrice } = usePriceFromExchanges();
 
-  // const {
-  //   data: portfolio,
-  //   loading: loadingPortfolio,
-  //   mutate: mutatePortfolio,
-  // } = useTokenPortfolio();
+  const fetchMoreTransactions = useCallback(async () => {
+    // try {
+    //   if (!address) return;
+    //   const token = await getTokenTransactions(
+    //     'ethereum',
+    //     address,
+    //     transactions.length + 4,
+    //   );
+    //   if (!token) return;
+    //   const txns: Transaction[] = [];
+    //   for (const txn of token.transactions) {
+    //     txns.push({
+    //       ...txn,
+    //       address: token.address,
+    //       comments: token.comments,
+    //       likes: token.likes,
+    //       dislikes: token.dislikes,
+    //     });
+    //   }
+    //   if (transactions.length === txns.length) setFetchMore(false);
+    //   setTimeout(() => mutateTransactions(txns), 1500);
+    // } catch (error) {
+    //   console.log(error);
+    // }
+  }, []);
 
-  // const chartComponentRef = useRef<HighchartsReact.RefObject>(null);
+  // Detect whether screen is mobile or desktop size
+  useEffect(() => {
+    const breakpoint = 1536;
+    window.innerWidth >= breakpoint ? setSelected(ContentType.ALL) : setSelected(ContentType.INFO);
+    const handleWindowResize = () => {
+      if (width < breakpoint && window.innerWidth >= breakpoint) {
+        setSelected(ContentType.ALL);
+      } else if (width >= breakpoint && window.innerWidth < breakpoint) {
+        setSelected(ContentType.INFO);
+      }
+      setWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [width]);
 
-  // const defaultOption: Highcharts.Options = useMemo(
-  //   () => ({
-  //     // title: {
-  //     //   text: 'Balance History',
-  //     //   style: {
-  //     //     fontFamily: 'Sora',
-  //     //     fontSize: '24px',
-  //     //     fontWeight: '600',
-  //     //     fontColor: '#000',
-  //     //   },
-  //     //   align: 'left',
-  //     // },
-  //     title: { text: '' },
-  //     legend: {
-  //       enabled: false, // Set this to false to disable the legend
-  //     },
-  //     credits: {
-  //       enabled: false, // Set this to false to disable the credits
-  //     },
-  //     xAxis: {
-  //       type: 'datetime',
-  //       lineColor: '#F0F0F0',
-  //       tickColor: '#F0F0F0',
-  //       labels: {
-  //         style: {
-  //           color: '#33323A',
-  //           fontSize: '14px',
-  //           fontWeight: '600',
-  //         },
-  //         formatter: function () {
-  //           return Highcharts.dateFormat('%d/%m/%y', Number(this.value));
-  //         },
-  //       },
-  //     },
-  //     yAxis: {
-  //       type: 'logarithmic',
-  //       opposite: true,
-  //       title: {
-  //         text: '',
-  //       },
-  //       labels: {
-  //         style: {
-  //           color: '#77838F',
-  //           fontSize: '14px',
-  //           fontWeight: '400',
-  //         },
-  //         formatter: function () {
-  //           let value = Number(this.value);
-  //           if (value >= 1e9) {
-  //             return '$' + value / 1e9 + 'B';
-  //           } else if (value >= 1e6) {
-  //             return '$' + value / 1e6 + 'M';
-  //           } else if (value >= 1e3) {
-  //             return '$' + value / 1e3 + 'K';
-  //           } else {
-  //             return '$' + value;
-  //           }
-  //         },
-  //       },
-  //     },
-  //     tooltip: {
-  //       backgroundColor: 'black',
-  //       borderWidth: 0,
-  //       borderRadius: 0,
-  //       shadow: false,
-  //       style: {
-  //         fontFamily: 'Sora',
-  //         fontSize: '12px',
-  //         fontWeight: '400',
-  //         lineHeight: '12px',
-  //         letterSpacing: '-0.02em',
-  //         textAlign: 'right',
-  //         color: 'white',
-  //       },
-  //       shape: 'callout', // Use the callout shape (custom SVG path)
-  //       positioner: function (width, height, point) {
-  //         const chart = this.chart;
-  //         const tooltipX = point.plotX + chart.plotLeft - width - 10; // Adjust tooltipX to move it leftward
-  //         const tooltipY = point.plotY + chart.plotTop - 50; // Adjust tooltipY to move it upward
-  //         return { x: tooltipX, y: tooltipY };
-  //       },
-  //       formatter: function () {
-  //         let yValue: string | number = Number(this.y);
-  //         if (yValue >= 1e9) {
-  //           yValue = '$' + yValue / 1e9 + 'B';
-  //         } else if (yValue >= 1e6) {
-  //           yValue = '$' + yValue / 1e6 + 'M';
-  //         } else if (yValue >= 1e3) {
-  //           yValue = '$' + yValue / 1e3 + 'K';
-  //         } else {
-  //           yValue = '$' + yValue;
-  //         }
-  //         const xValue = Highcharts.dateFormat('%e %b %Y', Number(this.x));
-  //         // Format the tooltip with x and y values
-  //         return `<span style=" font-size: 12px; ">${yValue}</span><br/><span>${xValue}</span>`;
-  //       },
-  //     },
-  //     chart: {
-  //       zooming: {
-  //         type: 'x',
-  //         mouseWheel: true,
-  //       },
-  //     },
-  //     series: [
-  //       {
-  //         type: 'area',
-  //         color: {
-  //           linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
-  //           stops: [
-  //             [0, '#ffffff'],
-  //             [1, '#3354F4'],
-  //           ],
-  //         },
-  //         lineColor: '#3354F4',
-  //         data: [],
-  //       },
-  //     ],
-  //   }),
-  //   [],
-  // );
+  const handleFollow = useCallback(async () => {
+    if (!address || !network) return;
+    try {
+      setFollowing(true);
+      await followToken(user.address, address, network);
+      mutate({ ...portfolio, followers: [...portfolio.followers, user.id] });
+      setFollowing(false);
+      toast.success(`You've followed this token: ${address}`);
+    } catch (error) {
+      setFollowing(false);
+      toast.error((error as any).message);
+    }
+  }, [network, address]);
 
-  // const [chartOptions, setChartOptions] = useState(defaultOption);
+  if (!address || !network) return;
 
-  // const fetchMoreTransactions = useCallback(async () => {
-  //   try {
-  //     if (!address) return;
+  if (loading) {
+    return (
+      <div className="grid h-screen place-items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
-  //     const token = await getTokenTransactions(
-  //       'ethereum',
-  //       address,
-  //       transactions.length + 4,
-  //     );
+  const data = portfolio.tokenPrices?.prices
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((price) => ({
+      date: new Date(price.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+      price: price.price,
+      pretty_price: price.pretty_price,
+    }));
 
-  //     if (!token) return;
+  return (
+    <AppLayout>
+      <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
+        {/* Header Bar */}
+        <div
+          className="p-6 text-center"
+          style={{
+            background: 'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
+          }}
+        >
+          <div>
+            <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
+              <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
+              <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
+                <img src={`/images/network/${network}.png`} width={32} height={32} alt="noicon"></img>
+                <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
+              </span>
+            </h2>
+            <span className="mt-4 text-sm font-medium" title={address}>
+              {address.slice(0, 11)}.........
+              {address.slice(-10)}
+            </span>
+          </div>
+          <div className="mt-5 flex justify-center gap-4 text-sm">
+            <div className="flex items-center gap-1">
+              <FollowingIcon />
+              <span>{portfolio.followings.length}</span>
+              <span className="text-bali-hai-600">Following</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FollowerIcon />
+              <span>{portfolio.followers.length}</span>
+              <span className="text-bali-hai-600">Followers</span>
+            </div>
+          </div>
+          <div className="mt-5 text-white">
+            <button
+              className="text-inter rounded bg-orange-400 px-4 py-2 font-bold"
+              onClick={handleFollow}
+              disabled={following}
+            >
+              {following ? 'Following...' : 'Follow'}
+            </button>
+          </div>
 
-  //     const txns: Transaction[] = [];
-
-  //     for (const txn of token.transactions) {
-  //       txns.push({
-  //         ...txn,
-  //         address: token.address,
-  //         comments: token.comments,
-  //         likes: token.likes,
-  //         dislikes: token.dislikes,
-  //       });
-  //     }
-  //     if (transactions.length === txns.length) setFetchMore(false);
-  //     setTimeout(() => mutateTransactions(txns), 1500);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }, [transactions, address, mutateTransactions]);
-
-  // // Detect whether screen is mobile or desktop size
-  // useEffect(() => {
-  //   const breakpoint = 1536;
-  //   window.innerWidth >= breakpoint
-  //     ? setSelected(ContentType.ALL)
-  //     : setSelected(ContentType.INFO);
-  //   const handleWindowResize = () => {
-  //     if (width < breakpoint && window.innerWidth >= breakpoint) {
-  //       setSelected(ContentType.ALL);
-  //     } else if (width >= breakpoint && window.innerWidth < breakpoint) {
-  //       setSelected(ContentType.INFO);
-  //     }
-  //     setWidth(window.innerWidth);
-  //   };
-  //   window.addEventListener('resize', handleWindowResize);
-  //   return () => window.removeEventListener('resize', handleWindowResize);
-  // }, [width]);
-
-  // useEffect(() => {
-  //   if (!priceHistory) return;
-  //   setChartOptions((prev) => {
-  //     let data: any[] = [];
-
-  //     data = priceHistory.map((history) => {
-  //       return [new Date(history.updated_at).getTime(), Number(history.price)];
-  //     });
-  //     return {
-  //       ...defaultOption,
-  //       series: [
-  //         {
-  //           type: 'area',
-  //           color: {
-  //             linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
-  //             stops: [
-  //               [0, '#ffffff'],
-  //               [1, '#3354F4'],
-  //             ],
-  //           },
-  //           lineColor: '#3354F4',
-  //           data: data,
-  //         },
-  //       ],
-  //     };
-  //   });
-  // }, [priceHistory, defaultOption]);
-
-  // const handleFollow = useCallback(async () => {
-  //   if (!address || !network) return;
-  //   try {
-  //     setFollowing(true);
-  //     await followToken(user.address, address, network);
-  //     mutatePortfolio({
-  //       ...portfolio,
-  //       followers: [...portfolio.followers, user.id],
-  //     });
-  //     setFollowing(false);
-  //     toast.success('Followed!');
-  //   } catch (error) {
-  //     setFollowing(false);
-  //     toast.error((error as any).message);
-  //   }
-  // }, [address, network, user, portfolio, mutatePortfolio]);
-
-  // if (!address || !network) return;
-
-  // if (
-  //   loadingExchangePrice ||
-  //   loadingPriceHistory ||
-  //   loadingTransactions ||
-  //   loadingPortfolio
-  // )
-  //   return (
-  //     <div className="grid h-screen place-items-center">
-  //       <Spin size="large" />
-  //     </div>
-  //   );
-
-  // return (
-  //   <AppLayout>
-  //     <div className="w-full font-inter md:mx-auto md:w-2/3 2xl:w-fit">
-  //       <div
-  //         className="p-6 text-center"
-  //         style={{
-  //           background:
-  //             'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
-  //         }}
-  //       >
-  //         <div>
-  //           <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
-  //             <span>{exchangePrice?.tokenName}</span>
-  //             <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
-  //               <img
-  //                 src={`/images/network/${network}.png`}
-  //                 width={32}
-  //                 height={32}
-  //                 alt="noicon"
-  //               ></img>
-  //               <span>{`on ${
-  //                 network[0].toUpperCase() + network.slice(1)
-  //               }`}</span>
-  //             </span>
-  //           </h2>
-  //           <span className="mt-4 text-sm font-medium" title={address}>
-  //             {address.slice(0, 11)}.........
-  //             {address.slice(-10)}
-  //           </span>
-  //         </div>
-  //         <div className="mt-5 flex justify-center gap-4 text-sm">
-  //           <div className="flex items-center gap-1">
-  //             <FollowingIcon />
-  //             <span>{portfolio.followings.length}</span>
-  //             <span className="text-bali-hai-600">Following</span>
-  //           </div>
-  //           <div className="flex items-center gap-1">
-  //             <FollowerIcon />
-  //             <span>{portfolio.followers.length}</span>
-  //             <span className="text-bali-hai-600">Followers</span>
-  //           </div>
-  //         </div>
-  //         <div className="mt-5 text-white">
-  //           <button
-  //             className="rounded bg-orange-400 px-4 py-[10px]"
-  //             onClick={handleFollow}
-  //             disabled={following}
-  //           >
-  //             {following ? 'Following...' : 'Follow'}
-  //           </button>
-  //         </div>
-
-  //         <div
-  //           className="flex justify-end hover:cursor-pointer"
-  //           onClick={() => setNotificationOn((state) => !state)}
-  //         >
-  //           {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
-  //         </div>
-  //       </div>
-  //       <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
-  //         <span
-  //           className={cn('leading-8', {
-  //             'text-orange-400': selected === ContentType.INFO,
-  //           })}
-  //           onClick={() => setSelected(ContentType.INFO)}
-  //         >
-  //           Info
-  //         </span>
-  //         <span
-  //           className={cn('leading-8', {
-  //             'text-orange-400': selected === ContentType.ACTIVITY,
-  //           })}
-  //           onClick={() => setSelected(ContentType.ACTIVITY)}
-  //         >
-  //           Activity
-  //         </span>
-  //       </div>
-  //       <div className="mt-2 flex flex-col justify-center gap-4 2xl:flex-row 2xl:justify-between">
-  //         {/* Info */}
-  //         <div
-  //           className={cn('px-0 2xl:w-[808px]', {
-  //             hidden:
-  //               selected !== ContentType.INFO && selected !== ContentType.ALL,
-  //           })}
-  //         >
-  //           <span className="hidden font-sora text-[32px] 2xl:block">Info</span>
-  //           {/* Portfolio */}
-  //           <div>
-  //             <HighchartsReact
-  //               highcharts={Highcharts}
-  //               options={chartOptions}
-  //               ref={chartComponentRef}
-  //             />
-  //           </div>
-  //           {/* Current Price on Exchanges */}
-  //           <div className="mt-2 bg-white p-4">
-  //             <span className="text-sora text-xl font-semibold">
-  //               Current Price on Exchanges
-  //             </span>
-  //             <TableContainer className="mt-4">
-  //               <Table sx={{ minWidth: 400 }} aria-label="simple table">
-  //                 <TableHead>
-  //                   <TableRow>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-  //                       Exchanges
-  //                     </TableCell>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-  //                       <div className="flex items-center gap-2">
-  //                         <span className="flex items-center gap-2 rounded-lg bg-bali-hai-600/20 px-2 py-1">
-  //                           <img
-  //                             src={`/images/network/${network}.png`}
-  //                             width={24}
-  //                             height={24}
-  //                             alt="noicon"
-  //                           ></img>
-  //                           <span>{exchangePrice?.tokenName}</span>
-  //                         </span>
-  //                         <span className="text-bali-hai-600">USD value</span>
-  //                       </div>
-  //                     </TableCell>
-  //                   </TableRow>
-  //                 </TableHead>
-  //                 <TableBody>
-  //                   <TableRow>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       <div className="flex items-center gap-2">
-  //                         <img
-  //                           src="/images/exchanges/uniswap.png"
-  //                           width={32}
-  //                           height={32}
-  //                           className="rounded-full border"
-  //                           alt="platform_icon"
-  //                         ></img>
-  //                         <span>Uniswap</span>
-  //                       </div>
-  //                     </TableCell>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       {exchangePrice?.usdPrice?.uniswap
-  //                         ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(
-  //                             5,
-  //                           )}`
-  //                         : 'This token is not supported'}
-  //                     </TableCell>
-  //                   </TableRow>
-  //                   <TableRow>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       <div className="flex items-center gap-2">
-  //                         <img
-  //                           src="/images/exchanges/binance.png"
-  //                           width={32}
-  //                           height={32}
-  //                           className="rounded-full border"
-  //                           alt="platform_icon"
-  //                         ></img>
-  //                         <span>Binance</span>
-  //                       </div>
-  //                     </TableCell>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       {exchangePrice?.usdPrice?.binance
-  //                         ? `$${exchangePrice?.usdPrice?.binance}`
-  //                         : 'This token is not supported'}
-  //                     </TableCell>
-  //                   </TableRow>
-  //                   <TableRow>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       <div className="flex items-center gap-2">
-  //                         <img
-  //                           src="/images/exchanges/kucoin.png"
-  //                           width={32}
-  //                           height={32}
-  //                           className="rounded-full border"
-  //                           alt="platform_icon"
-  //                         ></img>
-  //                         <span>Kucoin</span>
-  //                       </div>
-  //                     </TableCell>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       {exchangePrice?.usdPrice?.kucoin
-  //                         ? `$${exchangePrice?.usdPrice?.kucoin}`
-  //                         : 'This token is not supported'}
-  //                     </TableCell>
-  //                   </TableRow>
-  //                   <TableRow
-  //                     sx={{
-  //                       '&:last-child td, &:last-child th': { border: 0 },
-  //                     }}
-  //                   >
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       <div className="flex items-center gap-2">
-  //                         <img
-  //                           src="/images/exchanges/coinbase.png"
-  //                           width={32}
-  //                           height={32}
-  //                           className="rounded-full border"
-  //                           alt="platform_icon"
-  //                         ></img>
-  //                         <span>Coinbase</span>
-  //                       </div>
-  //                     </TableCell>
-  //                     <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-  //                       {exchangePrice?.usdPrice?.coinbase
-  //                         ? `$${exchangePrice?.usdPrice?.coinbase}`
-  //                         : 'This token is not supported'}
-  //                     </TableCell>
-  //                   </TableRow>
-  //                 </TableBody>
-  //               </Table>
-  //             </TableContainer>
-  //           </div>
-  //         </div>
-  //         {/* Activity */}
-  //         <div
-  //           className={cn('mx-auto 2xl:mx-0', {
-  //             hidden:
-  //               selected !== ContentType.ACTIVITY &&
-  //               selected !== ContentType.ALL,
-  //           })}
-  //         >
-  //           <span className="hidden font-sora text-[32px] 2xl:block">
-  //             Transactions
-  //           </span>
-  //           {transactions.length ? (
-  //             <InfiniteScroll
-  //               dataLength={transactions.length}
-  //               next={fetchMoreTransactions}
-  //               hasMore={fetchMore}
-  //               loader={<h4 className="text-center">Loading...</h4>}
-  //             >
-  //               {transactions.map((transaction) => (
-  //                 <TransactionCard
-  //                   key={transaction.txHash}
-  //                   transaction={transaction}
-  //                   likes={transaction.likes}
-  //                   dislikes={transaction.dislikes}
-  //                   comments={transaction.comments}
-  //                 />
-  //               ))}
-  //             </InfiniteScroll>
-  //           ) : (
-  //             <EmptyContainer descirption="no transactions" />
-  //           )}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </AppLayout>
+          <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>
+            {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
+          </div>
+        </div>
+        <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.INFO,
+            })}
+            onClick={() => setSelected(ContentType.INFO)}
+          >
+            Info
+          </span>
+          <span
+            className={cn('leading-8', {
+              'text-orange-400': selected === ContentType.ACTIVITY,
+            })}
+            onClick={() => setSelected(ContentType.ACTIVITY)}
+          >
+            Activity
+          </span>
+        </div>
+        {/* Main */}
+        <div className="mt-2 flex flex-col justify-center gap-4 2xl:flex-row 2xl:justify-between">
+          {/* Info */}
+          <div
+            className={cn('px-0 2xl:w-[808px]', {
+              hidden: selected !== ContentType.INFO && selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">Info</span>
+            {/* Portfolio */}
+            <div className="bg-white">
+              <div className="flex justify-between p-4 font-sora text-2xl font-semibold">
+                <span>{`${portfolio.tokenPrices?.contract_ticker_symbol}-USD Price History`}</span>
+              </div>
+              <ResponsiveContainer height={430} width="100%">
+                <AreaChart data={data} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                  <defs>
+                    <linearGradient id="pretty_price" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3354F4" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6359E8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="price" stroke="#8884d8" fillOpacity={1} fill="url(#pretty_price)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Current Price on Exchanges */}
+            <div className="mt-2 bg-white p-4">
+              <span className="text-sora text-xl font-semibold">Current Price on Exchanges</span>
+              <TableContainer className="mt-4">
+                <Table sx={{ minWidth: 400 }} aria-label="simple table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Exchanges</TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-2 rounded-lg bg-bali-hai-600/20 px-2 py-1">
+                            <img src={`/images/network/${network}.png`} width={24} height={24} alt="noicon"></img>
+                            <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
+                          </span>
+                          <span className="text-bali-hai-600">USD value</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src="/images/exchanges/uniswap.png"
+                            width={32}
+                            height={32}
+                            className="rounded-full border"
+                            alt="platform_icon"
+                          ></img>
+                          <span>Uniswap</span>
+                        </div>
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        {exchangePrice?.usdPrice?.uniswap
+                          ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(5)}`
+                          : 'This token is not supported'}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src="/images/exchanges/binance.png"
+                            width={32}
+                            height={32}
+                            className="rounded-full border"
+                            alt="platform_icon"
+                          ></img>
+                          <span>Binance</span>
+                        </div>
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        {exchangePrice?.usdPrice?.binance
+                          ? `$${exchangePrice?.usdPrice?.binance}`
+                          : 'This token is not supported'}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src="/images/exchanges/kucoin.png"
+                            width={32}
+                            height={32}
+                            className="rounded-full border"
+                            alt="platform_icon"
+                          ></img>
+                          <span>Kucoin</span>
+                        </div>
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        {exchangePrice?.usdPrice?.kucoin
+                          ? `$${exchangePrice?.usdPrice?.kucoin}`
+                          : 'This token is not supported'}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                      }}
+                    >
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src="/images/exchanges/coinbase.png"
+                            width={32}
+                            height={32}
+                            className="rounded-full border"
+                            alt="platform_icon"
+                          ></img>
+                          <span>Coinbase</span>
+                        </div>
+                      </TableCell>
+                      <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
+                        {exchangePrice?.usdPrice?.coinbase
+                          ? `$${exchangePrice?.usdPrice?.coinbase}`
+                          : 'This token is not supported'}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          </div>
+          {/* Activity */}
+          <div
+            className={cn('mx-auto 2xl:mx-0', {
+              hidden: selected !== ContentType.ACTIVITY && selected !== ContentType.ALL,
+            })}
+          >
+            <span className="hidden font-sora text-[32px] 2xl:block">Transactions</span>
+            {portfolio.transactions.length ? (
+              <InfiniteScroll
+                dataLength={portfolio.transactions.length}
+                next={fetchMoreTransactions}
+                hasMore={fetchMore}
+                loader={<h4 className="text-center">Loading...</h4>}
+              >
+                {portfolio.transactions.map((transaction) => (
+                  <TransactionCard
+                    key={transaction.txHash}
+                    transaction={transaction}
+                    likes={transaction.likes}
+                    dislikes={transaction.dislikes}
+                    comments={transaction.comments}
+                  />
+                ))}
+              </InfiniteScroll>
+            ) : (
+              <EmptyContainer descirption="no transactions" />
+            )}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 };

@@ -4,18 +4,13 @@ import AppLayout from '../../layouts/AppLayout';
 import { Asset } from '../../components/portfolio/asset';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-import {
-  FollowerIcon,
-  FollowingIcon,
-  NotificationOnIcon,
-} from '../../components/icons/defisensi-icons';
+import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
 
 import cn from 'classnames';
 import { Spin } from 'antd';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/app';
-import { balanceFormatter } from '../../lib/utils';
 import { NftTransfer } from '../../types/transaction';
 import { followNFT, getNFTTransactions } from '../../lib/api';
 import useNFTPortfolio from '../../lib/hooks/useNFTPortfolio';
