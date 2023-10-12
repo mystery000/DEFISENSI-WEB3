@@ -1,4 +1,4 @@
-export type TopToken = {
+export type TopERC20Token = {
   address: string;
   name: string;
   price: string;

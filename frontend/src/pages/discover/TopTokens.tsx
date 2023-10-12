@@ -18,7 +18,7 @@ import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopTokens = () => {
   const [query, setQuery] = useState('');
-  const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topERC20Tokens, loading } = useTopTokens(chain);
 
   const navigate = useNavigate();

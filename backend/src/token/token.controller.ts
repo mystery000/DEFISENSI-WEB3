@@ -124,7 +124,7 @@ export class TokenController {
   @ApiParam({ name: 'address', description: 'The contract address of this token' })
   @ApiQuery({ name: 'from', description: 'The start day of the historical price range (YYYY-MM-DD).', required: true })
   @ApiQuery({ name: 'to', description: 'The end day of the historical price range (YYYY-MM-DD).', required: true })
-  getHistoricalPrice(
+  getTokenPrices(
     @Param('network') network: string,
     @Param('address') address: string,
     @Query('from') from: string,

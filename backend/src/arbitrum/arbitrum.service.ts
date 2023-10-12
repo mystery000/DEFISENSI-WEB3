@@ -432,15 +432,15 @@ export class ArbitrumService {
     const url = 'https://arbiscan.io/tokens';
     try {
       const client = new ZenRows(this.serviceConfig.zenrows_api_key);
-      const { data } = await client.get(url, {});
+      const { data } = await client.get(url, { js_render: true, wait_for: '#tblResult' });
       const dom = new JSDOM(data);
       const accountList = dom.window.document.querySelectorAll('#tblResult tbody tr');
       topTokens = Array.from(accountList).map((account) => {
         return {
-          name: account.querySelector('td:nth-child(2) a:first-child').innerHTML,
-          address: account.querySelector('td:nth-child(2) a:first-child').getAttribute('href').slice(7),
-          price: account.querySelector('td:nth-child(3) span:first-child').innerHTML,
-          change: (<HTMLElement>account.querySelector('td:nth-child(4) span')).innerText,
+          name: account.querySelector('td:nth-child(2) a.text-primary').textContent.trim(),
+          address: account.querySelector('td:nth-child(2) a.text-primary').getAttribute('href').slice(7),
+          price: account.querySelector('td:nth-child(3) span').textContent.trim(),
+          change: account.querySelector('td:nth-child(4) span').textContent.trim(),
         };
       });
     } catch (error) {
@@ -579,5 +579,7 @@ export class ArbitrumService {
     }
   }
 
-  async test() {}
+  async test() {
+    return this.getTopERC20Tokens();
+  }
 }

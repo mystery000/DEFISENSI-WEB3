@@ -18,7 +18,7 @@ import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopWallets = () => {
   const [query, setQuery] = useState('');
-  const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topWallets, loading } = useTopWallets(chain);
 
   if (loading) {
@@ -87,6 +87,7 @@ export const TopWallets = () => {
                     sx={{
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
+                    hover
                   >
                     <TableCell>
                       <a

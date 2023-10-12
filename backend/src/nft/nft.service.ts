@@ -171,7 +171,7 @@ export class NftService {
       case NetworkType.ARBITRUM:
         return this.arbitrumService.getTopNFTs();
       case NetworkType.AVALANCHE:
-        return this.arbitrumService.getTopNFTs();
+        return this.avalancheService.getTopNFTs();
     }
   }
 

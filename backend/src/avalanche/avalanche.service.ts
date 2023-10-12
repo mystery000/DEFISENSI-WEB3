@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 
 import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
@@ -24,11 +24,11 @@ export class AvalancheService {
     this.serviceConfig = this.configService.get<ServiceConfig>('service');
   }
 
-  async getTransactionsByAccount(address: string, fromBlock: number = 0) {}
+  async getTransactionsByAccount(address: string) {}
 
-  async getTransactionsByContract(address: string, fromBlock: number = 0) {}
+  async getTransactionsByContract(address: string) {}
 
-  async getTransactionsByNFT(address: string, fromBlock: number = 0) {}
+  async getTransactionsByNFT(address: string) {}
 
   async getPriceFromExchanges(address: string) {}
 
@@ -181,7 +181,5 @@ export class AvalancheService {
     }
   }
 
-  async test() {
-    return this.getTopERC20Tokens();
-  }
+  async test() {}
 }

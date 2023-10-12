@@ -19,7 +19,6 @@ export default function useTopNFTs(network: string) {
         console.log(error);
         setError(error);
         setLoading(false);
-        return [];
       }
     })();
   }, [network]);

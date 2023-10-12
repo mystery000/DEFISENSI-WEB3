@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 import { API_BASE_URL } from '../config/app';
-import { Balance, BalanceHistory } from '../types/balance';
-import { ExchangePrice, HistoricalPrice } from '../types/price';
-import { TopNFT, TopToken, TopWallet } from '../types/discover';
+import { TopNFT, TopERC20Token, TopWallet } from '../types/discover';
 import {
   NFTTransaction,
   TokenTransaction,
@@ -113,25 +111,25 @@ export const getNFTTransactions = async (
 };
 
 export const getBalance = async (address: string) => {
-  try {
-    const res = await axios.get(`${API_BASE_URL}/wallet/${address}/balance`);
-    return res.data as Balance;
-  } catch (error) {
-    console.log(error);
-    return {};
-  }
+  // try {
+  //   const res = await axios.get(`${API_BASE_URL}/wallet/${address}/balance`);
+  //   return res.data as Balance;
+  // } catch (error) {
+  //   console.log(error);
+  //   return {};
+  // }
 };
 
 export const getBalanceHistory = async (address: string) => {
-  try {
-    const res = await axios.get(
-      `${API_BASE_URL}/wallet/${address}/balancehistory`,
-    );
-    return res.data as BalanceHistory;
-  } catch (error) {
-    console.log(error);
-    return {};
-  }
+  // try {
+  //   const res = await axios.get(
+  //     `${API_BASE_URL}/wallet/${address}/balancehistory`,
+  //   );
+  //   return res.data as BalanceHistory;
+  // } catch (error) {
+  //   console.log(error);
+  //   return {};
+  // }
 };
 
 export const login = async (address: string) => {
@@ -148,30 +146,30 @@ export const getPriceHistory = async (
   network: string,
   contractAddress: string,
 ) => {
-  try {
-    const res = await axios.get(
-      `${API_BASE_URL}/token/${network}/${contractAddress}/price/history`,
-    );
-    return res.data as HistoricalPrice[];
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
+  // try {
+  //   const res = await axios.get(
+  //     `${API_BASE_URL}/token/${network}/${contractAddress}/price/history`,
+  //   );
+  //   return res.data as HistoricalPrice[];
+  // } catch (error) {
+  //   console.log(error);
+  //   return [];
+  // }
 };
 
 export const getPriceFromExchanges = async (
   network: string,
   contractAddress: string,
 ) => {
-  try {
-    const res = await axios.get(
-      `${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`,
-    );
-    return res.data as ExchangePrice;
-  } catch (error) {
-    console.log(error);
-    return;
-  }
+  // try {
+  //   const res = await axios.get(
+  //     `${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`,
+  //   );
+  //   return res.data as ExchangePrice;
+  // } catch (error) {
+  //   console.log(error);
+  //   return;
+  // }
 };
 
 export const getFollowersByToken = async (network: string, address: string) => {
@@ -344,22 +342,18 @@ export const updateNotification = async (
 };
 
 export const getTopERC20Tokens = async (network: string) => {
-  if (!network) {
-    console.log('network parameter is required to get the top tokens');
-    return [];
-  }
   try {
-    const res = await axios.get(`${API_BASE_URL}/token/top-tokens/${network}`);
-    return res.data as TopToken[];
+    const resp = await axios.get(`${API_BASE_URL}/token/top-tokens/${network}`);
+    return resp.data as TopERC20Token[];
   } catch (error) {
-    return [];
+    throw error;
   }
 };
 
 export const getTopNFTCollections = async (network: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/nft/top-nfts/${network}`);
-    return res.data as TopNFT[];
+    const resp = await axios.get(`${API_BASE_URL}/nft/top-nfts/${network}`);
+    return resp.data as TopNFT[];
   } catch (error) {
     throw error;
   }
@@ -367,10 +361,10 @@ export const getTopNFTCollections = async (network: string) => {
 
 export const getTopWallets = async (network: string) => {
   try {
-    const res = await axios.get(
+    const resp = await axios.get(
       `${API_BASE_URL}/wallet/top-wallets/${network}`,
     );
-    return res.data as TopWallet[];
+    return resp.data as TopWallet[];
   } catch (error) {
     throw error;
   }
@@ -378,24 +372,11 @@ export const getTopWallets = async (network: string) => {
 
 export const getENS = async (address: string) => {
   try {
-    const response = await axios.get(
+    const resp = await axios.get(
       `${API_BASE_URL}/wallet/resolve/${address}/reverse`,
     );
-    return response.data;
+    return resp.data;
   } catch (error) {
-    console.log(error);
-    return '';
-  }
-};
-
-export const getTokenAddress = async (network: string, id: string) => {
-  try {
-    const response = await axios.get(
-      `${API_BASE_URL}/token/top/${network}/${id}`,
-    );
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return null;
+    throw error;
   }
 };

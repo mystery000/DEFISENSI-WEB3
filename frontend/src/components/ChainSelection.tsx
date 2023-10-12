@@ -13,16 +13,10 @@ export const ChainSelection: FC<ChainSelectionProps> = ({
 }) => {
   const options = [
     {
-      value: NetworkType.Ethereum,
+      value: NetworkType.ETHEREUM,
       name: 'ethereum',
       label: 'Ethereum',
       logo: '/images/network/ethereum.png',
-    },
-    {
-      value: NetworkType.Polygon,
-      name: 'polygon',
-      label: 'Polygon',
-      logo: '/images/network/polygon.png',
     },
     {
       value: NetworkType.BSC,
@@ -35,6 +29,18 @@ export const ChainSelection: FC<ChainSelectionProps> = ({
       name: 'arbitrum',
       label: 'Arbitrum',
       logo: '/images/network/arbitrum.png',
+    },
+    {
+      value: NetworkType.POLYGON,
+      name: 'polygon',
+      label: 'Polygon',
+      logo: '/images/network/polygon.png',
+    },
+    {
+      value: NetworkType.AVALANCHE,
+      name: 'avalanche',
+      label: 'Avalanche',
+      logo: '/images/network/avalanche.png',
     },
   ];
 
@@ -50,7 +56,7 @@ export const ChainSelection: FC<ChainSelectionProps> = ({
         src={logo}
         width={24}
         height={24}
-        alt="no image"
+        alt="noimg"
         className="rounded-full"
         loading="lazy"
       />

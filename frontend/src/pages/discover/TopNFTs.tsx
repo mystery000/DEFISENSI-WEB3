@@ -17,7 +17,7 @@ import { ChainSelection } from '../../components/ChainSelection';
 
 export const TopNFTs = () => {
   const [query, setQuery] = useState('');
-  const [chain, setChain] = useState<NetworkType>(NetworkType.Ethereum);
+  const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topNFTs, loading } = useTopNFTs(chain);
 
   if (loading) {
@@ -86,6 +86,7 @@ export const TopNFTs = () => {
                     sx={{
                       '&:last-child td, &:last-child th': { border: 0 },
                     }}
+                    hover
                   >
                     <TableCell>
                       <a

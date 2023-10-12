@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { TopWallet } from '../../types/discover';
+
 import { getTopWallets } from '../api';
+import { TopWallet } from '../../types/discover';
 
 export default function useTopWallets(network: string) {
   const [data, setData] = useState<TopWallet[]>([]);

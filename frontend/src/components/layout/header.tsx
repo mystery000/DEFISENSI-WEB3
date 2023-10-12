@@ -65,7 +65,7 @@ const Header = () => {
           label: (
             <div
               className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/wallet')}
+              onClick={() => navigate('/discover/wallets')}
             >
               <MailOutlined />
               <span>Top Wallets</span>
@@ -77,7 +77,7 @@ const Header = () => {
           label: (
             <div
               className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/token')}
+              onClick={() => navigate('/discover/tokens')}
             >
               <MailOutlined />
               <span>Top tokens</span>
@@ -89,7 +89,7 @@ const Header = () => {
           label: (
             <div
               className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/nft')}
+              onClick={() => navigate('/discover/nfts')}
             >
               <MailOutlined />
               <span>Top NFTs</span>

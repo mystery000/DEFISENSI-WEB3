@@ -65,9 +65,9 @@ function App() {
                   path="/portfolio/nft/:network/:address"
                   element={<NFTPortfolio />}
                 />
-                <Route path="/discover/nft" element={<TopNFTs />} />
-                <Route path="/discover/token" element={<TopTokens />} />
-                <Route path="/discover/wallet" element={<TopWallets />} />
+                <Route path="/discover/nfts" element={<TopNFTs />} />
+                <Route path="/discover/tokens" element={<TopTokens />} />
+                <Route path="/discover/wallets" element={<TopWallets />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route
                   path="/notification/nft/create"

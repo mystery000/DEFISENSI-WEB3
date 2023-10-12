@@ -10,19 +10,19 @@ export default function usePriceFromExchanges() {
   const { network, address } = useParams();
 
   useEffect(() => {
-    (async () => {
-      try {
-        if (!network || !address) return;
-        setLoading(true);
-        const exchangePrice = await getPriceFromExchanges(network, address);
-        setData(exchangePrice);
-        setLoading(false);
-      } catch (error) {
-        setError(error);
-        setLoading(false);
-        console.error(error);
-      }
-    })();
+    // (async () => {
+    //   try {
+    //     if (!network || !address) return;
+    //     setLoading(true);
+    //     const exchangePrice = await getPriceFromExchanges(network, address);
+    //     setData(exchangePrice);
+    //     setLoading(false);
+    //   } catch (error) {
+    //     setError(error);
+    //     setLoading(false);
+    //     console.error(error);
+    //   }
+    // })();
   }, [network, address]);
 
   return { exchangePrice: data, error, loading };
