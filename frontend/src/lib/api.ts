@@ -121,19 +121,21 @@ export const getFollowingsByNFT = async (network: string, address: string) => {
 
 export const getFollowersByWallet = async (address: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/wallet/followers/${address}`);
-    return res.data;
+    const resp = await axios.get(`${API_BASE_URL}/wallet/followers/${address}`);
+    return resp.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
 export const getFollowingsByWallet = async (address: string) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/wallet/followings/${address}`);
-    return res.data;
+    const resp = await axios.get(`${API_BASE_URL}/wallet/followings/${address}`);
+    return resp.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
@@ -300,7 +302,7 @@ export const getTokenBalancesForWalletAddress = async (network: string, address:
   }
 };
 
-export const getHistoricalPortfolioForWalletAddress = async (network: string, address: string, days: number = 30) => {
+export const getHistoricalPortfolioForWalletAddress = async (network: string, address: string, days: number = 1095) => {
   try {
     const resp = await axios.get(
       `${API_BASE_URL}/wallet/${network}/address/${address}/historical_balances?days=${days}`,

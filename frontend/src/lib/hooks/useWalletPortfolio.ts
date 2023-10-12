@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { NetworkType } from '../../types';
 import { BalancesResponse, PortfolioResponse } from '../../types/balance';
 import {
   getFollowersByWallet,
@@ -15,8 +14,8 @@ export type WalletPortfolio = {
   followers: any[];
   followings: any[];
   ens?: string;
-  balances: BalancesResponse | null;
-  historicalBalances: PortfolioResponse | null;
+  balances: BalancesResponse;
+  historicalBalances: PortfolioResponse;
   transactions: any[];
 };
 
@@ -26,8 +25,8 @@ export default function useWalletPortfolio(network: string) {
   const [data, setData] = useState<WalletPortfolio>({
     followers: [],
     followings: [],
-    balances: null,
-    historicalBalances: null,
+    balances: [],
+    historicalBalances: [],
     transactions: [],
   });
   const [error, setError] = useState<any>(null);
@@ -60,7 +59,7 @@ export default function useWalletPortfolio(network: string) {
         setError(error);
       }
     })();
-  }, [address]);
+  }, [address, network]);
 
   return { data, error, loading, mutate: setData };
 }

@@ -3,11 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 
 import cn from 'classnames';
 import { Spin } from 'antd';
+import moment from 'moment';
 import { toast } from 'react-toastify';
 import Table from '@mui/material/Table';
 import { followToken } from '../../lib/api';
 import TableRow from '@mui/material/TableRow';
 import { TableContainer } from '@mui/material';
+import { keyFormatter } from '../../lib/utils';
 import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -110,7 +112,7 @@ export const TokenPortfolio = () => {
   const data = portfolio.tokenPrices?.prices
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((price) => ({
-      date: new Date(price.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+      date: new Date(price.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
       price: price.price,
       pretty_price: price.pretty_price,
     }));
@@ -129,7 +131,14 @@ export const TokenPortfolio = () => {
             <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
               <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
-                <img src={`/images/network/${network}.png`} width={32} height={32} alt="noicon"></img>
+                <img
+                  src={`/images/network/${network}.png`}
+                  width={32}
+                  height={32}
+                  alt="noicon"
+                  className="rounded-full"
+                  loading="lazy"
+                ></img>
                 <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
               </span>
             </h2>
@@ -197,15 +206,20 @@ export const TokenPortfolio = () => {
                 <span>{`${portfolio.tokenPrices?.contract_ticker_symbol}-USD Price History`}</span>
               </div>
               <ResponsiveContainer height={430} width="100%">
-                <AreaChart data={data} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                <AreaChart data={data} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
                   <defs>
                     <linearGradient id="pretty_price" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3354F4" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#6359E8" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis
+                    dataKey="date"
+                    interval={365}
+                    tickFormatter={(date) => moment(date).format('YYYY')}
+                    axisLine={false}
+                  />
+                  <YAxis orientation="right" axisLine={false} tickLine={false} tickFormatter={keyFormatter} />
                   <CartesianGrid strokeDasharray="3 3" />
                   <Tooltip />
                   <Area type="monotone" dataKey="price" stroke="#8884d8" fillOpacity={1} fill="url(#pretty_price)" />
