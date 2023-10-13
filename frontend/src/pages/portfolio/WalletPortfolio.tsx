@@ -28,6 +28,9 @@ import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
+import useWalletBalances from '../../lib/hooks/useWalletBalances';
+import { Asset } from '../../components/portfolio/asset';
+import { PortfolioResponse } from '../../types/balance';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -45,7 +48,8 @@ export const WalletPortfolio = () => {
   const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
-  const { data: portfolio, loading, mutate: mutatePortfolio } = useWalletPortfolio(chain);
+  const { balances, loading: balancesLoading } = useWalletBalances(chain);
+  const { data: portfolio, loading: portfolioLoading, mutate: mutatePortfolio } = useWalletPortfolio();
 
   // Responsive Design
   useEffect(() => {
@@ -82,7 +86,7 @@ export const WalletPortfolio = () => {
     }
   }, [address, user, portfolio, mutatePortfolio]);
 
-  if (loading) {
+  if (portfolioLoading || balancesLoading) {
     return (
       <div className="grid h-screen place-items-center">
         <Antd.Spin size="large" />
@@ -90,13 +94,19 @@ export const WalletPortfolio = () => {
     );
   }
 
-  const data = portfolio.historicalBalances
+  const data = portfolio.historicalBalances?.[`${chain}`]
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     .map((price) => ({
       date: new Date(price.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
-      price: Number(price.total_quote),
-      pretty_price: price.pretty_total_quote,
+      total_quote: Number(price.total_quote),
+      pretty_total_quote: price.pretty_total_quote,
     }));
+
+  const arrays = Object.values(portfolio.historicalBalances || {}).map((balances) => balances);
+  const maxLength = Math.max(...arrays.map((arr) => arr.length));
+  const sum = Array(maxLength)
+    .fill(0)
+    .map((_, idx) => arrays.reduce((acc, currentArray) => acc + (Number(currentArray[idx].total_quote) || 0), 0));
 
   return (
     <AppLayout>
@@ -197,7 +207,7 @@ export const WalletPortfolio = () => {
                   <YAxis orientation="right" axisLine={false} tickLine={false} tickFormatter={keyFormatter} />
                   <CartesianGrid strokeDasharray="3 3" />
                   <Tooltip />
-                  <Area type="monotone" dataKey="price" stroke="#8884d8" fillOpacity={1} fill="url(#quote)" />
+                  <Area type="monotone" dataKey="total_quote" stroke="#8884d8" fillOpacity={1} fill="url(#quote)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -207,28 +217,27 @@ export const WalletPortfolio = () => {
                 <span className="text-sora text-xl font-semibold">Asset Overview</span>
               </div>
               <div className="mt-2 flex flex-wrap justify-between gap-4">
-                {/* <Asset
-                  blockchain="All"
-                  balance={balanceFormatter(
-                    EtherValues + BinanceValues + PolygonValues,
-                  )}
-                  history={AllSparkLineData}
+                <Asset chainName="All" data={sum} />
+                <Asset
+                  chainName="ETH"
+                  data={portfolio.historicalBalances?.ethereum.map((balance) => Number(balance.total_quote))}
                 />
                 <Asset
-                  blockchain="BNB Chain"
-                  balance={balanceFormatter(BinanceValues)}
-                  history={BinanceSparkLineData}
+                  chainName="Polygon"
+                  data={portfolio.historicalBalances?.polygon.map((balance) => Number(balance.total_quote))}
                 />
                 <Asset
-                  blockchain="ETH"
-                  balance={balanceFormatter(EtherValues)}
-                  history={EthereumSparkLineData}
+                  chainName="BNB Smart Chain"
+                  data={portfolio.historicalBalances?.binance.map((balance) => Number(balance.total_quote))}
                 />
                 <Asset
-                  blockchain="Polygon"
-                  balance={balanceFormatter(PolygonValues)}
-                  history={PolygonSparkLineData}
-                /> */}
+                  chainName="Arbitrum"
+                  data={portfolio.historicalBalances?.arbitrum.map((balance) => Number(balance.total_quote))}
+                />
+                <Asset
+                  chainName="Avalanche"
+                  data={portfolio.historicalBalances?.avalanche.map((balance) => Number(balance.total_quote))}
+                />
               </div>
               <TableContainer>
                 <Table sx={{ minWidth: 400, heigh: 600 }} aria-label="simple table">
@@ -240,13 +249,14 @@ export const WalletPortfolio = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {portfolio.balances.length > 0 ? (
-                      portfolio.balances.map((token, id) => (
+                    {balances.length > 0 ? (
+                      balances.map((token, id) => (
                         <TableRow
                           key={token.contract_address}
                           sx={{
                             '&:last-child td, &:last-child th': { border: 0 },
                           }}
+                          hover
                         >
                           <TableCell>
                             <div className="flex items-center gap-1">

@@ -20,7 +20,7 @@ export const findFollowingWallets = async (address: string, limit: number = 4) =
     const res = await axios.get(`${API_BASE_URL}/user/${address}/wallet/transactions?limit=${limit}`);
     return res.data as WalletTransaction[];
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return [];
   }
 };
@@ -30,7 +30,7 @@ export const findFollowingTokens = async (address: string, limit: number = 4) =>
     const res = await axios.get(`${API_BASE_URL}/user/${address}/token/transactions?limit=${limit}`);
     return res.data as TokenTransaction[];
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return [];
   }
 };
@@ -40,7 +40,7 @@ export const findFollowingNFTs = async (address: string, limit: number = 4) => {
     const res = await axios.get(`${API_BASE_URL}/user/${address}/nft/transactions?limit=${limit}`);
     return res.data as NFTTransaction[];
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return [];
   }
 };
@@ -50,7 +50,7 @@ export const findWalletTransactions = async (address: string, limit?: number) =>
     const res = await axios.get(`${API_BASE_URL}/wallet/${address}/transactions?limit=${limit ? limit : 4}`);
     return res.data as WalletTransaction;
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -74,7 +74,7 @@ export const getNFTTransactions = async (network: string, address: string, limit
     const res = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/transactions?limit=${limit ? limit : 4}`);
     return res.data as NFTTransaction;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };
@@ -85,7 +85,7 @@ export const login = async (address: string) => {
     await axios.post(`${API_BASE_URL}/wallet`, { address });
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -96,7 +96,7 @@ export const getPriceFromExchanges = async (network: string, contractAddress: st
   //   );
   //   return res.data as ExchangePrice;
   // } catch (error) {
-  //   console.log(error);
+  //   console.error(error);
   //   return;
   // }
 };
@@ -165,7 +165,7 @@ export const followToken = async (address: string, tokenAddress: string, network
 };
 
 export const followNFT = async (address: string, nftAddress: string, network: string) => {
-  console.log(network);
+  console.error(network);
   try {
     const res = await axios.post(`${API_BASE_URL}/nft/follow`, {
       address,

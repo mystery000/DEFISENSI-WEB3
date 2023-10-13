@@ -12,10 +12,15 @@ import {
   BalancesResponse,
   PortfolioResponse,
   TokenPricesResponse,
+  TokenTransaction,
   TopERC20Token,
   TopNFT,
   TopWallet,
 } from 'src/utils/types';
+import Moralis from 'moralis';
+import { EvmChain } from '@moralisweb3/common-evm-utils';
+import { NetworkType } from 'src/utils/enums/network.enum';
+import { TransactionType } from 'src/utils/enums/transaction.enum';
 @Injectable()
 export class AvalancheService {
   private readonly serviceConfig: ServiceConfig;
@@ -26,7 +31,77 @@ export class AvalancheService {
 
   async getTransactionsByAccount(address: string) {}
 
-  async getTransactionsByContract(address: string) {}
+  async getTransactionsByContract(address: string) {
+    let txHashs = [];
+    let transactions: TokenTransaction[] = [];
+    try {
+      let transfers = [];
+      await Moralis.EvmApi.token
+        .getTokenTransfers({
+          chain: EvmChain.AVALANCHE,
+          address: address,
+          limit: 4,
+        })
+        .then((response) => {
+          transfers = response.toJSON().result;
+        });
+
+      for (const transfer of transfers) {
+        if (!txHashs.includes(transfer.transaction_hash)) {
+          txHashs.push(transfer.transaction_hash);
+        }
+      }
+      for (const txHash of txHashs) {
+        const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
+          chain: EvmChain.AVALANCHE,
+          transactionHash: txHash,
+        });
+
+        const { logs, block_number, block_timestamp } = transaction.toJSON();
+        for (const log of logs) {
+          if (address.toLocaleLowerCase() !== log.address) continue;
+          await Moralis.EvmApi.token
+            .getTokenPrice({
+              chain: EvmChain.AVALANCHE,
+              address: log.address,
+              exchange: 'pangolin',
+            })
+            .then((response) => {
+              const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();
+              const from = log.decoded_event?.params.find((param) => param.name === 'from').value;
+              const to = log.decoded_event?.params.find((param) => param.name === 'to').value;
+              const value = log.decoded_event?.params.find((param) => param.name === 'value').value;
+
+              transactions.push({
+                txHash,
+                blockNumber: block_number,
+                type: TransactionType.TOKEN,
+                network: NetworkType.AVALANCHE,
+                timestamp: new Date(block_timestamp).getTime(),
+                details: {
+                  from,
+                  to,
+                  token0: {
+                    name: tokenName,
+                    symbol: tokenSymbol,
+                    logo: tokenLogo,
+                    contractAddress: log.address,
+                    decimals: tokenDecimals,
+                    amount: value,
+                    price: usdPrice.toString(),
+                  },
+                },
+              });
+            });
+          break;
+        }
+      }
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return transactions;
+    }
+  }
 
   async getTransactionsByNFT(address: string) {}
 
@@ -181,5 +256,7 @@ export class AvalancheService {
     }
   }
 
-  async test() {}
+  async test() {
+    return this.getTransactionsByContract('0xC467215fa95370c672D7F475a430579CFe66752B');
+  }
 }

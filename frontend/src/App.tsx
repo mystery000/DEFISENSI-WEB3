@@ -18,11 +18,7 @@ import { TokenPortfolio } from './pages/portfolio/TokenPortfolio';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { WalletPortfolio } from './pages/portfolio/WalletPortfolio';
 
-import {
-  EthereumClient,
-  w3mConnectors,
-  w3mProvider,
-} from '@web3modal/ethereum';
+import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
 
 import 'react-toastify/dist/ReactToastify.css';
 import { EntryRoute } from './routes/EntryRoute';
@@ -53,34 +49,16 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route element={<PrivateRoute />}>
                 <Route path="/transactions" element={<Transactions />} />
-                <Route
-                  path="/portfolio/wallet/:address"
-                  element={<WalletPortfolio />}
-                />
-                <Route
-                  path="/portfolio/token/:network/:address"
-                  element={<TokenPortfolio />}
-                />
-                <Route
-                  path="/portfolio/nft/:network/:address"
-                  element={<NFTPortfolio />}
-                />
+                <Route path="/portfolio/wallet/:address" element={<WalletPortfolio />} />
+                <Route path="/portfolio/token/:network/:address" element={<TokenPortfolio />} />
+                <Route path="/portfolio/nft/:network/:address" element={<NFTPortfolio />} />
                 <Route path="/discover/nfts" element={<TopNFTs />} />
                 <Route path="/discover/tokens" element={<TopTokens />} />
                 <Route path="/discover/wallets" element={<TopWallets />} />
                 <Route path="/notifications" element={<Notifications />} />
-                <Route
-                  path="/notification/nft/create"
-                  element={<NFTNotificationPage />}
-                />
-                <Route
-                  path="/notification/token/create"
-                  element={<TokenNotificationPage />}
-                />
-                <Route
-                  path="/notification/wallet/create"
-                  element={<WalletNotificationPage />}
-                />
+                <Route path="/notification/nft/create" element={<NFTNotificationPage />} />
+                <Route path="/notification/token/create" element={<TokenNotificationPage />} />
+                <Route path="/notification/wallet/create" element={<WalletNotificationPage />} />
               </Route>
               <Route path="/404" element={<PageNotFound />} />
               <Route path="*" element={<Navigate to="/404" />} />
@@ -92,7 +70,7 @@ function App() {
       <ToastContainer
         position="top-center"
         autoClose={2000}
-        hideProgressBar={false}
+        hideProgressBar={true}
         newestOnTop={false}
         closeOnClick
         rtl={false}

@@ -262,7 +262,6 @@ export class BscscanService {
           address: address,
           limit: 4,
           fromBlock,
-          //   toBlock: 31568295,
         })
         .then((response) => {
           transfers = response.toJSON().result;

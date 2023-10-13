@@ -59,13 +59,13 @@ export const convertDecimals = (value: string, decimals: string) => {
 // X-Axis and Y-Axis Key Formatter in Rechart
 export const keyFormatter = (key: number) => {
   if (key >= 1e9) {
-    return '$' + key / 1e9 + 'B';
+    return '$' + (key / 1e9).toLocaleString() + 'B';
   } else if (key >= 1e6) {
-    return '$' + key / 1e6 + 'M';
+    return '$' + (key / 1e6).toLocaleString() + 'M';
   } else if (key >= 1e3) {
-    return '$' + key / 1e3 + 'K';
+    return '$' + (key / 1e3).toLocaleString() + 'K';
   } else {
-    return '$' + key;
+    return '$' + key.toLocaleString();
   }
 };
 

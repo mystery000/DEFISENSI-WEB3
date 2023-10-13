@@ -9,24 +9,28 @@ import {
   getTokenBalancesForWalletAddress,
   getHistoricalPortfolioForWalletAddress,
 } from '../api';
+import { NetworkType } from '../../types';
 
 export type WalletPortfolio = {
   followers: any[];
   followings: any[];
   ens?: string;
-  balances: BalancesResponse;
-  historicalBalances: PortfolioResponse;
+  historicalBalances?: {
+    ethereum: PortfolioResponse;
+    polygon: PortfolioResponse;
+    binance: PortfolioResponse;
+    arbitrum: PortfolioResponse;
+    avalanche: PortfolioResponse;
+  };
   transactions: any[];
 };
 
-export default function useWalletPortfolio(network: string) {
+export default function useWalletPortfolio() {
   const { address } = useParams();
 
   const [data, setData] = useState<WalletPortfolio>({
     followers: [],
     followings: [],
-    balances: [],
-    historicalBalances: [],
     transactions: [],
   });
   const [error, setError] = useState<any>(null);
@@ -34,32 +38,40 @@ export default function useWalletPortfolio(network: string) {
 
   useEffect(() => {
     (async () => {
-      if (!address || !network) return;
+      if (!address) return;
       try {
         setLoading(true);
-        const [followers, followings, ens, balances, historicalBalances] = await Promise.all([
+        const [followers, followings, ens, ethereum, polygon, arbitrum, avalanche, binance] = await Promise.all([
           getFollowersByWallet(address),
           getFollowingsByWallet(address),
           getENS(address),
-          getTokenBalancesForWalletAddress(network, address),
-          getHistoricalPortfolioForWalletAddress(network, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.ETHEREUM, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.POLYGON, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.ARBITRUM, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.AVALANCHE, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.BSC, address),
         ]);
         setData({
           followers,
           followings,
           ens: ens,
-          balances,
-          historicalBalances,
+          historicalBalances: {
+            ethereum,
+            polygon,
+            arbitrum,
+            avalanche,
+            binance,
+          },
           transactions: [],
         });
         setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setLoading(false);
         setError(error);
       }
     })();
-  }, [address, network]);
+  }, [address]);
 
   return { data, error, loading, mutate: setData };
 }
