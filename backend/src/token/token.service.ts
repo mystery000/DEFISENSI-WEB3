@@ -34,19 +34,26 @@ export class TokenService {
   ) {}
 
   async create(token: CreateTokenDto): Promise<Token> {
-    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    const newToken = await this.tokenModel.findOneAndUpdate(token, token, options);
-    // Fetch latest 4 transactions when a new ERC20 token is created
-    await this.initializeTransactions(token.address, token.network);
-    return newToken;
+    let foundToken = await this.tokenModel.findOne({ address: token.address, network: token.network });
+    if (!foundToken) {
+      let createdWallet = await this.tokenModel.findOneAndUpdate(
+        { address: token.address }, // filter
+        {}, // update (empty as you're only interested in finding or creating a document)
+        {
+          upsert: true, // will create a new document if none is found
+          new: true, // will return the new document if one is created
+          setDefaultsOnInsert: true, // will set default values defined in your schema
+        },
+      );
+      return createdWallet;
+    }
+    return foundToken;
   }
 
   async getOrCreate(address: string, network: string) {
     let foundToken = await this.tokenModel.findOne({ address, network });
     if (!foundToken) {
       foundToken = await this.tokenModel.create({ address, network });
-      // Fetch latest 4 transactions when a new ERC20 token is created
-      await this.initializeTransactions(address, network);
     }
     return foundToken;
   }
@@ -61,6 +68,12 @@ export class TokenService {
       await foundUser.updateOne({
         $push: { followingTokens: foundToken.id },
       });
+      try {
+        const resp = await this.getTransactions(followTokenDto.network, followTokenDto.tokenAddress);
+        await this.setTransactions(followTokenDto.tokenAddress, followTokenDto.network, resp.transactions);
+      } catch (error) {
+        logger.error(error);
+      }
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this token');

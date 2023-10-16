@@ -3,13 +3,7 @@ import cn from 'classnames';
 import { Card } from 'antd';
 import { Transaction, TransactionType } from '../../types/transaction';
 
-import {
-  convertDecimals,
-  convertHex,
-  getAge,
-  getTransferType,
-  standardUnit,
-} from '../../lib/utils';
+import { convertDecimals, convertHex, getAge, getTransferType, standardUnit } from '../../lib/utils';
 
 import {
   ChatBubbleSolid,
@@ -18,7 +12,6 @@ import {
   ThumbsDownSolid,
   ThumbsUpSolid,
   TokenIcon,
-  NFTIcon,
 } from '../icons/defisensi-icons';
 
 import { useAppContext } from '../../context/app';
@@ -31,12 +24,7 @@ type TransactionCardProps = {
   comments: any[];
 };
 
-export const TransactionCard: FC<TransactionCardProps> = ({
-  transaction,
-  likes,
-  dislikes,
-  comments,
-}) => {
+export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, dislikes, comments }) => {
   const { user } = useAppContext();
   const age = getAge(transaction.timestamp);
   return (
@@ -50,13 +38,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           <span className="font-bold" title={transaction.details.from}>
             {convertHex(transaction.details.from).substring(0, 5)}
           </span>
-          <span>
-            {getTransferType(transaction) === TransferType.SEND ? (
-              <SendIcon />
-            ) : (
-              <SwapIcon />
-            )}
-          </span>
+          <span>{getTransferType(transaction) === TransferType.SEND ? <SendIcon /> : <SwapIcon />}</span>
           <span className="font-bold" title={transaction.details.to}>
             {convertHex(transaction.details.to).substring(0, 5)}
           </span>
@@ -88,10 +70,9 @@ export const TransactionCard: FC<TransactionCardProps> = ({
             />
           </span>
           <span>
-            {`${convertDecimals(
-              transaction.details.token0.amount,
-              transaction.details.token0.decimals,
-            )} ${transaction.details.token0.symbol}`}
+            {`${convertDecimals(transaction.details.token0.amount, transaction.details.token0.decimals)} ${
+              transaction.details.token0.symbol
+            }`}
           </span>
           <span className="text-bali-hai-600">{`@${Number(
             transaction.details.token0.price,
@@ -114,10 +95,9 @@ export const TransactionCard: FC<TransactionCardProps> = ({
               alt="token-icon"
             />
           </span>
-          <span>{`${convertDecimals(
-            transaction.details.token1.amount,
-            transaction.details.token1.decimals,
-          )} ${transaction.details.token1.symbol}`}</span>
+          <span>{`${convertDecimals(transaction.details.token1.amount, transaction.details.token1.decimals)} ${
+            transaction.details.token1.symbol
+          }`}</span>
           <span className="text-bali-hai-600">{`@${Number(
             transaction.details.token1.price,
           ).toLocaleString()} USD`}</span>
@@ -125,10 +105,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
       )}
       <div className="mt-4 flex justify-around text-center text-sm">
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ThumbsUpSolid
-            className="h-5 w-5 scale-x-[-1]"
-            fill={likes.includes(user.id) ? '#FF5D29' : '#8E98B0'}
-          />
+          <ThumbsUpSolid className="h-5 w-5 scale-x-[-1]" fill={likes.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
           <span
             className={cn('font-inter', {
               'text-orange-400': likes.includes(user.id),
@@ -139,10 +116,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ThumbsDownSolid
-            className="h-5 w-5"
-            fill={dislikes.includes(user.id) ? '#FF5D29' : '#8E98B0'}
-          />
+          <ThumbsDownSolid className="h-5 w-5" fill={dislikes.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
           <span
             className={cn('font-inter', {
               'text-orange-400': dislikes.includes(user.id),
@@ -153,10 +127,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ChatBubbleSolid
-            className="h-5 w-5"
-            fill={comments.includes(user.id) ? '#FF5D29' : '#8E98B0'}
-          />
+          <ChatBubbleSolid className="h-5 w-5" fill={comments.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
           <span
             className={cn('font-inter', {
               'text-orange-400': comments.includes(user.id),

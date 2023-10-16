@@ -167,7 +167,6 @@ export class PolygonscanService {
             .getTokenPrice({
               chain: EvmChain.POLYGON,
               address: log.address,
-              exchange: 'uniswapv3',
             })
             .then((response) => {
               const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();

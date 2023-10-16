@@ -12,25 +12,23 @@ import TableHead from '@mui/material/TableHead';
 import TableContainer from '@mui/material/TableContainer';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-import { followWallet, findWalletTransactions } from '../../lib/api';
-
 import cn from 'classnames';
 import moment from 'moment';
 import * as Antd from 'antd';
 import { Box } from '@mui/material';
 import { toast } from 'react-toastify';
 import { NetworkType } from '../../types';
+import { followWallet } from '../../lib/api';
 import { keyFormatter } from '../../lib/utils';
 import { useAppContext } from '../../context/app';
+import { Asset } from '../../components/portfolio/asset';
 import { ChainSelection } from '../../components/ChainSelection';
 import { EmptyContainer } from '../../components/EmptyContainer';
+import useWalletBalances from '../../lib/hooks/useWalletBalances';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
-import useWalletBalances from '../../lib/hooks/useWalletBalances';
-import { Asset } from '../../components/portfolio/asset';
-import { PortfolioResponse } from '../../types/balance';
+import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -93,17 +91,16 @@ export const WalletPortfolio = () => {
       </div>
     );
   }
-
   const data = portfolio.historicalBalances?.[`${chain}`]
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     .map((price) => ({
       date: new Date(price.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
-      total_quote: Number(price.total_quote),
-      pretty_total_quote: price.pretty_total_quote,
+      total_quote: Number(price?.total_quote || 0),
+      pretty_total_quote: price?.pretty_total_quote || '0',
     }));
 
   const arrays = Object.values(portfolio.historicalBalances || {}).map((balances) => balances);
-  const maxLength = Math.max(...arrays.map((arr) => arr.length));
+  const maxLength = arrays.length > 0 ? Math.max(...arrays.map((arr) => arr.length)) : 0;
   const sum = Array(maxLength)
     .fill(0)
     .map((_, idx) => arrays.reduce((acc, currentArray) => acc + (Number(currentArray[idx].total_quote) || 0), 0));
@@ -303,20 +300,20 @@ export const WalletPortfolio = () => {
             })}
           >
             <span className="hidden font-sora text-[32px] 2xl:block">Transactions</span>
-            {portfolio.transactions.length ? (
+            {portfolio.transactions?.transactions.length ? (
               <InfiniteScroll
-                dataLength={portfolio.transactions.length}
+                dataLength={portfolio.transactions?.transactions.length}
                 next={fetchMoreTransactions}
                 hasMore={fetchMore}
                 loader={<h4 className="text-center">Loading...</h4>}
               >
-                {portfolio.transactions.map((transaction) => (
+                {portfolio.transactions?.transactions.map((transaction) => (
                   <TransactionCard
-                    key={transaction.txHash}
+                    key={transaction?.txHash}
                     transaction={transaction}
-                    likes={transaction.likes}
-                    dislikes={transaction.dislikes}
-                    comments={transaction.comments}
+                    likes={transaction.likes || []}
+                    dislikes={transaction.dislikes || []}
+                    comments={transaction.comments || []}
                   />
                 ))}
               </InfiniteScroll>

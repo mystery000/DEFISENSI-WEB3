@@ -67,6 +67,13 @@ export class WalletService {
     if (!foundWallet.followers.includes(foundUser.id)) {
       await foundWallet.updateOne({ $push: { followers: foundUser.id } });
       await foundUser.updateOne({ $push: { followingWallets: foundWallet.id } });
+      try {
+        const resp = await this.getTransactions(followWalletDto.walletAddress);
+        await this.setTransactions(followWalletDto.walletAddress, resp.transactions);
+      } catch (error) {
+        logger.error(error);
+      }
+
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this wallet');
@@ -201,13 +208,15 @@ export class WalletService {
 
       const { _id, likes, dislikes, comments } = foundWallet || { _id: '', likes: [], dislikes: [], comments: [] };
 
-      const [ethereumTxns, polygonTxns, bscTxns] = await Promise.all([
+      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
         this.polygonscanService.getTransactionsByAccount(address),
         this.bscService.getTransactionsByAccount(address),
+        this.arbitrumService.getTransactionsByAccount(address),
+        this.avalancheService.getTransactionsByAccount(address),
       ]);
 
-      const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns];
+      const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns, ...avalancheTxns];
 
       return {
         _id,
@@ -226,13 +235,20 @@ export class WalletService {
       const foundWallet = await this.walletModel.findOne({ address: address });
 
       if (foundWallet) {
-        const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns] = await Promise.all([
-          await this.etherscanService.getTransactionsByAccount(address),
-          await this.polygonscanService.getTransactionsByAccount(address),
-          await this.bscService.getTransactionsByAccount(address),
-          await this.arbitrumService.getTransactionsByAccount(address),
+        const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
+          this.etherscanService.getTransactionsByAccount(address),
+          this.polygonscanService.getTransactionsByAccount(address),
+          this.bscService.getTransactionsByAccount(address),
+          this.arbitrumService.getTransactionsByAccount(address),
+          this.avalancheService.getTransactionsByAccount(address),
         ]);
-        await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns]);
+        await this.setTransactions(address, [
+          ...ethereumTxns,
+          ...polygonTxns,
+          ...bscTxns,
+          ...arbitrumTxns,
+          ...avalancheTxns,
+        ]);
       }
     } catch (err) {
       logger.error(err);
@@ -241,19 +257,25 @@ export class WalletService {
 
   async initializeTransactions(address: string) {
     try {
-      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns] = await Promise.all([
-        await this.etherscanService.getTransactionsByAccount(address),
-        await this.polygonscanService.getTransactionsByAccount(address),
-        await this.bscService.getTransactionsByAccount(address),
-        await this.arbitrumService.getTransactionsByAccount(address),
+      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
+        this.etherscanService.getTransactionsByAccount(address),
+        this.polygonscanService.getTransactionsByAccount(address),
+        this.bscService.getTransactionsByAccount(address),
+        this.arbitrumService.getTransactionsByAccount(address),
+        this.avalancheService.getTransactionsByAccount(address),
       ]);
-      await this.setTransactions(address, [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns]);
+      await this.setTransactions(address, [
+        ...ethereumTxns,
+        ...polygonTxns,
+        ...bscTxns,
+        ...arbitrumTxns,
+        ...avalancheTxns,
+      ]);
     } catch (err) {
       logger.error(err);
     }
   }
 
-  // Get the top accounts by balance
   async getTopWallets(network: string) {
     switch (network) {
       case NetworkType.ETHEREUM:

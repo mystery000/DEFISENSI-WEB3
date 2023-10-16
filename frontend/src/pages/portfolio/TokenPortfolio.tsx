@@ -338,20 +338,20 @@ export const TokenPortfolio = () => {
             })}
           >
             <span className="hidden font-sora text-[32px] 2xl:block">Transactions</span>
-            {portfolio.transactions.length ? (
+            {portfolio.transactions?.transactions.length ? (
               <InfiniteScroll
-                dataLength={portfolio.transactions.length}
+                dataLength={portfolio.transactions?.transactions.length}
                 next={fetchMoreTransactions}
                 hasMore={fetchMore}
                 loader={<h4 className="text-center">Loading...</h4>}
               >
-                {portfolio.transactions.map((transaction) => (
+                {portfolio.transactions?.transactions.map((transaction) => (
                   <TransactionCard
                     key={transaction.txHash}
                     transaction={transaction}
-                    likes={transaction.likes}
-                    dislikes={transaction.dislikes}
-                    comments={transaction.comments}
+                    likes={transaction.likes || []}
+                    dislikes={transaction.dislikes || []}
+                    comments={transaction.comments || []}
                   />
                 ))}
               </InfiniteScroll>

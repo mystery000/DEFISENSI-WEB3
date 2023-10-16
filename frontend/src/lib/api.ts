@@ -5,9 +5,9 @@ import { TopNFT, TopERC20Token, TopWallet } from '../types/discover';
 import { NFTTransaction, TokenTransaction, WalletTransaction } from '../types/transaction';
 
 import {
-  NFTNotificationType,
   Notification,
   NotificationType,
+  NFTNotificationType,
   TokenNotificationType,
   WalletNotificationType,
 } from '../types/notification';
@@ -54,28 +54,30 @@ export const findWalletTransactions = async (address: string, limit?: number) =>
   }
 };
 
-export const getTokenTransactions = async (network: string, address: string, limit?: number) => {
-  // try {
-  //   const res = await axios.get(
-  //     `${API_BASE_URL}/token/${network}/${address}/transactions?limit=${
-  //       limit ? limit : 4
-  //     }`,
-  //   );
-  //   return res.data as TokenTransaction;
-  // } catch (error) {
-  //   console.error(error);
-  //   return [];
-  // }
-  return [];
+export const getTokenTransactions = async (network: string, address: string, limit: number = 4) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/token/${network}/${address}/transactions?limit=${limit}`);
+    return res.data as TokenTransaction;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
-export const getNFTTransactions = async (network: string, address: string, limit?: number) => {
+export const getWalletTransactions = async (address: string, limit: number = 4) => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/transactions?limit=${limit ? limit : 4}`);
+    const resp = await axios.get(`${API_BASE_URL}/wallet/${address}/transactions?limit=${limit}`);
+    return resp.data as WalletTransaction;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getNFTTransactions = async (network: string, address: string, limit: number = 4) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/transactions?limit=${limit}`);
     return res.data as NFTTransaction;
   } catch (error) {
     console.error(error);
-    return null;
   }
 };
 

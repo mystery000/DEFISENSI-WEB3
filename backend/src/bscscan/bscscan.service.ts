@@ -53,7 +53,6 @@ export class BscscanService {
       const bnbPrice = await Moralis.EvmApi.token.getTokenPrice({
         chain: EvmChain.BSC,
         address: WRAPPED_BNB_ADDRESS,
-        exchange: 'uniswapv3',
       });
 
       // Native token (BNB) transfer
@@ -124,7 +123,6 @@ export class BscscanService {
               .getTokenPrice({
                 chain: EvmChain.BSC,
                 address: log.address,
-                exchange: 'uniswapv3',
               })
               .then((response) => {
                 const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();
@@ -176,7 +174,6 @@ export class BscscanService {
                 .getTokenPrice({
                   chain: EvmChain.BSC,
                   address: Number(amount0In) > 0 ? tokenAddress0 : tokenAddress1,
-                  exchange: 'uniswapv3',
                 })
                 .then((response) => {
                   const { tokenAddress, tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } =
@@ -196,7 +193,6 @@ export class BscscanService {
                 .getTokenPrice({
                   chain: EvmChain.BSC,
                   address: Number(amount0Out) > 0 ? tokenAddress0 : tokenAddress1,
-                  exchange: 'uniswapv3',
                 })
                 .then((response) => {
                   const { tokenAddress, tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } =
@@ -291,7 +287,6 @@ export class BscscanService {
               .getTokenPrice({
                 chain: EvmChain.BSC,
                 address: log.address,
-                exchange: 'uniswapv3',
               })
               .then((response) => {
                 const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();
@@ -343,7 +338,6 @@ export class BscscanService {
                 .getTokenPrice({
                   chain: EvmChain.BSC,
                   address: Number(amount0In) > 0 ? tokenAddress0 : tokenAddress1,
-                  exchange: 'uniswapv3',
                 })
                 .then((response) => {
                   const { tokenAddress, tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } =
@@ -363,7 +357,6 @@ export class BscscanService {
                 .getTokenPrice({
                   chain: EvmChain.BSC,
                   address: Number(amount0Out) > 0 ? tokenAddress0 : tokenAddress1,
-                  exchange: 'uniswapv3',
                 })
                 .then((response) => {
                   const { tokenAddress, tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } =

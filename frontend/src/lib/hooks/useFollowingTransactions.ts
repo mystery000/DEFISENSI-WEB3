@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  findFollowingNFTs,
-  findFollowingTokens,
-  findFollowingWallets,
-} from '../api';
+
+import { findFollowingNFTs, findFollowingTokens, findFollowingWallets } from '../api';
 import { NftTransfer, Transaction } from '../../types/transaction';
 
 export default function useFollowingTransactions(address: string) {
@@ -20,7 +17,12 @@ export default function useFollowingTransactions(address: string) {
     (async () => {
       try {
         setLoading(true);
-        const wallets = (await findFollowingWallets(address)) || [];
+        const [wallets, tokens, nfts] = await Promise.all([
+          findFollowingWallets(address),
+          findFollowingTokens(address),
+          findFollowingNFTs(address),
+        ]);
+
         const walletTxns: Transaction[] = [];
         wallets.forEach((wallet) => {
           for (const tx of wallet.transactions) {
@@ -33,10 +35,9 @@ export default function useFollowingTransactions(address: string) {
             });
           }
         });
+        walletTxns.sort((a, b) => b.timestamp - a.timestamp);
 
-        const tokens = (await findFollowingTokens(address)) || [];
         const tokenTxns: Transaction[] = [];
-
         tokens.forEach((token) => {
           for (const tx of token.transactions) {
             tokenTxns.push({
@@ -48,10 +49,9 @@ export default function useFollowingTransactions(address: string) {
             });
           }
         });
+        tokenTxns.sort((a, b) => b.timestamp - a.timestamp);
 
-        const nfts = (await findFollowingNFTs(address)) || [];
         const nftTxns: NftTransfer[] = [];
-
         nfts.forEach((nft) => {
           for (const tx of nft.transactions) {
             nftTxns.push({
@@ -63,6 +63,7 @@ export default function useFollowingTransactions(address: string) {
             });
           }
         });
+        nftTxns.sort((a, b) => b.timestamp - a.timestamp);
 
         if (walletTxns.length % 4 === 0) setFetchMoreWallets(true);
         setWalletTxns(walletTxns);

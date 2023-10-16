@@ -74,50 +74,6 @@ export const NFTPortfolio = () => {
   //   }
   // }, [address, network, user, portfolio, mutatePortfolio]);
 
-  // useEffect(() => {
-  //   if (!selectedToken) return;
-  //   setChartOptions((prev) => {
-  //     if (Object.hasOwn(balanceHistory, selectedToken.network)) {
-  //       let data: any[] = [];
-
-  //       for (const [key, value] of Object.entries(balanceHistory)) {
-  //         if (key === selectedToken.network) {
-  //           data = value.map((history) => {
-  //             const foundToken = history.tokens.find(
-  //               (token) =>
-  //                 token.symbol.toLowerCase() ===
-  //                 selectedToken.symbol.toLowerCase(),
-  //             );
-  //             return [
-  //               new Date(history.timestamp).getTime(),
-  //               Number(foundToken?.usdPrice),
-  //             ];
-  //           });
-  //         }
-  //       }
-  //       return {
-  //         ...defaultOption,
-  //         series: [
-  //           {
-  //             type: 'area',
-  //             color: {
-  //               linearGradient: { x1: 0, y1: 1, x2: 0, y2: 0 },
-  //               stops: [
-  //                 [0, '#ffffff'],
-  //                 [1, '#3354F4'],
-  //               ],
-  //             },
-  //             lineColor: '#3354F4',
-  //             data: data,
-  //           },
-  //         ],
-  //       };
-  //     } else {
-  //       return defaultOption;
-  //     }
-  //   });
-  // }, [balanceHistory, selectedToken, defaultOption]);
-
   // // Detect whether screen is mobile or desktop size
   // useEffect(() => {
   //   const breakpoint = 1536;
@@ -171,55 +127,6 @@ export const NFTPortfolio = () => {
   //       <Spin size="large" />
   //     </div>
   //   );
-
-  // const EtherValues =
-  //   balance.ethereum?.tokens.reduce(
-  //     (sum, token) => sum + Number(token.usdPrice),
-  //     0,
-  //   ) || 0;
-
-  // const PolygonValues =
-  //   balance.polygon?.tokens.reduce(
-  //     (sum, token) => sum + Number(token.usdPrice),
-  //     0,
-  //   ) || 0;
-
-  // const BinanceValues =
-  //   balance.binance?.tokens.reduce(
-  //     (sum, token) => sum + Number(token.usdPrice),
-  //     0,
-  //   ) || 0;
-
-  // const BinanceSparkLineData =
-  //   balanceHistory.binance?.map(
-  //     (balance) =>
-  //       balance.tokens.reduce(
-  //         (sum, token) => sum + Number(token.usdPrice),
-  //         0,
-  //       ) || 0,
-  //   ) || [];
-
-  // const EthereumSparkLineData =
-  //   balanceHistory.ethereum?.map(
-  //     (balance) =>
-  //       balance.tokens.reduce(
-  //         (sum, token) => sum + Number(token.usdPrice),
-  //         0,
-  //       ) || 0,
-  //   ) || [];
-
-  // const PolygonSparkLineData =
-  //   balanceHistory.polygon?.map(
-  //     (balance) =>
-  //       balance.tokens.reduce(
-  //         (sum, token) => sum + Number(token.usdPrice),
-  //         0,
-  //       ) || 0,
-  //   ) || [];
-
-  // const AllSparkLineData = EthereumSparkLineData.map(
-  //   (val, i) => val + PolygonSparkLineData[i] + BinanceSparkLineData[i],
-  // );
 
   // if (!address || !network) return;
 

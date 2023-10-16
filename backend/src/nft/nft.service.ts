@@ -33,19 +33,26 @@ export class NftService {
   ) {}
 
   async create(nft: CreateNftDto): Promise<Nft> {
-    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    const newToken = await this.nftModel.findOneAndUpdate(nft, nft, options);
-    // Fetch latest 4 transactions when a new ERC20 token is created
-    await this.initializeTransactions(newToken.address, newToken.network);
-    return newToken;
+    let foundNFT = await this.nftModel.findOne({ address: nft.address, network: nft.network });
+    if (!foundNFT) {
+      let createdWallet = await this.nftModel.findOneAndUpdate(
+        { address: nft.address }, // filter
+        {}, // update (empty as you're only interested in finding or creating a document)
+        {
+          upsert: true, // will create a new document if none is found
+          new: true, // will return the new document if one is created
+          setDefaultsOnInsert: true, // will set default values defined in your schema
+        },
+      );
+      return createdWallet;
+    }
+    return foundNFT;
   }
 
   async getOrCreate(address: string, network: string) {
     let foundNft = await this.nftModel.findOne({ address, network });
     if (!foundNft) {
       foundNft = await this.nftModel.create({ address, network });
-      // Fetch latest 4 transactions when a new ERC20 token is created
-      await this.initializeTransactions(address, network);
     }
     return foundNft;
   }
@@ -57,6 +64,13 @@ export class NftService {
     if (!foundNft.followers.includes(foundUser.id)) {
       await foundNft.updateOne({ $push: { followers: foundUser.id } });
       await foundUser.updateOne({ $push: { followingNfts: foundNft.id } });
+
+      try {
+        const resp = await this.getTransactions(followNftDto.network, followNftDto.nftAddress);
+        await this.setTransactions(followNftDto.nftAddress, followNftDto.network, resp.transactions);
+      } catch (error) {
+        logger.error(error);
+      }
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this nft');

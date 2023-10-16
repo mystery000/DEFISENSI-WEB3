@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { BalancesResponse, PortfolioResponse } from '../../types/balance';
+import { PortfolioResponse } from '../../types/balance';
 import {
-  getFollowersByWallet,
-  getFollowingsByWallet,
   getENS,
-  getTokenBalancesForWalletAddress,
+  getFollowersByWallet,
+  getWalletTransactions,
+  getFollowingsByWallet,
   getHistoricalPortfolioForWalletAddress,
 } from '../api';
+
 import { NetworkType } from '../../types';
+import { WalletTransaction } from '../../types/transaction';
 
 export type WalletPortfolio = {
   followers: any[];
@@ -22,7 +24,7 @@ export type WalletPortfolio = {
     arbitrum: PortfolioResponse;
     avalanche: PortfolioResponse;
   };
-  transactions: any[];
+  transactions?: WalletTransaction;
 };
 
 export default function useWalletPortfolio() {
@@ -31,7 +33,6 @@ export default function useWalletPortfolio() {
   const [data, setData] = useState<WalletPortfolio>({
     followers: [],
     followings: [],
-    transactions: [],
   });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -41,16 +42,19 @@ export default function useWalletPortfolio() {
       if (!address) return;
       try {
         setLoading(true);
-        const [followers, followings, ens, ethereum, polygon, arbitrum, avalanche, binance] = await Promise.all([
-          getFollowersByWallet(address),
-          getFollowingsByWallet(address),
-          getENS(address),
-          getHistoricalPortfolioForWalletAddress(NetworkType.ETHEREUM, address),
-          getHistoricalPortfolioForWalletAddress(NetworkType.POLYGON, address),
-          getHistoricalPortfolioForWalletAddress(NetworkType.ARBITRUM, address),
-          getHistoricalPortfolioForWalletAddress(NetworkType.AVALANCHE, address),
-          getHistoricalPortfolioForWalletAddress(NetworkType.BSC, address),
-        ]);
+        const [followers, followings, ens, ethereum, polygon, arbitrum, avalanche, binance, transactions] =
+          await Promise.all([
+            getFollowersByWallet(address),
+            getFollowingsByWallet(address),
+            getENS(address),
+            getHistoricalPortfolioForWalletAddress(NetworkType.ETHEREUM, address),
+            getHistoricalPortfolioForWalletAddress(NetworkType.POLYGON, address),
+            getHistoricalPortfolioForWalletAddress(NetworkType.ARBITRUM, address),
+            getHistoricalPortfolioForWalletAddress(NetworkType.AVALANCHE, address),
+            getHistoricalPortfolioForWalletAddress(NetworkType.BSC, address),
+            getWalletTransactions(address),
+          ]);
+
         setData({
           followers,
           followings,
@@ -62,7 +66,7 @@ export default function useWalletPortfolio() {
             avalanche,
             binance,
           },
-          transactions: [],
+          transactions,
         });
         setLoading(false);
       } catch (error) {

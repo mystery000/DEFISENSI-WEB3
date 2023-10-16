@@ -64,11 +64,16 @@ export class ArbitrumService {
         value,
       } = transfer;
 
-      const response = await Moralis.EvmApi.token.getTokenPrice({
-        chain: EvmChain.ARBITRUM,
-        address,
-        exchange: 'uniswapv3',
-      });
+      let price = 0;
+      try {
+        const resp = await Moralis.EvmApi.token.getTokenPrice({
+          chain: EvmChain.ARBITRUM,
+          address,
+        });
+        price = resp.toJSON().usdPrice;
+      } catch (error) {
+        logger.error(error);
+      }
 
       transactions.push({
         txHash: transaction_hash,
@@ -86,7 +91,7 @@ export class ArbitrumService {
             contractAddress: address,
             decimals: token_decimals,
             amount: value,
-            price: response?.toJSON().usdPrice.toString() || '0',
+            price: price.toString(),
           },
         },
       });
@@ -163,7 +168,6 @@ export class ArbitrumService {
             .getTokenPrice({
               chain: EvmChain.ARBITRUM,
               address: log.address,
-              exchange: 'uniswapv3',
             })
             .then((response) => {
               const { tokenName, tokenSymbol, tokenLogo, tokenDecimals, usdPrice } = response.toJSON();

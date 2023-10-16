@@ -16,7 +16,6 @@ export type Token = {
 };
 
 export interface Transaction {
-  // Extended fields
   address: string;
   comments: any[];
   dislikes: any[];
