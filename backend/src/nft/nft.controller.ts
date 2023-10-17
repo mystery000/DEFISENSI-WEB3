@@ -123,4 +123,12 @@ export class NftController {
   ) {
     return this.nftService.getTransactions(network, address, limit);
   }
+
+  @Get('/:network/:address/sale-volumes')
+  @ApiOperation({ summary: 'Get sales volume history of NFT collection' })
+  @ApiParam({ name: 'network', description: 'The token network' })
+  @ApiParam({ name: 'address', description: 'The token address' })
+  getSalesVolumes(@Param('network') network: string, @Param('address') address: string) {
+    return this.nftService.getSalesVolumes(address, network);
+  }
 }

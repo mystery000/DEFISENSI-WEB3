@@ -5,6 +5,7 @@ export interface ServiceConfig {
   zenrows_api_key: string;
   covalenthq_api_key: string;
   chainbase_api_key: string;
+  opensea_api_key: string;
 }
 
 export default registerAs(
@@ -14,5 +15,6 @@ export default registerAs(
     zenrows_api_key: process.env.ZENROWS_API_KEY,
     covalenthq_api_key: process.env.COVALENTHQ_API_KEY,
     chainbase_api_key: process.env.CHAINBASE_API_KEY,
+    opensea_api_key: process.env.OPENSEA_API_KEY,
   }),
 );

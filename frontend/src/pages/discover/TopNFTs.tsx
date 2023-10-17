@@ -34,13 +34,10 @@ export const TopNFTs = () => {
         <div
           className="p-6 text-center"
           style={{
-            background:
-              'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
+            background: 'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
-          <div className="font-sora text-[32px] font-semibold">
-            Discover Top NFTs
-          </div>
+          <div className="font-sora text-[32px] font-semibold">Discover Top NFTs</div>
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
@@ -54,9 +51,7 @@ export const TopNFTs = () => {
               suffix={<SearchOutlined />}
               className="w-48"
               size={'large'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setQuery(e.target.value)
-              }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
             />
           </div>
         </div>
@@ -64,18 +59,10 @@ export const TopNFTs = () => {
           <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Collection
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Floor
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  24h Vol
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Holders
-                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Collection</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Floor</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>24h Vol</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Holders</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -89,30 +76,19 @@ export const TopNFTs = () => {
                     hover
                   >
                     <TableCell>
-                      <a
-                        href={`/portfolio/nft/${chain}/${nft.address}`}
-                        target="_blank"
-                      >
+                      <a href={`/portfolio/nft/${chain}/${nft.address}`} target="_blank">
                         {nft.name}
                       </a>
                     </TableCell>
                     <TableCell>{nft.floor}</TableCell>
-                    <TableCell>{nft.change}</TableCell>
+                    <TableCell>{nft.volume}</TableCell>
                     <TableCell>{nft.holders}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                  >
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      alignItems="center"
-                      height="100%"
-                    >
+                  <TableCell colSpan={4} style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                       <EmptyContainer />
                     </Box>
                   </TableCell>

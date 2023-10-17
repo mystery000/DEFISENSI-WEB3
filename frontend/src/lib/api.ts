@@ -12,7 +12,7 @@ import {
   WalletNotificationType,
 } from '../types/notification';
 
-import { TokenPricesResponse } from '../types/price';
+import { NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
 import { BalancesResponse, PortfolioResponse } from '../types/balance';
 
 export const findFollowingWallets = async (address: string, limit: number = 4) => {
@@ -109,6 +109,7 @@ export const getFollowersByNFT = async (network: string, address: string) => {
     return res.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
@@ -118,6 +119,7 @@ export const getFollowingsByNFT = async (network: string, address: string) => {
     return res.data;
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
@@ -167,7 +169,6 @@ export const followToken = async (address: string, tokenAddress: string, network
 };
 
 export const followNFT = async (address: string, nftAddress: string, network: string) => {
-  console.error(network);
   try {
     const res = await axios.post(`${API_BASE_URL}/nft/follow`, {
       address,
@@ -313,5 +314,14 @@ export const getHistoricalPortfolioForWalletAddress = async (network: string, ad
   } catch (error) {
     console.error(error);
     return [];
+  }
+};
+
+export const getNFTSaleVolumes = async (network: string, address: string) => {
+  try {
+    const resp = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/sale-volumes`);
+    return resp.data as NFTSaleVolumesResponse;
+  } catch (error) {
+    console.error(error);
   }
 };

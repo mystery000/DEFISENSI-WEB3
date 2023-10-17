@@ -1,25 +1,31 @@
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
+import axios from 'axios';
+import * as moment from 'moment';
 import { logger } from 'src/utils/logger';
-import { NFTTransaction } from 'src/utils/types';
 import { FollowNftDto } from './dto/follow.dto';
 import { CommentNftDto } from './dto/comment.dto';
 import { UserService } from '../user/user.service';
 import { CreateNftDto } from './dto/create-nft.dto';
 import { Nft, NftDocument } from './schemas/nft.schema';
 import { FindOneParams } from './dto/find-one-params.dto';
-import { CommentService } from '../comment/comment.service';
+import { ServiceConfig } from 'src/config/service.config';
 import { NetworkType } from 'src/utils/enums/network.enum';
+import { CommentService } from '../comment/comment.service';
 import { BscscanService } from 'src/bscscan/bscscan.service';
 import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
+import { NFTTransaction, NFTSaleVolumesResponse } from 'src/utils/types';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 @Injectable()
 export class NftService {
+  private readonly serviceConfig: ServiceConfig;
+
   constructor(
     @InjectModel(Nft.name)
     private readonly nftModel: Model<NftDocument>,
@@ -30,7 +36,10 @@ export class NftService {
     private readonly bscService: BscscanService,
     private readonly arbitrumService: ArbitrumService,
     private readonly avalancheService: AvalancheService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.serviceConfig = this.configService.get<ServiceConfig>('service');
+  }
 
   async create(nft: CreateNftDto): Promise<Nft> {
     let foundNFT = await this.nftModel.findOne({ address: nft.address, network: nft.network });
@@ -283,6 +292,85 @@ export class NftService {
       }
     } catch (err) {
       logger.error(err);
+    }
+  }
+
+  async getSalesVolumes(address: string, network: string) {
+    try {
+      const url = `https://api.opensea.io/api/v2/chain/${
+        network === NetworkType.BSC ? 'bsc' : network === NetworkType.POLYGON ? 'matic' : network
+      }/contract/${address}`;
+      const resp = await axios.get(url, {
+        headers: {
+          'x-api-key': this.serviceConfig.opensea_api_key,
+        },
+      });
+      const collection = resp.data;
+      // Define your date range in Unix timestamp
+      const occurred_after = Math.floor(moment().subtract(3, 'months').toDate().getTime() / 1000); // Start of the range
+      const occurred_before = Math.floor(moment().toDate().getTime() / 1000); // End of the range
+      const events: any[] = [];
+      let next = '';
+      do {
+        try {
+          const url = `https://api.opensea.io/api/v2/events/collection/${collection.collection}?after=${occurred_after}&before=${occurred_before}&event_type=sale&next=${next}%3D%3D`;
+          const resp = await axios.get(url, {
+            headers: {
+              'x-api-key': this.serviceConfig.opensea_api_key,
+            },
+          });
+          events.push(...resp.data.asset_events);
+          if (events.length > 2000) break;
+          next = resp.data.next;
+        } catch (error) {
+          logger.error(error);
+          break;
+        }
+      } while (next.length > 0);
+
+      const data = events.reduce((result, item) => {
+        const key = moment(item.closing_date * 1000).format('YYYY-MM-DD');
+        if (!result[key]) {
+          result[key] = item.payment.quantity;
+        } else {
+          result[key] += item.payment.quantity;
+        }
+        return result;
+      }, {});
+
+      const saleVolumes =
+        Object.entries(data).map(([key, value]) => ({
+          date: key,
+          volume: Number(value) / 10 ** 18,
+        })) || [];
+
+      let collectionStats;
+      try {
+        const url = `https://api.opensea.io/api/v2/collections/${collection.collection}/stats`;
+        const resp = await axios.get(url, {
+          headers: {
+            'x-api-key': this.serviceConfig.opensea_api_key,
+          },
+        });
+        collectionStats = resp.data;
+      } catch (error) {
+        logger.error(error);
+      }
+      return {
+        name: collection.name,
+        address: collection.address,
+        network: collection.chain,
+        collection: collection.collection,
+        volume: collectionStats?.total.volume.toString() || '0',
+        sales: collectionStats?.total.sales || 0,
+        holders: collectionStats?.total.num_owners || 0,
+        floor_price: collectionStats?.total.floor_price || 0,
+        floor_price_symbol: collectionStats?.total.floor_price_symbol || '',
+        sale_volumes: saleVolumes,
+      };
+    } catch (error) {
+      logger.error(error);
+      return;
     }
   }
 }

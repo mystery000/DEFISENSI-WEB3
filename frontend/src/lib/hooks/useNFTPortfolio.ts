@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
-import { getFollowersByNFT, getFollowingsByNFT } from '../api';
+import { getFollowersByNFT, getFollowingsByNFT, getNFTSaleVolumes, getNFTTransactions } from '../api';
 import { useParams } from 'react-router-dom';
+import { NftTransfer } from '../../types/transaction';
+import { NFTSaleVolumesResponse } from '../../types/price';
+
+export type NFTPortfolio = {
+  followers: string[];
+  followings: string[];
+  stats?: NFTSaleVolumesResponse;
+  transactions: NftTransfer[];
+};
 
 // Get the followers and followings of this token
 export default function useNFTPortfolio() {
-  const [data, setData] = useState<{
-    followers: string[];
-    followings: string[];
-  }>({ followers: [], followings: [] });
+  const [data, setData] = useState<NFTPortfolio>({ followers: [], followings: [], transactions: [] });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { network, address } = useParams();
@@ -20,11 +26,32 @@ export default function useNFTPortfolio() {
       }
       setLoading(true);
       try {
-        const followers = await getFollowersByNFT(network, address);
-        const followings = await getFollowingsByNFT(network, address);
+        const [followers, followings, stats, nft] = await Promise.all([
+          getFollowersByNFT(network, address),
+          getFollowingsByNFT(network, address),
+          getNFTSaleVolumes(network, address),
+          getNFTTransactions(network, address),
+        ]);
+
+        const txns: NftTransfer[] = [];
+
+        if (nft) {
+          for (const txn of nft.transactions) {
+            txns.push({
+              ...txn,
+              address: nft?.address,
+              comments: nft?.comments,
+              likes: nft?.likes,
+              dislikes: nft?.dislikes,
+            });
+          }
+        }
+
         setData({
-          followers: followers || [],
-          followings: followings || [],
+          followers,
+          followings,
+          stats,
+          transactions: txns,
         });
         setLoading(false);
       } catch (error) {

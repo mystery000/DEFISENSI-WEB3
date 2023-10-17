@@ -35,3 +35,18 @@ export type TokenPricesResponse = {
     pretty_price: string;
   }[];
 };
+
+export type NFTSaleVolumesResponse = {
+  name: string;
+  address: string;
+  network: string;
+  volume: string;
+  sales: number;
+  holders: number;
+  floor_price: number;
+  floor_price_symbol: string;
+  sale_volumes: {
+    date: string;
+    volume: number;
+  }[];
+};

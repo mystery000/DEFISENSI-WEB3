@@ -21,7 +21,7 @@ import { NetworkType } from '../../types';
 import { followWallet } from '../../lib/api';
 import { keyFormatter } from '../../lib/utils';
 import { useAppContext } from '../../context/app';
-import { Asset } from '../../components/portfolio/asset';
+import { Asset } from '../../components/portfolio/Asset';
 import { ChainSelection } from '../../components/ChainSelection';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import useWalletBalances from '../../lib/hooks/useWalletBalances';
