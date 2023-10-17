@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { logger } from 'src/utils/logger';
 import { NftService } from 'src/nft/nft.service';
 import { TokenService } from 'src/token/token.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class CronJobService {
   ) {}
 
   // Update the transactions of all wallets every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */5 * * * *')
   async handleWalletCronForTxns() {
     try {
       const wallets = await this.walletService.getAll();
@@ -28,7 +29,7 @@ export class CronJobService {
   }
 
   // Update the transactions of all ERC20 tokens every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */5 * * * *')
   async handleERC20CronForTxns() {
     try {
       const tokens = await this.tokenService.getAll();
@@ -42,7 +43,7 @@ export class CronJobService {
   }
 
   // Update the transactions of all NFT tokens every 3 minutes
-  // @Cron('0 */3 * * * *')
+  @Cron('0 */5 * * * *')
   async handleNFTCronForTxns() {
     try {
       const nfts = await this.nftService.getAll();

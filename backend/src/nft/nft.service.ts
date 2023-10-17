@@ -264,6 +264,10 @@ export class NftService {
           const arbitrumTxns = await this.arbitrumService.getTransactionsByNFT(address);
           await this.setTransactions(address, network, arbitrumTxns);
           break;
+        case NetworkType.AVALANCHE:
+          const avalancheTxns = await this.avalancheService.getTransactionsByNFT(address);
+          await this.setTransactions(address, network, avalancheTxns);
+          break;
       }
     } catch (err) {
       logger.error(err);
