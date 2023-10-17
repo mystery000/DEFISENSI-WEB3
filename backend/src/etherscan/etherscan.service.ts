@@ -991,16 +991,22 @@ export class EtherscanService {
 
   async getHistoricalPortfolioForWalletAddress(address: string, days: number): Promise<PortfolioResponse> {
     try {
+      const response = await Moralis.EvmApi.wallets.getWalletActiveChains({
+        chains: [EvmChain.ETHEREUM],
+        address,
+      });
+      const active_chain = response.toJSON().active_chains.find((chain) => chain.chain === 'eth');
+      if (!active_chain.first_transaction) return [];
+      const offset = moment().diff(moment(active_chain.first_transaction.block_timestamp), 'days');
       const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
       const resp = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
         CovalenthqChain.Ethereum,
         address,
         {
-          days: days,
+          days: Math.min(offset, days),
           quoteCurrency: 'USD',
         },
       );
-
       const transformedData = resp.data.items.reduce((acc, curr) => {
         const singleTokenTimeSeries = curr.holdings.map((holdingsItem) => {
           return {
@@ -1024,8 +1030,9 @@ export class EtherscanService {
         };
       });
     } catch (error) {
+      console.log(error)
       logger.error(error);
-      throw new BadRequestException(`Malformed address provided: ${address}`);
+      return [];
     }
   }
 

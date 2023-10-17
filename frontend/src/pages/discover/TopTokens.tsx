@@ -94,7 +94,6 @@ export const TopTokens = () => {
                     <TableCell>
                       <a
                         href={`/portfolio/token/${chain}/${token.address}`}
-                        target="_blank"
                       >
                         {token.name}
                       </a>

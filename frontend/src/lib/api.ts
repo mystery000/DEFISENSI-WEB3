@@ -12,7 +12,7 @@ import {
   WalletNotificationType,
 } from '../types/notification';
 
-import { NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
+import { ExchangePrice, NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
 import { BalancesResponse, PortfolioResponse } from '../types/balance';
 
 export const findFollowingWallets = async (address: string, limit: number = 4) => {
@@ -92,15 +92,12 @@ export const login = async (address: string) => {
 };
 
 export const getPriceFromExchanges = async (network: string, contractAddress: string) => {
-  // try {
-  //   const res = await axios.get(
-  //     `${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`,
-  //   );
-  //   return res.data as ExchangePrice;
-  // } catch (error) {
-  //   console.error(error);
-  //   return;
-  // }
+  try {
+    const resp = await axios.get(`${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`);
+    return resp.data as ExchangePrice;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const getFollowersByNFT = async (network: string, address: string) => {

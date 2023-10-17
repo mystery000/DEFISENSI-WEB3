@@ -45,7 +45,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, 
         </div>
         <div>
           <img
-            src={`/images/network/${transaction.network.toLowerCase()}.png`}
+            src={`/images/network/${transaction.network}.png`}
             width={32}
             height={32}
             className="rounded-full border"
@@ -58,15 +58,14 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, 
           <span className="pr-2">
             <img
               src={
-                transaction.details.token0.symbol.toLocaleLowerCase() === 'weth'
-                  ? `/images/tokens/eth.png`
-                  : transaction.details.token0.logo
+                transaction.details.token0.logo
                   ? transaction.details.token0.logo
-                  : `/images/tokens/empty-eth.png`
+                  : `/images/tokens/empty-${transaction.network}.png`
               }
               width={24}
               height={24}
               alt="token-icon"
+              className="rounded-full"
             />
           </span>
           <span>
@@ -84,15 +83,14 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, 
           <span className="pr-2">
             <img
               src={
-                transaction.details.token1.symbol.toLocaleLowerCase() === 'weth'
-                  ? `/images/tokens/eth.png`
-                  : transaction.details.token1.logo
-                  ? transaction.details.token1.logo
-                  : `/images/tokens/empty-eth.png`
+                transaction.details.token0.logo
+                  ? transaction.details.token0.logo
+                  : `/images/tokens/empty-${transaction.network}.png`
               }
               width={24}
               height={24}
               alt="token-icon"
+              className="rounded-full"
             />
           </span>
           <span>{`${convertDecimals(transaction.details.token1.amount, transaction.details.token1.decimals)} ${

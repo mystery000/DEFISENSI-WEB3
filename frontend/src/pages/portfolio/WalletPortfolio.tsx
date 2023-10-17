@@ -103,7 +103,7 @@ export const WalletPortfolio = () => {
   const maxLength = arrays.length > 0 ? Math.max(...arrays.map((arr) => arr.length)) : 0;
   const sum = Array(maxLength)
     .fill(0)
-    .map((_, idx) => arrays.reduce((acc, currentArray) => acc + (Number(currentArray[idx].total_quote) || 0), 0));
+    .map((_, idx) => arrays.reduce((acc, currentArray) => acc + (Number(currentArray[idx]?.total_quote) || 0), 0));
 
   return (
     <AppLayout>

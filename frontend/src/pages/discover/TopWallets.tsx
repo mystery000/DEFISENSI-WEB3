@@ -92,7 +92,6 @@ export const TopWallets = () => {
                     <TableCell>
                       <a
                         href={`/portfolio/wallet/${wallet.address}`}
-                        target="_blank"
                       >
                         {convertHex(wallet.address).slice(0, 6)}
                       </a>

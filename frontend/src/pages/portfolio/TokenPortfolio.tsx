@@ -97,11 +97,11 @@ export const TokenPortfolio = () => {
       setFollowing(false);
       toast.error((error as any).message);
     }
-  }, [network, address]);
+  }, [network, address, portfolio, user]);
 
   if (!address || !network) return;
 
-  if (loading) {
+  if (loading || loadingExchangePrice) {
     return (
       <div className="grid h-screen place-items-center">
         <Spin size="large" />
@@ -261,7 +261,7 @@ export const TokenPortfolio = () => {
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         {exchangePrice?.usdPrice?.uniswap
-                          ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(5)}`
+                          ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(3)}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>

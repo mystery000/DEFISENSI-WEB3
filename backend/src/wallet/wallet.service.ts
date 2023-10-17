@@ -208,15 +208,12 @@ export class WalletService {
 
       const { _id, likes, dislikes, comments } = foundWallet || { _id: '', likes: [], dislikes: [], comments: [] };
 
-      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
+      const [ethereumTxns, polygonTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
         this.polygonscanService.getTransactionsByAccount(address),
-        this.bscService.getTransactionsByAccount(address),
-        this.arbitrumService.getTransactionsByAccount(address),
-        this.avalancheService.getTransactionsByAccount(address),
       ]);
 
-      const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns, ...arbitrumTxns, ...avalancheTxns];
+      const transactions = [...ethereumTxns, ...polygonTxns];
 
       return {
         _id,
@@ -235,19 +232,13 @@ export class WalletService {
       const foundWallet = await this.walletModel.findOne({ address: address });
 
       if (foundWallet) {
-        const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
+        const [ethereumTxns, polygonTxns] = await Promise.all([
           this.etherscanService.getTransactionsByAccount(address),
-          this.polygonscanService.getTransactionsByAccount(address),
-          this.bscService.getTransactionsByAccount(address),
-          this.arbitrumService.getTransactionsByAccount(address),
-          this.avalancheService.getTransactionsByAccount(address),
+          this.polygonscanService.getTransactionsByAccount(address)
         ]);
         await this.setTransactions(address, [
           ...ethereumTxns,
           ...polygonTxns,
-          ...bscTxns,
-          ...arbitrumTxns,
-          ...avalancheTxns,
         ]);
       }
     } catch (err) {
@@ -257,19 +248,13 @@ export class WalletService {
 
   async initializeTransactions(address: string) {
     try {
-      const [ethereumTxns, polygonTxns, bscTxns, arbitrumTxns, avalancheTxns] = await Promise.all([
+      const [ethereumTxns, polygonTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
-        this.polygonscanService.getTransactionsByAccount(address),
-        this.bscService.getTransactionsByAccount(address),
-        this.arbitrumService.getTransactionsByAccount(address),
-        this.avalancheService.getTransactionsByAccount(address),
+        this.polygonscanService.getTransactionsByAccount(address)
       ]);
       await this.setTransactions(address, [
         ...ethereumTxns,
-        ...polygonTxns,
-        ...bscTxns,
-        ...arbitrumTxns,
-        ...avalancheTxns,
+        ...polygonTxns
       ]);
     } catch (err) {
       logger.error(err);

@@ -590,12 +590,19 @@ export class PolygonscanService {
 
   async getHistoricalPortfolioForWalletAddress(address: string, days: number): Promise<PortfolioResponse> {
     try {
+      const response = await Moralis.EvmApi.wallets.getWalletActiveChains({
+        chains: [EvmChain.POLYGON],
+        address,
+      });
+      const active_chain = response.toJSON().active_chains.find((chain) => chain.chain === 'polygon');
+      if (!active_chain.first_transaction) return [];
+      const offset = moment().diff(moment(active_chain.first_transaction.block_timestamp), 'days');
       const client = new CovalentClient(this.serviceConfig.covalenthq_api_key);
       const resp = await client.BalanceService.getHistoricalPortfolioForWalletAddress(
         CovalenthqChain.Polygon,
         address,
         {
-          days: days,
+          days: Math.min(days, offset),
           quoteCurrency: 'USD',
         },
       );

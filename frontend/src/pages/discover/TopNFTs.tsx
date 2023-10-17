@@ -76,9 +76,7 @@ export const TopNFTs = () => {
                     hover
                   >
                     <TableCell>
-                      <a href={`/portfolio/nft/${chain}/${nft.address}`} target="_blank">
-                        {nft.name}
-                      </a>
+                      <a href={`/portfolio/nft/${chain}/${nft.address}`}>{nft.name}</a>
                     </TableCell>
                     <TableCell>{nft.floor}</TableCell>
                     <TableCell>{nft.volume}</TableCell>
