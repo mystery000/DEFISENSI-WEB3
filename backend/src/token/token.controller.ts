@@ -105,6 +105,14 @@ export class TokenController {
     return this.tokenService.getComments(query);
   }
 
+  @Get('search-handler')
+  @ApiOperation({ summary: 'Serach for the token name or address' })
+  @ApiQuery({ name: 'network', description: 'The token network' })
+  @ApiQuery({ name: 'term', description: 'The token name or address' })
+  searchHandler(@Query('network') network: string, @Query('term') term: string) {
+    return this.tokenService.searchHandler(network, term);
+  }
+
   @Get('/:network/:address/transactions')
   @ApiOperation({ summary: 'Get transactions of this token contract' })
   @ApiParam({ name: 'network', description: 'The token network' })

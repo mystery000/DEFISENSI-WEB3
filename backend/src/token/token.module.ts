@@ -11,6 +11,7 @@ import { PolygonscanModule } from 'src/polygonscan/polygonscan.module';
 import { BscscanModule } from 'src/bscscan/bscscan.module';
 import { ArbitrumModule } from 'src/arbitrum/arbitrum.module';
 import { AvalancheModule } from 'src/avalanche/avalanche.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [

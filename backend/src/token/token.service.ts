@@ -2,6 +2,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
+import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { FollowTokenDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
@@ -318,6 +319,60 @@ export class TokenService {
         return this.arbitrumService.getTopERC20Tokens();
       case NetworkType.AVALANCHE:
         return this.avalancheService.getTopERC20Tokens();
+    }
+  }
+
+  async searchHandler(network: string, keyword: string) {
+    try {
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereum_tokens = await client.get(`https://etherscan.io/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return ethereum_tokens.data.map((token) => ({
+            img: token.img ? `https://etherscan.io/token/images/${token.img}` : '',
+            address: token.address,
+            title: token.title,
+          }));
+        case NetworkType.BSC:
+          const bsc_tokens = await client.get(`https://bscscan.com/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return bsc_tokens.data.map((token: any) => ({ img: '', address: token.address, title: token.title }));
+        case NetworkType.POLYGON:
+          const polygon_tokens = await client.get(
+            `https://polygonscan.com/searchHandler?t=${keyword}&term=BNB&filterby=2`,
+            {
+              autoparse: true,
+            },
+          );
+          return polygon_tokens.data.slice(1).map((token: any) => {
+            const params = token.split('\t');
+            return {
+              img: params[5] ? `https://polygonscan.com/token/images/${params[5]}` : '',
+              address: params[1],
+              title: params[0],
+            };
+          });
+        case NetworkType.ARBITRUM:
+          const arbitrum_tokens = await client.get(
+            `https://arbiscan.io/searchHandler?t=${keyword}&term=Tether&filterby=2`,
+            {
+              autoparse: true,
+            },
+          );
+          return arbitrum_tokens.data.slice(1).map((token: any) => {
+            const params = token.split('\t');
+            return {
+              img: params[5] ? `https://arbiscan.io/token/images/${params[5]}` : '',
+              address: params[1],
+              title: params[0],
+            };
+          });
+      }
+    } catch (error) {
+      logger.error(error);
     }
   }
 }

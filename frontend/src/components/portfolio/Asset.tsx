@@ -10,7 +10,7 @@ interface AssetProps {
 
 export const Asset: FC<AssetProps> = ({ chainName, data }) => {
   if (!data) return <div></div>;
-  const quote = keyFormatter(Number(data.at(-1)));
+  const quote = keyFormatter(Number(data.at(-1) || 0));
   return (
     <div className="w-full rounded-lg border border-bali-hai-600/30 p-3 2xl:w-[48%]">
       <span className="font-sora text-base text-bali-hai-600">{chainName}</span>

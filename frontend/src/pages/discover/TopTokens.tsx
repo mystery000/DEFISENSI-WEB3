@@ -1,27 +1,55 @@
-import { useNavigate } from 'react-router-dom';
-import { ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 
-import { Input, Spin } from 'antd';
+import { Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';
 import TableRow from '@mui/material/TableRow';
 import AppLayout from '../../layouts/AppLayout';
+import { API_BASE_URL } from '../../config/app';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { SearchOutlined } from '@ant-design/icons';
 import useTopTokens from '../../lib/hooks/useTopTokens';
 import TableContainer from '@mui/material/TableContainer';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
+import DebounceSelect from '../../components/DebounceSelect';
+
+interface TokenValue {
+  label: string | React.ReactNode;
+  value: string;
+}
 
 export const TopTokens = () => {
-  const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topERC20Tokens, loading } = useTopTokens(chain);
 
-  const navigate = useNavigate();
+  const fetchTokenList = async (keyword: string): Promise<TokenValue[]> => {
+    if (!keyword) return [];
+    return fetch(`${API_BASE_URL}/token/search-handler?network=${chain}&term=${keyword}`)
+      .then((response) => response.json())
+      .then((tokens) => {
+        return tokens.map((token: any) => ({
+          label: (
+            <a href={`/portfolio/token/ethereum/${token.address}`} className="flex items-center gap-3">
+              <img
+                src={token.img || `/images/tokens/empty-${chain}.png`}
+                className="rounded-full"
+                width={24}
+                height={24}
+                loading="lazy"
+              />
+              <div className="flex flex-col">
+                <div className="truncate">{token.title}</div>
+                <div className="truncate">{token.address}</div>
+              </div>
+            </a>
+          ),
+          value: token.address,
+        }));
+      });
+  };
 
   if (loading) {
     return (
@@ -37,13 +65,10 @@ export const TopTokens = () => {
         <div
           className="p-6 text-center"
           style={{
-            background:
-              'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
+            background: 'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
-          <div className="font-sora text-[32px] font-semibold">
-            Discover Top Tokens
-          </div>
+          <div className="font-sora text-[32px] font-semibold">Discover Top Tokens</div>
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
@@ -52,14 +77,11 @@ export const TopTokens = () => {
                 if (chain) setChain(chain.value);
               }}
             />
-            <Input
-              placeholder="Search Token"
-              suffix={<SearchOutlined />}
-              className="w-48"
-              size={'large'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setQuery(e.target.value)
-              }
+            <DebounceSelect
+              placeholder="Search for Token Name or Address"
+              fetchOptions={fetchTokenList}
+              className="w-56"
+              size="large"
             />
           </div>
         </div>
@@ -67,18 +89,10 @@ export const TopTokens = () => {
           <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Token
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Price
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Change
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Followers
-                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Token</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Price</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Change</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Followers</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -92,11 +106,7 @@ export const TopTokens = () => {
                     hover
                   >
                     <TableCell>
-                      <a
-                        href={`/portfolio/token/${chain}/${token.address}`}
-                      >
-                        {token.name}
-                      </a>
+                      <a href={`/portfolio/token/${chain}/${token.address}`}>{token.name}</a>
                     </TableCell>
                     <TableCell>{token.price}</TableCell>
                     <TableCell>{token.change}</TableCell>
@@ -105,16 +115,8 @@ export const TopTokens = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                  >
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      alignItems="center"
-                      height="100%"
-                    >
+                  <TableCell colSpan={4} style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                       <EmptyContainer />
                     </Box>
                   </TableCell>
