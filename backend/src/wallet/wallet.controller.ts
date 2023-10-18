@@ -61,6 +61,14 @@ export class WalletController {
     return this.walletService.comment(commentWalletDto);
   }
 
+  @Get('search-handler')
+  @ApiOperation({ summary: 'Serach for the wallet' })
+  @ApiQuery({ name: 'network', description: 'The network of wallet' })
+  @ApiQuery({ name: 'term', description: 'The wallet address' })
+  searchHandler(@Query('network') network: string, @Query('term') term: string) {
+    return this.walletService.searchHandler(network, term);
+  }
+
   @Get('top-wallets/:network')
   @ApiOperation({ summary: 'Get the top wallets' })
   @ApiParam({ name: 'network', description: 'Network Type' })

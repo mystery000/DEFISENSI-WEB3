@@ -18,6 +18,7 @@ import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { TokenTransaction, NFTTransaction } from 'src/utils/types';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { ZenRows } from 'zenrows';
 
 type Transaction = TokenTransaction | NFTTransaction;
 
@@ -234,12 +235,9 @@ export class WalletService {
       if (foundWallet) {
         const [ethereumTxns, polygonTxns] = await Promise.all([
           this.etherscanService.getTransactionsByAccount(address),
-          this.polygonscanService.getTransactionsByAccount(address)
+          this.polygonscanService.getTransactionsByAccount(address),
         ]);
-        await this.setTransactions(address, [
-          ...ethereumTxns,
-          ...polygonTxns,
-        ]);
+        await this.setTransactions(address, [...ethereumTxns, ...polygonTxns]);
       }
     } catch (err) {
       logger.error(err);
@@ -250,12 +248,9 @@ export class WalletService {
     try {
       const [ethereumTxns, polygonTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
-        this.polygonscanService.getTransactionsByAccount(address)
+        this.polygonscanService.getTransactionsByAccount(address),
       ]);
-      await this.setTransactions(address, [
-        ...ethereumTxns,
-        ...polygonTxns
-      ]);
+      await this.setTransactions(address, [...ethereumTxns, ...polygonTxns]);
     } catch (err) {
       logger.error(err);
     }
@@ -325,6 +320,96 @@ export class WalletService {
         return this.arbitrumService.getHistoricalPortfolioForWalletAddress(address, days);
       case NetworkType.AVALANCHE:
         return this.avalancheService.getHistoricalPortfolioForWalletAddress(address, days);
+    }
+  }
+
+  async searchHandler(network: string, keyword: string) {
+    try {
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereum_tokens = await client.get(`https://etherscan.io/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return ethereum_tokens.data
+            .filter((token) => token.groupid === '2' && token.group === 'Addresses')
+            .map((token) => ({
+              img: token.img ? `https://etherscan.io/token/images/${token.img}` : '',
+              address: token.address,
+              title: token.title,
+            }));
+        case NetworkType.BSC:
+          const bsc_tokens = await client.get(`https://bscscan.com/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return bsc_tokens.data
+            .filter((token) => token.groupid === '2' && token.group === 'Addresses')
+            .map((token: any) => ({ img: '', address: token.address, title: token.title }));
+        case NetworkType.POLYGON:
+          const polygon_tokens = await client.get(`https://polygonscan.com/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          const polygon_grouped_data = polygon_tokens.data.reduce((acc, line) => {
+            if (line.startsWith('Tokens (ERC 20)')) {
+              acc['ERC 20'] = [];
+              acc.curr = 'ERC 20';
+            } else if (line.startsWith('Tokens (ERC 1155)') || line.startsWith('Tokens (ERC 721)')) {
+              acc['NFT'] = [];
+              acc.curr = 'NFT';
+            } else if (line.startsWith('Addresses')) {
+              acc['Addresses'] = [];
+              acc.curr = 'Addresses';
+            } else if (acc.curr) {
+              acc[acc.curr].push(line);
+            }
+            return acc;
+          }, {});
+
+          return (
+            polygon_grouped_data['Addresses']?.map((token: any) => {
+              const params = token.split('\t');
+              return {
+                img: params[5] ? `https://polygonscan.com/token/images/${params[5]}` : '',
+                address: params[1],
+                title: params[0],
+              };
+            }) || []
+          );
+        case NetworkType.ARBITRUM:
+          const arbitrum_tokens = await client.get(`https://arbiscan.io/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+
+          const arbitrum_grouped_data = arbitrum_tokens.data.reduce((acc, line) => {
+            if (line.startsWith('Tokens (ERC 20)')) {
+              acc['ERC 20'] = [];
+              acc.curr = 'ERC 20';
+            } else if (line.startsWith('Tokens (ERC 1155)') || line.startsWith('Tokens (ERC 721)')) {
+              acc['NFT'] = [];
+              acc.curr = 'NFT';
+            } else if (line.startsWith('Addresses')) {
+              acc['Addresses'] = [];
+              acc.curr = 'Addresses';
+            } else if (acc.curr) {
+              acc[acc.curr].push(line);
+            }
+            return acc;
+          }, {});
+
+          return (
+            arbitrum_grouped_data['Addresses']?.map((token: any) => {
+              const params = token.split('\t');
+              return {
+                img: params[5] ? `https://arbiscan.io/token/images/${params[5]}` : '',
+                address: params[1],
+                title: params[0],
+              };
+            }) || []
+          );
+      }
+    } catch (error) {
+      logger.error(error);
+      return [];
     }
   }
 }

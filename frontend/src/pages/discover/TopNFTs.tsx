@@ -1,6 +1,6 @@
-import { ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 
-import { Input, Spin } from 'antd';
+import { Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';
@@ -9,16 +9,47 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import AppLayout from '../../layouts/AppLayout';
-import { SearchOutlined } from '@ant-design/icons';
+import { API_BASE_URL } from '../../config/app';
 import useTopNFTs from '../../lib/hooks/useTopNFTs';
 import TableContainer from '@mui/material/TableContainer';
+import DebounceSelect from '../../components/DebounceSelect';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
 
+interface TokenValue {
+  label: string | React.ReactNode;
+  value: string;
+}
+
 export const TopNFTs = () => {
-  const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topNFTs, loading } = useTopNFTs(chain);
+
+  const fetchTokenList = async (keyword: string): Promise<TokenValue[]> => {
+    if (!keyword) return [];
+    return fetch(`${API_BASE_URL}/nft/search-handler?network=${chain}&term=${keyword}`)
+      .then((response) => response.json())
+      .then((tokens) => {
+        return tokens.map((token: any) => ({
+          label: (
+            <a href={`/portfolio/nft/${chain}/${token.address}`} className="flex items-center gap-3">
+              <img
+                src={token.img || `/images/tokens/empty-${chain}.png`}
+                className="rounded-full"
+                width={24}
+                height={24}
+                loading="lazy"
+              />
+              <div className="flex flex-col">
+                <div className="truncate">{token.title}</div>
+                <div className="truncate">{token.address}</div>
+              </div>
+            </a>
+          ),
+          value: token.address,
+        }));
+      });
+  };
 
   if (loading) {
     return (
@@ -46,12 +77,11 @@ export const TopNFTs = () => {
                 if (chain) setChain(chain.value);
               }}
             />
-            <Input
-              placeholder="Search wallet"
-              suffix={<SearchOutlined />}
-              className="w-48"
-              size={'large'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+            <DebounceSelect
+              placeholder="Search for NFT Name or Address"
+              fetchOptions={fetchTokenList}
+              className="w-56"
+              size="large"
             />
           </div>
         </div>

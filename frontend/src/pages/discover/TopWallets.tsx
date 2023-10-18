@@ -1,6 +1,6 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { Input, Spin } from 'antd';
+import { Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';
@@ -9,17 +9,38 @@ import TableRow from '@mui/material/TableRow';
 import AppLayout from '../../layouts/AppLayout';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
+import { API_BASE_URL } from '../../config/app';
 import TableHead from '@mui/material/TableHead';
-import { SearchOutlined } from '@ant-design/icons';
 import TableContainer from '@mui/material/TableContainer';
 import useTopWallets from '../../lib/hooks/useTopWallets';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
+import DebounceSelect from '../../components/DebounceSelect';
+
+interface TokenValue {
+  label: string | React.ReactNode;
+  value: string;
+}
 
 export const TopWallets = () => {
-  const [query, setQuery] = useState('');
   const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const { data: topWallets, loading } = useTopWallets(chain);
+
+  const fetchTokenList = async (keyword: string): Promise<TokenValue[]> => {
+    if (!keyword) return [];
+    return fetch(`${API_BASE_URL}/wallet/search-handler?network=${chain}&term=${keyword}`)
+      .then((response) => response.json())
+      .then((tokens) => {
+        return tokens.map((token: any) => ({
+          label: (
+            <a href={`/portfolio/wallet/${token.address}`} className="flex items-center gap-3">
+              <div className="truncate">{token.address}</div>
+            </a>
+          ),
+          value: token.address,
+        }));
+      });
+  };
 
   if (loading) {
     return (
@@ -35,13 +56,10 @@ export const TopWallets = () => {
         <div
           className="p-6 text-center"
           style={{
-            background:
-              'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
+            background: 'radial-gradient(100% 100% at 50% 100%, #FFECE6 0%, #FFFFFF 100%)',
           }}
         >
-          <div className="font-sora text-[32px] font-semibold">
-            Discover Top Wallets
-          </div>
+          <div className="font-sora text-[32px] font-semibold">Discover Top Wallets</div>
           <div className="mt-4 flex items-center justify-center gap-4">
             <span className="font-sora text-base font-semibold">Chain</span>
             <ChainSelection
@@ -50,14 +68,11 @@ export const TopWallets = () => {
                 if (chain) setChain(chain.value);
               }}
             />
-            <Input
-              placeholder="Search Wallet"
-              suffix={<SearchOutlined />}
+            <DebounceSelect
+              placeholder="Search for wallet"
+              fetchOptions={fetchTokenList}
               className="w-48"
-              size={'large'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setQuery(e.target.value)
-              }
+              size="large"
             />
           </div>
         </div>
@@ -65,18 +80,10 @@ export const TopWallets = () => {
           <Table sx={{ minWidth: 400, height: 600 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Wallet
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  AUM
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  1D
-                </TableCell>
-                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Followers
-                </TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Wallet</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>AUM</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>1D</TableCell>
+                <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>Followers</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -90,11 +97,7 @@ export const TopWallets = () => {
                     hover
                   >
                     <TableCell>
-                      <a
-                        href={`/portfolio/wallet/${wallet.address}`}
-                      >
-                        {convertHex(wallet.address).slice(0, 6)}
-                      </a>
+                      <a href={`/portfolio/wallet/${wallet.address}`}>{convertHex(wallet.address).slice(0, 6)}</a>
                     </TableCell>
                     <TableCell>{wallet.balance}</TableCell>
                     <TableCell>{wallet.percentage}</TableCell>
@@ -103,16 +106,8 @@ export const TopWallets = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    style={{ textAlign: 'center', verticalAlign: 'middle' }}
-                  >
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      alignItems="center"
-                      height="100%"
-                    >
+                  <TableCell colSpan={4} style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                       <EmptyContainer />
                     </Box>
                   </TableCell>

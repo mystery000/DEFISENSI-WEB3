@@ -32,7 +32,7 @@ export const TopTokens = () => {
       .then((tokens) => {
         return tokens.map((token: any) => ({
           label: (
-            <a href={`/portfolio/token/ethereum/${token.address}`} className="flex items-center gap-3">
+            <a href={`/portfolio/token/${chain}/${token.address}`} className="flex items-center gap-3">
               <img
                 src={token.img || `/images/tokens/empty-${chain}.png`}
                 className="rounded-full"

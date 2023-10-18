@@ -5,8 +5,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import axios from 'axios';
 import * as moment from 'moment';
+import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { FollowNftDto } from './dto/follow.dto';
+import { NFTTransaction } from 'src/utils/types';
 import { CommentNftDto } from './dto/comment.dto';
 import { UserService } from '../user/user.service';
 import { CreateNftDto } from './dto/create-nft.dto';
@@ -20,7 +22,6 @@ import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
-import { NFTTransaction, NFTSaleVolumesResponse } from 'src/utils/types';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 @Injectable()
 export class NftService {
@@ -375,6 +376,96 @@ export class NftService {
     } catch (error) {
       logger.error(error);
       return;
+    }
+  }
+
+  async searchHandler(network: string, keyword: string) {
+    try {
+      const client = new ZenRows(process.env.ZENROWS_API_KEY);
+      switch (network) {
+        case NetworkType.ETHEREUM:
+          const ethereum_tokens = await client.get(`https://etherscan.io/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return ethereum_tokens.data
+            .filter((token) => token.groupid === '3' && token.group !== 'Tokens (ERC 20)')
+            .map((token) => ({
+              img: token.img ? `https://etherscan.io/token/images/${token.img}` : '',
+              address: token.address,
+              title: token.title,
+            }));
+        case NetworkType.BSC:
+          const bsc_tokens = await client.get(`https://bscscan.com/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          return bsc_tokens.data
+            .filter((token) => token.groupid === '3' && token.group !== 'Tokens (BEP 20)')
+            .map((token: any) => ({ img: '', address: token.address, title: token.title }));
+        case NetworkType.POLYGON:
+          const polygon_tokens = await client.get(`https://polygonscan.com/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+          const polygon_grouped_data = polygon_tokens.data.reduce((acc, line) => {
+            if (line.startsWith('Tokens (ERC 20)')) {
+              acc['ERC 20'] = [];
+              acc.curr = 'ERC 20';
+            } else if (line.startsWith('Tokens (ERC 1155)') || line.startsWith('Tokens (ERC 721)')) {
+              acc['NFT'] = [];
+              acc.curr = 'NFT';
+            } else if (line.startsWith('Addresses')) {
+              acc['Addresses'] = [];
+              acc.curr = 'Addresses';
+            } else if (acc.curr) {
+              acc[acc.curr].push(line);
+            }
+            return acc;
+          }, {});
+
+          return (
+            polygon_grouped_data['NFT']?.map((token: any) => {
+              const params = token.split('\t');
+              return {
+                img: params[5] ? `https://polygonscan.com/token/images/${params[5]}` : '',
+                address: params[1],
+                title: params[0],
+              };
+            }) || []
+          );
+        case NetworkType.ARBITRUM:
+          const arbitrum_tokens = await client.get(`https://arbiscan.io/searchHandler?term=${keyword}&filterby=0`, {
+            autoparse: true,
+          });
+
+          const arbitrum_grouped_data = arbitrum_tokens.data.reduce((acc, line) => {
+            if (line.startsWith('Tokens (ERC 20)')) {
+              acc['ERC 20'] = [];
+              acc.curr = 'ERC 20';
+            } else if (line.startsWith('Tokens (ERC 1155)') || line.startsWith('Tokens (ERC 721)')) {
+              acc['NFT'] = [];
+              acc.curr = 'NFT';
+            } else if (line.startsWith('Addresses')) {
+              acc['Addresses'] = [];
+              acc.curr = 'Addresses';
+            } else if (acc.curr) {
+              acc[acc.curr].push(line);
+            }
+            return acc;
+          }, {});
+
+          return (
+            arbitrum_grouped_data['NFT']?.map((token: any) => {
+              const params = token.split('\t');
+              return {
+                img: params[5] ? `https://arbiscan.io/token/images/${params[5]}` : '',
+                address: params[1],
+                title: params[0],
+              };
+            }) || []
+          );
+      }
+    } catch (error) {
+      logger.error(error);
+      return [];
     }
   }
 }
