@@ -195,11 +195,11 @@ export const NFTPortfolio = () => {
                   value={portfolio.stats?.volume}
                   symbol={portfolio.stats?.floor_price_symbol}
                 />
-                <NFTAsset chainName="Total Holders" value={portfolio.stats?.holders.toString()} />
+                <NFTAsset chainName="Total Holders" value={(portfolio.stats?.holders || 0).toString()} />
                 <NFTAsset
                   chainName={network}
-                  value={portfolio.stats?.floor_price.toString()}
-                  symbol={portfolio.stats?.floor_price_symbol}
+                  value={(portfolio.stats?.floor_price || 0).toString()}
+                  symbol={(portfolio.stats?.floor_price_symbol || 0).toString()}
                 />
               </div>
             </div>

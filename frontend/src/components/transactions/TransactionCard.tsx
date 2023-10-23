@@ -235,8 +235,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
         onOk={handleComment}
       >
         <div className="my-4 border-b-2 border-silver-sand-300 font-bold">{`${transaction.comments.length} Comments`}</div>
-        {transaction.comments.map((comment) => (
-          <div className="flex items-center gap-2">
+        {transaction.comments.map((comment, idx) => (
+          <div className="flex items-center gap-2" key={`${transaction.id}-${idx}`}>
             <div className="flex h-10 w-11 items-center  justify-center rounded-full bg-blue-600 text-2xl text-white">
               A
             </div>
