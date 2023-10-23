@@ -11,6 +11,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
+import { CommentTransactionDto } from './dto/comment-transaction.dto';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -58,8 +59,8 @@ export class WalletController {
   @Post('comment')
   @ApiOperation({ summary: 'Write comment on this wallet' })
   @ApiOkResponse({ type: SuccessResponse })
-  postComment(@Body() commentWalletDto: CommentWalletDto): Promise<SuccessResponse> {
-    return this.walletService.comment(commentWalletDto);
+  postComment(@Body() commentTransactionDto: CommentTransactionDto): Promise<SuccessResponse> {
+    return this.walletService.comment(commentTransactionDto);
   }
 
   @Get('search-handler')

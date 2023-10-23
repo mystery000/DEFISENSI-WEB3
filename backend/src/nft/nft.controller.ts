@@ -11,6 +11,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
+import { CommentTransactionDto } from './dto/comment-transaction.dto';
 
 @ApiTags('NFT')
 @Controller('nft')
@@ -99,8 +100,8 @@ export class NftController {
   @Post('comment')
   @ApiOperation({ summary: 'Write comment on this nft' })
   @ApiOkResponse({ type: SuccessResponse })
-  postComment(@Body() commentDto: CommentNftDto): Promise<SuccessResponse> {
-    return this.nftService.comment(commentDto);
+  postComment(@Body() commentTransactionDto: CommentTransactionDto): Promise<SuccessResponse> {
+    return this.nftService.comment(commentTransactionDto);
   }
 
   @Get('comments/:network/:address')

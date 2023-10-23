@@ -11,6 +11,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
+import { CommentTransactionDto } from './dto/comment-transaction.dto';
 
 @ApiTags('Token')
 @Controller('token')
@@ -92,8 +93,8 @@ export class TokenController {
   @Post('comment')
   @ApiOperation({ summary: 'Write comment on this token' })
   @ApiOkResponse({ type: SuccessResponse })
-  postComment(@Body() coomentDto: CommentTokenDto): Promise<SuccessResponse> {
-    return this.tokenService.comment(coomentDto);
+  postComment(@Body() commentTransactionDto: CommentTransactionDto): Promise<SuccessResponse> {
+    return this.tokenService.comment(commentTransactionDto);
   }
 
   @Get('comments/:network/:address')

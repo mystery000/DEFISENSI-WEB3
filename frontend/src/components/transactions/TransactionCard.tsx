@@ -16,7 +16,7 @@ import {
 import { TransferType } from '../../types';
 import { useAppContext } from '../../context/app';
 import { TokenTransaction, TransactionType } from '../../types/transaction';
-import { commentsTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
+import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
 const { TextArea } = Input;
 
 type TransactionCardProps = {
@@ -29,6 +29,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
   const [transaction, setTransaction] = useState<TokenTransaction>(txn);
   const { user } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [content, setContent] = useState('');
   const age = getAge(transaction.timestamp);
 
   const handleLike = useCallback(async () => {
@@ -83,8 +84,36 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
     }
   }, [user, transaction, transactionType]);
 
+  const handleComment = useCallback(async () => {
+    try {
+      if (transaction.comments.findIndex((comment) => comment.address === user.address) > -1) {
+        toast.error('You already comented this transaction');
+        return;
+      }
+      if (!mutate) {
+        await commentTransaction(transaction, user.address, content, transactionType);
+      } else {
+        mutate((prev: any) => {
+          const txns = prev.transactions.map((txn: any) =>
+            txn.id === transaction.id
+              ? { ...transaction, comments: [...transaction.comments, { address: user.address, comment: content }] }
+              : txn,
+          );
+          return { ...prev, transactions: txns };
+        });
+      }
+      setTransaction({
+        ...transaction,
+        comments: [...transaction.comments, { address: user.address, comment: content }],
+      });
+      toast.success('You commented this transaction');
+    } catch (error) {
+      toast.error((error as any).message);
+    }
+  }, [user, transaction, transactionType, content]);
+
   return (
-    <div>
+    <>
       <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter">
         <div className="flex justify-between font-inter text-sm">
           <TokenIcon />
@@ -203,10 +232,26 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
         width={512}
         okText="Comment"
         okButtonProps={{ className: 'bg-black hover:bg-black-800' }}
+        onOk={handleComment}
       >
-        <div className="border-silver-sand-300 my-4 border-b-2 font-bold">Comments</div>
-        <TextArea rows={4} />
+        <div className="my-4 border-b-2 border-silver-sand-300 font-bold">{`${transaction.comments.length} Comments`}</div>
+        {transaction.comments.map((comment) => (
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-11 items-center  justify-center rounded-full bg-blue-600 text-2xl text-white">
+              A
+            </div>
+            <div className="my-2 w-full rounded-lg border border-silver-sand-200 px-3 py-2 text-lg">
+              {comment.comment}
+            </div>
+          </div>
+        ))}
+        <TextArea
+          rows={4}
+          onChange={(event) => setContent(event.target.value)}
+          placeholder="Start the discussion..."
+          value={content}
+        />
       </Modal>
-    </div>
+    </>
   );
 };

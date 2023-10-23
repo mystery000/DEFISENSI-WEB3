@@ -386,10 +386,33 @@ export const dislikeTransaction = async (transaction: WalletTransaction, address
   }
 };
 
-export const commentsTransaction = async (transaction: WalletTransaction, address: string, content: string) => {
+export const commentTransaction = async (
+  transaction: WalletTransaction,
+  address: string,
+  content: string,
+  type: TransactionType,
+) => {
   try {
-    await axios.post(`${API_BASE_URL}/token/like`);
+    if (type === TransactionType.TOKEN) {
+      await axios.post(`${API_BASE_URL}/token/comment`, {
+        address,
+        content,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.NFT) {
+      await axios.post(`${API_BASE_URL}/nft/comment`, {
+        address,
+        content,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.WALLET) {
+      await axios.post(`${API_BASE_URL}/wallet/comment`, {
+        address,
+        content,
+        transactionId: transaction.id,
+      });
+    }
   } catch (error) {
-    console.error(error);
+    throw new Error((error as any).response.data.message);
   }
 };

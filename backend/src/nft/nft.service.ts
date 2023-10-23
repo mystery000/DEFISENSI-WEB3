@@ -24,6 +24,7 @@ import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
 import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
+import { CommentTransactionDto } from './dto/comment-transaction.dto';
 @Injectable()
 export class NftService {
   private readonly serviceConfig: ServiceConfig;
@@ -180,22 +181,30 @@ export class NftService {
     return this.userService.getByIds(foundToken.followings);
   }
 
-  async comment(commentNftDto: CommentNftDto) {
-    const user = await this.userService.getByAddress(commentNftDto.address);
-    const foundNft = await this.getOrCreate(commentNftDto.nftAddress, commentNftDto.nftNetwork);
-    try {
-      const newComment = await this.commentService.postComment({
-        userId: user.id,
-        content: commentNftDto.content,
-      });
-      await foundNft.updateOne({
-        $push: { comments: newComment.id },
-      });
-    } catch (error) {
-      return new SuccessResponse(false, error.message);
+  async comment(commentTransactionDto: CommentTransactionDto) {
+    const { transactionId, address, content } = commentTransactionDto;
+    // Retrieve the token document containing the transaction
+    const nft = await this.nftModel.findOne({ 'transactions.id': transactionId });
+    if (!nft) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = nft.transactions.find((t) => t.id === transactionId);
+
+    if (transaction.comments.findIndex((comment) => comment.address === address) > -1) {
+      throw new BadRequestException('You already commented this transaction');
     }
 
-    return new SuccessResponse(true);
+    if (transaction.comments.findIndex((comment) => comment.address === address) < 0) {
+      transaction.comments.push({ address, comment: content });
+      await this.nftModel.updateOne(
+        { 'transactions.id': transactionId },
+        { $set: { 'transactions.$.comments': transaction.comments } },
+      );
+      return new SuccessResponse(true);
+    } else {
+      throw new BadRequestException('You already commented this transaction');
+    }
   }
 
   async getComments(query: FindOneParams) {

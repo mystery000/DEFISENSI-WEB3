@@ -39,6 +39,8 @@ export const TokenPortfolio = () => {
   // Responsive Design
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
+  // Custom Hooks
+  const { portfolio, loading, mutate } = useTokenPortfolio();
 
   const fetchMoreTransactions = useCallback(async () => {}, []);
 
@@ -58,9 +60,6 @@ export const TokenPortfolio = () => {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, [width]);
 
-  // Custom Hooks
-  const { portfolio, loading, mutate } = useTokenPortfolio();
-
   const handleFollow = useCallback(async () => {
     if (!address || !network) return;
     try {
@@ -75,9 +74,6 @@ export const TokenPortfolio = () => {
     }
   }, [network, address, portfolio, user]);
 
-  useEffect(() => {
-    console.log(portfolio.transactions);
-  }, [portfolio]);
   if (!address || !network) return;
 
   if (loading) {

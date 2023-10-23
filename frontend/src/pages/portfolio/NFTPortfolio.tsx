@@ -221,7 +221,7 @@ export const NFTPortfolio = () => {
               >
                 {portfolio.transactions.map((transaction) => (
                   <NFTTransactionCard
-                    key={transaction.txHash}
+                    key={transaction.id}
                     txn={transaction}
                     transactionType={TransactionType.NFT}
                     mutate={mutatePortfolio}
