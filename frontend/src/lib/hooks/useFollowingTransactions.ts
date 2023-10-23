@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import { findFollowingNFTs, findFollowingTokens, findFollowingWallets } from '../api';
+import {
+  getTransactionsByFollowingNFTs,
+  getTransactionsByFollowingTokens,
+  getTransactionsByFollowingWallets,
+} from '../api';
 import { NFTTransaction, TokenTransaction, WalletTransaction } from '../../types/transaction';
 
 export default function useFollowingTransactions(address: string) {
@@ -17,9 +21,9 @@ export default function useFollowingTransactions(address: string) {
       try {
         setLoading(true);
         const [walletTxns, tokenTxns, nftTxns] = await Promise.all([
-          findFollowingWallets(address),
-          findFollowingTokens(address),
-          findFollowingNFTs(address),
+          getTransactionsByFollowingWallets(address),
+          getTransactionsByFollowingTokens(address),
+          getTransactionsByFollowingNFTs(address),
         ]);
         if (walletTxns.length % 4 === 0) setFetchMoreWallets(true);
         setWalletTxns(walletTxns);

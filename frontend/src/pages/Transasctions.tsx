@@ -9,8 +9,12 @@ import { EmptyContainer } from '../components/EmptyContainer';
 import { TransactionCard } from '../components/transactions/TransactionCard';
 import useFollowingTransactions from '../lib/hooks/useFollowingTransactions';
 import { NFTTransactionCard } from '../components/transactions/NFTTransactionCard';
-import { findFollowingWallets, findFollowingTokens, findFollowingNFTs } from '../lib/api';
 import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../types/transaction';
+import {
+  getTransactionsByFollowingNFTs,
+  getTransactionsByFollowingTokens,
+  getTransactionsByFollowingWallets,
+} from '../lib/api';
 
 enum ContentType {
   WALLET = 'wallet',
@@ -46,9 +50,7 @@ export const Transactions = () => {
   const fetchMoreWalletTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: WalletTransaction[] = [];
-        const wallets = await findFollowingWallets(user.address, walletTxns.length + 4);
-
+        const txns = await getTransactionsByFollowingWallets(user.address, walletTxns.length + 4);
         if (txns.length === walletTxns.length) mutateFetchMoreWallets(false);
         else mutateFetchMoreWallets(true);
         mutateWalletTxns(txns);
@@ -59,8 +61,7 @@ export const Transactions = () => {
   const fetchMoreTokenTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: TokenTransaction[] = [];
-        const tokens = await findFollowingTokens(user.address, tokenTxns.length + 4);
+        const txns = await getTransactionsByFollowingTokens(user.address, tokenTxns.length + 4);
         if (txns.length === tokenTxns.length) mutateFetchMoreTokens(false);
         else mutateFetchMoreTokens(true);
         mutateTokenTxns(txns);
@@ -71,8 +72,7 @@ export const Transactions = () => {
   const fetchMoreNFTTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: NFTTransaction[] = [];
-        const nfts = await findFollowingNFTs(user.address, nftTxns.length + 4);
+        const txns = await getTransactionsByFollowingNFTs(user.address, nftTxns.length + 4);
         if (txns.length === nftTxns.length) mutateFetchMoreNFTs(false);
         else mutateFetchMoreNFTs(true);
         mutateNFTTxns(txns);
