@@ -153,7 +153,7 @@ export const Transactions = () => {
                 if (txn.type === TransactionType.NFT) {
                   return (
                     <NFTTransactionCard
-                      key={txn.txHash}
+                      key={txn.id}
                       txn={txn as NFTTransaction}
                       transactionType={TransactionType.WALLET}
                     />
@@ -161,7 +161,7 @@ export const Transactions = () => {
                 } else if (txn.type === TransactionType.TOKEN) {
                   return (
                     <TransactionCard
-                      key={txn.txHash}
+                      key={txn.id}
                       txn={txn as TokenTransaction}
                       transactionType={TransactionType.WALLET}
                     />
@@ -187,7 +187,7 @@ export const Transactions = () => {
               loader={<h4 className="text-center">Loading...</h4>}
             >
               {tokenTxns.map((txn, idx) => (
-                <TransactionCard key={`token${idx}_${txn.txHash}`} txn={txn} transactionType={TransactionType.TOKEN} />
+                <TransactionCard key={txn.id} txn={txn} transactionType={TransactionType.TOKEN} />
               ))}
             </InfiniteScroll>
           ) : (
@@ -208,7 +208,7 @@ export const Transactions = () => {
               loader={<h4 className="text-center">Loading...</h4>}
             >
               {nftTxns.map((txn, idx) => (
-                <NFTTransactionCard key={txn.txHash} txn={txn} transactionType={TransactionType.NFT} />
+                <NFTTransactionCard key={txn.id} txn={txn} transactionType={TransactionType.NFT} />
               ))}
             </InfiniteScroll>
           ) : (

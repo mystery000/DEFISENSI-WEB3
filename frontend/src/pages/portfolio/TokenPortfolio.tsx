@@ -22,7 +22,7 @@ import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
-import { TransactionType } from '../../types/transaction';
+import { TokenTransaction, TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -75,6 +75,9 @@ export const TokenPortfolio = () => {
     }
   }, [network, address, portfolio, user]);
 
+  useEffect(() => {
+    console.log(portfolio.transactions);
+  }, [portfolio]);
   if (!address || !network) return;
 
   if (loading) {
@@ -322,7 +325,12 @@ export const TokenPortfolio = () => {
                 loader={<h4 className="text-center">Loading...</h4>}
               >
                 {portfolio.transactions.map((transaction) => (
-                  <TransactionCard key={transaction.txHash} txn={transaction} transactionType={TransactionType.TOKEN} />
+                  <TransactionCard
+                    key={transaction.txHash}
+                    txn={transaction}
+                    transactionType={TransactionType.TOKEN}
+                    mutate={mutate}
+                  />
                 ))}
               </InfiniteScroll>
             ) : (

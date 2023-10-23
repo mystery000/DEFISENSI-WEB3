@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
 
 import cn from 'classnames';
 import { Card } from 'antd';
@@ -22,9 +22,10 @@ import { toast } from 'react-toastify';
 type TransactionCardProps = {
   txn: NFTTransaction;
   transactionType: TransactionType;
+  mutate?: Dispatch<SetStateAction<any>>;
 };
 
-export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionType }) => {
+export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionType, mutate }) => {
   const { user } = useAppContext();
   const [transaction, setTransaction] = useState<NFTTransaction>(txn);
   const age = getAge(txn.timestamp);
@@ -32,7 +33,24 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
 
   const handleLike = useCallback(async () => {
     try {
-      await likeTransaction(transaction, user.address, transactionType);
+      if (transaction.likes.includes(user.address)) {
+        toast.error('You already like this transaction');
+        return;
+      } else if (transaction.dislikes.includes(user.address)) {
+        toast.error('You already dislike this transaction');
+        return;
+      }
+
+      if (!mutate) {
+        await likeTransaction(transaction, user.address, transactionType);
+      } else {
+        mutate((prev: any) => {
+          const txns = prev.transactions.map((txn: any) =>
+            txn.id === transaction.id ? { ...transaction, likes: [...transaction.likes, user.address] } : txn,
+          );
+          return { ...prev, transactions: txns };
+        });
+      }
       setTransaction({ ...transaction, likes: [...transaction.likes, user.address] });
       toast.success('You liked this transaction');
     } catch (error) {
@@ -42,7 +60,23 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
 
   const handleDisLike = useCallback(async () => {
     try {
-      await dislikeTransaction(transaction, user.address, transactionType);
+      if (transaction.dislikes.includes(user.address)) {
+        toast.error('You already dislike this transaction');
+        return;
+      } else if (transaction.likes.includes(user.address)) {
+        toast.error('You already likes this transaction');
+        return;
+      }
+      if (!mutate) {
+        await dislikeTransaction(transaction, user.address, transactionType);
+      } else {
+        mutate((prev: any) => {
+          const txns = prev.transactions.map((txn: any) =>
+            txn.id === transaction.id ? { ...transaction, dislikes: [...transaction.dislikes, user.address] } : txn,
+          );
+          return { ...prev, transactions: txns };
+        });
+      }
       setTransaction({ ...transaction, dislikes: [...transaction.dislikes, user.address] });
       toast.success('You disliked this transaction');
     } catch (error) {
@@ -66,15 +100,15 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
               if (idx > 0) return;
               switch (action.type) {
                 case 'Mint':
-                  return <MintIcon />;
+                  return <MintIcon key={'mint-icon'} />;
                 case 'Burn':
-                  return <BurnIcon />;
+                  return <BurnIcon key={'burn-icon'} />;
                 case 'Purchase':
-                  return <PurchaseIcon />;
+                  return <PurchaseIcon key={'purchase-icon'} />;
                 case 'Transfer':
-                  return <SendIcon />;
+                  return <SendIcon key={'send-icon'} />;
                 case 'Sale':
-                  return <PurchaseIcon />;
+                  return <PurchaseIcon key={'sale-icon'} />;
               }
             })}
           </span>

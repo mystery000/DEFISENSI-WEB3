@@ -29,7 +29,7 @@ import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
 import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { NFTTransaction, TokenTransaction, TransactionType } from '../../types/transaction';
+import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../../types/transaction';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 
 enum ContentType {
@@ -67,7 +67,9 @@ export const WalletPortfolio = () => {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, [width]);
 
-  const fetchMoreTransactions = useCallback(async () => {}, []);
+  const fetchMoreTransactions = useCallback(async () => {
+    return portfolio.transactions;
+  }, [portfolio]);
 
   const handleFollow = useCallback(async () => {
     if (!address || !user) return;
@@ -316,6 +318,7 @@ export const WalletPortfolio = () => {
                         key={transaction?.txHash}
                         txn={transaction as NFTTransaction}
                         transactionType={TransactionType.WALLET}
+                        mutate={mutatePortfolio}
                       />
                     );
                   } else if (transaction.type === TransactionType.TOKEN) {
@@ -324,6 +327,7 @@ export const WalletPortfolio = () => {
                         key={transaction?.txHash}
                         txn={transaction as TokenTransaction}
                         transactionType={TransactionType.WALLET}
+                        mutate={mutatePortfolio}
                       />
                     );
                   }

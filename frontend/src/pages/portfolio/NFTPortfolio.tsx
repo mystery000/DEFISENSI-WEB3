@@ -19,7 +19,7 @@ import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { TransactionType } from '../../types/transaction';
+import { NFTTransaction, TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -224,6 +224,7 @@ export const NFTPortfolio = () => {
                     key={transaction.txHash}
                     txn={transaction}
                     transactionType={TransactionType.NFT}
+                    mutate={mutatePortfolio}
                   />
                 ))}
               </InfiniteScroll>
