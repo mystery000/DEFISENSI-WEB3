@@ -12,6 +12,7 @@ import { FindOneParams } from './dto/find-one-params.dto';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { FollowUserDto, UnFollowUserDto } from './dto/follow-user.dto';
 import { Notification } from '../notification/schemas/notification.schema';
+import { NFTTransaction, TokenTransaction, WalletTransaction } from 'src/utils/types';
 
 @ApiTags('User')
 @Controller('user')
@@ -126,10 +127,7 @@ export class UserController {
   @ApiOkResponse({ type: Wallet, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
   @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
-  async getFollowingWalletTransactions(
-    @Param('address') address: string,
-    @Query('limit') limit: number,
-  ): Promise<Wallet[]> {
+  async getFollowingWalletTransactions(@Param('address') address: string, @Query('limit') limit: number) {
     return this.userService.getFollowingWalletsTransactions(address, limit);
   }
 
@@ -138,10 +136,7 @@ export class UserController {
   @ApiOkResponse({ type: Token, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
   @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
-  async getFollowingTokensTransactions(
-    @Param('address') address: string,
-    @Query('limit') limit: number,
-  ): Promise<Token[]> {
+  async getFollowingTokensTransactions(@Param('address') address: string, @Query('limit') limit: number) {
     return this.userService.getFollowingTokensTransactions(address, limit);
   }
 
@@ -150,10 +145,7 @@ export class UserController {
   @ApiOkResponse({ type: Token, isArray: true })
   @ApiParam({ name: 'address', description: 'The address of user' })
   @ApiQuery({ name: 'limit', description: 'The limit of transactions returned', required: false })
-  async getFollowingNFTsTransactions(
-    @Param('address') address: string,
-    @Query('limit') limit: number,
-  ): Promise<Token[]> {
+  async getFollowingNFTsTransactions(@Param('address') address: string, @Query('limit') limit: number) {
     return this.userService.getFollowingNFTsTransactions(address, limit);
   }
 

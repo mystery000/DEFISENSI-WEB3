@@ -1,8 +1,7 @@
-import { FC } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import cn from 'classnames';
 import { Card } from 'antd';
-import { Transaction, TransactionType } from '../../types/transaction';
-
+import { toast } from 'react-toastify';
 import { convertDecimals, convertHex, getAge, getTransferType, standardUnit } from '../../lib/utils';
 
 import {
@@ -14,19 +13,41 @@ import {
   TokenIcon,
 } from '../icons/defisensi-icons';
 
-import { useAppContext } from '../../context/app';
 import { TransferType } from '../../types';
+import { useAppContext } from '../../context/app';
+import { TokenTransaction, TransactionType } from '../../types/transaction';
+import { commentsTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
 
 type TransactionCardProps = {
-  transaction: Transaction;
-  likes: any[];
-  dislikes: any[];
-  comments: any[];
+  txn: TokenTransaction;
+  transactionType: TransactionType;
 };
 
-export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, dislikes, comments }) => {
+export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType }) => {
+  const [transaction, setTransaction] = useState<TokenTransaction>(txn);
   const { user } = useAppContext();
   const age = getAge(transaction.timestamp);
+
+  const handleLike = useCallback(async () => {
+    try {
+      await likeTransaction(transaction, user.address, transactionType);
+      setTransaction({ ...transaction, likes: [...transaction.likes, user.address] });
+      toast.success('You liked this transaction');
+    } catch (error) {
+      toast.error((error as any).message);
+    }
+  }, [user, transaction, transactionType]);
+
+  const handleDisLike = useCallback(async () => {
+    try {
+      await dislikeTransaction(transaction, user.address, transactionType);
+      setTransaction({ ...transaction, dislikes: [...transaction.dislikes, user.address] });
+      toast.success('You disliked this transaction');
+    } catch (error) {
+      toast.error((error as any).message);
+    }
+  }, [user, transaction, transactionType]);
+
   return (
     <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter">
       <div className="flex justify-between font-inter text-sm">
@@ -102,37 +123,37 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction, likes, 
         </div>
       )}
       <div className="mt-4 flex justify-around text-center text-sm">
-        <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ThumbsUpSolid className="h-5 w-5 scale-x-[-1]" fill={likes.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
+        <div className="flex items-center gap-[3px] hover:cursor-pointer" onClick={handleLike}>
+          <ThumbsUpSolid className="h-5 w-5 scale-x-[-1]" fill={transaction.likes.length > 0 ? '#FF5D29' : '#8E98B0'} />
           <span
             className={cn('font-inter', {
-              'text-orange-400': likes.includes(user.id),
-              'text-bali-hai-600': likes.includes(user.id),
+              'text-orange-400': transaction.likes.length > 0,
+              'text-bali-hai-600': transaction.likes.length > 0,
             })}
           >
-            {standardUnit(likes.length)}
+            {standardUnit(transaction.likes.length)}
+          </span>
+        </div>
+        <div className="flex items-center gap-[3px] hover:cursor-pointer" onClick={handleDisLike}>
+          <ThumbsDownSolid className="h-5 w-5" fill={transaction.dislikes.length > 0 ? '#FF5D29' : '#8E98B0'} />
+          <span
+            className={cn('font-inter', {
+              'text-orange-400': transaction.dislikes.length > 0,
+              'text-bali-hai-600': transaction.dislikes.length > 0,
+            })}
+          >
+            {standardUnit(transaction.dislikes.length)}
           </span>
         </div>
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ThumbsDownSolid className="h-5 w-5" fill={dislikes.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
+          <ChatBubbleSolid className="h-5 w-5" fill={transaction.comments.length > 0 ? '#FF5D29' : '#8E98B0'} />
           <span
             className={cn('font-inter', {
-              'text-orange-400': dislikes.includes(user.id),
-              'text-bali-hai-600': dislikes.includes(user.id),
+              'text-orange-400': transaction.comments.length > 0,
+              'text-bali-hai-600': transaction.comments.length > 0,
             })}
           >
-            {standardUnit(dislikes.length)}
-          </span>
-        </div>
-        <div className="flex items-center gap-[3px] hover:cursor-pointer">
-          <ChatBubbleSolid className="h-5 w-5" fill={comments.includes(user.id) ? '#FF5D29' : '#8E98B0'} />
-          <span
-            className={cn('font-inter', {
-              'text-orange-400': comments.includes(user.id),
-              'text-bali-hai-600': comments.includes(user.id),
-            })}
-          >
-            {standardUnit(comments.length)}
+            {standardUnit(transaction.comments.length)}
           </span>
         </div>
       </div>

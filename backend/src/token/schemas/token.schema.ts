@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { NFTTransaction } from 'src/utils/types';
+import { TokenTransaction } from 'src/utils/types';
 
 export type TokenDocument = Token & Document;
 
@@ -42,10 +42,10 @@ export class Token {
   comments: any[];
 
   @Prop({
-    type: Array<NFTTransaction>,
+    type: Array<TokenTransaction>,
     default: [],
   })
-  transactions: Array<NFTTransaction>;
+  transactions: Array<TokenTransaction>;
 }
 
 export const TokenSchema = SchemaFactory.createForClass(Token);

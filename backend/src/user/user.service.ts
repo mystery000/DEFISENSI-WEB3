@@ -46,7 +46,7 @@ export class UserService {
     return user.followingWallets;
   }
 
-  async getFollowingWalletsTransactions(address: string, limit: number) {
+  async getFollowingWalletsTransactions(address: string, limit: number = 4) {
     const result = await this.userModel.aggregate([
       { $match: { address } },
       {
@@ -65,16 +65,14 @@ export class UserService {
       {
         $group: {
           _id: '$followingWalletsData._id',
-          address: { $first: '$followingWalletsData.address' },
-          comments: { $first: '$followingWalletsData.comments' },
-          likes: { $first: '$followingWalletsData.likes' },
-          dislikes: { $first: '$followingWalletsData.dislikes' },
           transactions: { $push: '$followingWalletsData.transactions' },
         },
       },
     ]);
 
-    return result || [];
+    return (result || [])
+      .reduce((curr, wallet) => [...curr, ...(wallet.transactions || [])], [])
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
   }
 
   async getFollowingTokens(address: string): Promise<Token[]> {
@@ -88,7 +86,7 @@ export class UserService {
     return user.followingTokens;
   }
 
-  async getFollowingTokensTransactions(address: string, limit: number) {
+  async getFollowingTokensTransactions(address: string, limit: number = 4) {
     const result = await this.userModel.aggregate([
       { $match: { address } },
       {
@@ -107,16 +105,13 @@ export class UserService {
       {
         $group: {
           _id: '$followingTokensData._id',
-          address: { $first: '$followingTokensData.address' },
-          comments: { $first: '$followingTokensData.comments' },
-          likes: { $first: '$followingTokensData.likes' },
-          dislikes: { $first: '$followingTokensData.dislikes' },
           transactions: { $push: '$followingTokensData.transactions' },
         },
       },
     ]);
-
-    return result || [];
+    return (result || [])
+      .reduce((curr, token) => [...curr, ...(token.transactions || [])], [])
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
   }
 
   async getFollowingNfts(address: string): Promise<Nft[]> {
@@ -130,7 +125,7 @@ export class UserService {
     return user.followingNfts;
   }
 
-  async getFollowingNFTsTransactions(address: string, limit: number) {
+  async getFollowingNFTsTransactions(address: string, limit: number = 4) {
     const result = await this.userModel.aggregate([
       { $match: { address } },
       {
@@ -149,16 +144,14 @@ export class UserService {
       {
         $group: {
           _id: '$followingNftsData._id',
-          address: { $first: '$followingNftsData.address' },
-          comments: { $first: '$followingNftsData.comments' },
-          likes: { $first: '$followingNftsData.likes' },
-          dislikes: { $first: '$followingNftsData.dislikes' },
           transactions: { $push: '$followingNftsData.transactions' },
         },
       },
     ]);
 
-    return result || [];
+    return (result || [])
+      .reduce((curr, nft) => [...curr, ...(nft.transactions || [])], [])
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
   }
 
   async getFollowing(address: string): Promise<User> {

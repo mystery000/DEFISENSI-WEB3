@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { TransferType } from '../types';
-import { Transaction } from '../types/transaction';
+import { TokenTransaction } from '../types/transaction';
 
 // Function getting age of transaction
 export const getAge = (timestamp: number) => {
@@ -32,7 +32,7 @@ export const getAge = (timestamp: number) => {
   return formattedAge.length > 0 ? formattedAge : 'Just now';
 };
 
-export const getTransferType = (tx: Transaction) => {
+export const getTransferType = (tx: TokenTransaction) => {
   // SWAP transaction
   if (tx.details.token1) {
     return TransferType.SWAP;

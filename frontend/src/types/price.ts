@@ -1,15 +1,8 @@
-export type ExchangePrice = {
-  tokenName: string;
-  tokenAddress: string;
-  tokenSymbol: string;
-  tokenLogo: string;
-  tokenDecimals: string;
-  usdPrice: {
-    uniswap?: string;
-    kucoin?: string;
-    binance?: string;
-    coinbase?: string;
-  };
+export type ExchangesPriceResponse = {
+  uniswap?: string;
+  kucoin?: string;
+  binance?: string;
+  coinbase?: string;
 };
 
 export type TokenPricesResponse = {

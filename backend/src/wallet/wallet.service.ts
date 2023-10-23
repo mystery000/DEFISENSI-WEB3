@@ -3,9 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import Moralis from 'moralis';
+import { ZenRows } from 'zenrows';
 import { logger } from 'src/utils/logger';
 import { FollowWalletDto } from './dto/follow.dto';
 import { UserService } from '../user/user.service';
+import { WalletTransaction } from 'src/utils/types';
 import { CommentWalletDto } from './dto/comment.dto';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -15,12 +17,9 @@ import { ArbitrumService } from 'src/arbitrum/arbitrum.service';
 import { SuccessResponse } from '../utils/dtos/success-response';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
-import { TokenTransaction, NFTTransaction } from 'src/utils/types';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
-import { ZenRows } from 'zenrows';
-
-type Transaction = TokenTransaction | NFTTransaction;
+import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
 
 @Injectable()
 export class WalletService {
@@ -62,19 +61,14 @@ export class WalletService {
   }
 
   async follow(followWalletDto: FollowWalletDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(followWalletDto.address);
-    const foundWallet = await this.getOrCreate(followWalletDto.walletAddress);
+    const { address, walletAddress, transactions } = followWalletDto;
+    const foundUser = await this.userService.getByAddress(address);
+    const foundWallet = await this.getOrCreate(walletAddress);
 
     if (!foundWallet.followers.includes(foundUser.id)) {
       await foundWallet.updateOne({ $push: { followers: foundUser.id } });
       await foundUser.updateOne({ $push: { followingWallets: foundWallet.id } });
-      try {
-        const resp = await this.getTransactions(followWalletDto.walletAddress);
-        await this.setTransactions(followWalletDto.walletAddress, resp.transactions);
-      } catch (error) {
-        logger.error(error);
-      }
-
+      await this.setTransactions(walletAddress, transactions);
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this wallet');
@@ -93,35 +87,60 @@ export class WalletService {
     }
   }
 
-  async like(likeDto: FollowWalletDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(likeDto.address);
-    const foundWallet = await this.getOrCreate(likeDto.walletAddress);
+  async like(likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.walletModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === likeDto.transactionId);
 
-    if (foundWallet.dislikes.includes(foundUser.id)) {
-      throw new BadRequestException('You already dislike this wallet');
+    if (transaction.likes.includes(likeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+    if (transaction.dislikes.includes(likeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
     }
 
-    if (!foundWallet.likes.includes(foundUser.id)) {
-      await foundWallet.updateOne({ $push: { likes: foundUser.id } });
+    if (!transaction.likes.includes(likeDto.address)) {
+      transaction.likes.push(likeDto.address);
+      await this.walletModel.updateOne(
+        { 'transactions.id': likeDto.transactionId },
+        { $set: { 'transactions.$.likes': transaction.likes } },
+      );
       return new SuccessResponse(true);
     } else {
-      throw new BadRequestException('You already like this wallet');
+      throw new BadRequestException('You already like this token');
     }
   }
 
-  async dislike(dislikeDto: FollowWalletDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(dislikeDto.address);
-    const foundWallet = await this.getOrCreate(dislikeDto.walletAddress);
+  async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.walletModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === dislikeDto.transactionId);
 
-    if (foundWallet.likes.includes(foundUser.id)) {
-      throw new BadRequestException('You already like this wallet');
+    if (transaction.dislikes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
     }
 
-    if (!foundWallet.dislikes.includes(foundUser.id)) {
-      await foundWallet.updateOne({ $push: { dislikes: foundUser.id } });
+    if (transaction.likes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+
+    if (!transaction.dislikes.includes(dislikeDto.address)) {
+      transaction.dislikes.push(dislikeDto.address);
+      await this.walletModel.updateOne(
+        { 'transactions.id': dislikeDto.transactionId },
+        { $set: { 'transactions.$.dislikes': transaction.dislikes } },
+      );
       return new SuccessResponse(true);
     } else {
-      throw new BadRequestException('You already dislike this wallet');
+      throw new BadRequestException('You already dislike this token');
     }
   }
 
@@ -186,7 +205,7 @@ export class WalletService {
     return foundWallet.comments;
   }
 
-  async setTransactions(address: string, transactions: Transaction[]) {
+  async setTransactions(address: string, transactions: WalletTransaction[]) {
     try {
       const foundWallet = await this.walletModel.findOne({ address });
       if (!foundWallet) {
@@ -205,24 +224,17 @@ export class WalletService {
 
   async getTransactions(address: string, limit: number = 4) {
     try {
-      const foundWallet = await this.walletModel.findOne({ address });
-
-      const { _id, likes, dislikes, comments } = foundWallet || { _id: '', likes: [], dislikes: [], comments: [] };
-
-      const [ethereumTxns, polygonTxns] = await Promise.all([
+      const [ethereumTxns, polygonTxns, bscTxns, avalancheTxns, arbitrumTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
         this.polygonscanService.getTransactionsByAccount(address),
+        [],
+        [],
+        [],
       ]);
 
-      const transactions = [...ethereumTxns, ...polygonTxns];
+      const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns, ...avalancheTxns, ...arbitrumTxns];
 
-      return {
-        _id,
-        likes,
-        dislikes,
-        comments,
-        transactions: transactions.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit),
-      };
+      return transactions.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
     } catch (error) {
       throw new BadRequestException(error.message);
     }

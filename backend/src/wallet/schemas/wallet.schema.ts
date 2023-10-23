@@ -3,10 +3,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 import { Comment } from '../../comment/schema/comment.schema';
-import { TokenTransaction, NFTTransaction } from 'src/utils/types';
+import { WalletTransaction } from 'src/utils/types';
 
 export type WalletDocument = Wallet & Document;
-type Transaction = TokenTransaction | NFTTransaction;
 
 @Schema({ timestamps: true, versionKey: false })
 export class Wallet {
@@ -36,10 +35,10 @@ export class Wallet {
   comments: any[];
 
   @Prop({
-    type: Array<Transaction>,
+    type: Array<WalletTransaction>,
     default: [],
   })
-  transactions: Transaction[];
+  transactions: WalletTransaction[];
 }
 
 export const WalletSchema = SchemaFactory.createForClass(Wallet);

@@ -18,8 +18,8 @@ export const Login = () => {
       if (!address) return;
       try {
         setLoading(true);
-        const user = await login(address);
-        setUser({ id: user._id, address });
+        await login(address);
+        setUser({ address });
         setLoading(false);
         setTimeout(() => naviate(`/portfolio/wallet/${address}`), 100);
       } catch (error) {
@@ -39,10 +39,7 @@ export const Login = () => {
 
   return (
     <div className="grid h-screen place-items-center">
-      <button
-        className="rounded-lg bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-        onClick={open}
-      >
+      <button className="rounded-lg bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700" onClick={open}>
         Connect Wallet
       </button>
     </div>

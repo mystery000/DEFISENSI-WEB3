@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
+import { TokenTransaction } from 'src/utils/types';
 import { NetworkType } from '../../utils/enums/network.enum';
 
 export class FollowTokenDto {
@@ -18,4 +19,8 @@ export class FollowTokenDto {
   @IsNotEmpty()
   @IsEnum(NetworkType)
   network: string;
+
+  @ApiProperty({ description: 'The transactions of the token' })
+  @IsArray()
+  transactions: TokenTransaction[];
 }

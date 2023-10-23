@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Patch } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { Wallet } from './schemas/wallet.schema';
@@ -10,6 +10,7 @@ import { CreateWalletDto } from './dto/create-wallet.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
+import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -36,14 +37,14 @@ export class WalletController {
   @Post('like')
   @ApiOperation({ summary: 'Follow wallet' })
   @ApiOkResponse({ type: SuccessResponse })
-  likeWallet(@Body() likeDto: FollowWalletDto): Promise<SuccessResponse> {
+  likeWallet(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.walletService.like(likeDto);
   }
 
   @Post('dislike')
   @ApiOperation({ summary: 'Follow wallet' })
   @ApiOkResponse({ type: SuccessResponse })
-  dislikeWallet(@Body() dislikeDto: FollowWalletDto): Promise<SuccessResponse> {
+  dislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.walletService.dislike(dislikeDto);
   }
 

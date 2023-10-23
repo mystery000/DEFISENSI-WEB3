@@ -19,6 +19,7 @@ import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -41,10 +42,10 @@ export const NFTPortfolio = () => {
     if (!address || !network) return;
     try {
       setFollowing(true);
-      await followNFT(user.address, address, network);
+      await followNFT(user.address, address, network, portfolio.transactions);
       mutatePortfolio({
         ...portfolio,
-        followers: [...portfolio.followers, user.id],
+        followers: [...portfolio.followers, user.address],
       });
       setFollowing(false);
       toast.success(`You've followed this nft: ${address}`);
@@ -221,10 +222,8 @@ export const NFTPortfolio = () => {
                 {portfolio.transactions.map((transaction) => (
                   <NFTTransactionCard
                     key={transaction.txHash}
-                    transaction={transaction}
-                    likes={transaction.likes || []}
-                    dislikes={transaction.dislikes || []}
-                    comments={transaction.comments || []}
+                    txn={transaction}
+                    transactionType={TransactionType.NFT}
                   />
                 ))}
               </InfiniteScroll>

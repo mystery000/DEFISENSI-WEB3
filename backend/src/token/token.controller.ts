@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Patch } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { TokenService } from './token.service';
 import { Token } from './schemas/token.schema';
-import { ExchangePrice } from 'src/utils/types';
 import { FollowTokenDto } from './dto/follow.dto';
 import { User } from '../user/schemas/user.schema';
 import { CommentTokenDto } from './dto/comment.dto';
@@ -11,6 +10,7 @@ import { CreateTokenDto } from './dto/create-token.dto';
 import { FindOneParams } from './dto/find-one-params.dto';
 import { Comment } from '../comment/schema/comment.schema';
 import { SuccessResponse } from '../utils/dtos/success-response';
+import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
 
 @ApiTags('Token')
 @Controller('token')
@@ -44,14 +44,14 @@ export class TokenController {
   @Post('like')
   @ApiOperation({ summary: 'Follow wallet' })
   @ApiOkResponse({ type: SuccessResponse })
-  likeWallet(@Body() likeDto: FollowTokenDto): Promise<SuccessResponse> {
+  likeWallet(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.tokenService.like(likeDto);
   }
 
   @Post('dislike')
   @ApiOperation({ summary: 'Follow wallet' })
   @ApiOkResponse({ type: SuccessResponse })
-  dislikeWallet(@Body() dislikeDto: FollowTokenDto): Promise<SuccessResponse> {
+  dislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.tokenService.dislike(dislikeDto);
   }
 
@@ -118,11 +118,7 @@ export class TokenController {
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'The token address' })
   @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
-  getTokenTransactions(
-    @Param('network') network: string,
-    @Param('address') address: string,
-    @Query('limit') limit: number,
-  ) {
+  getTransactions(@Param('network') network: string, @Param('address') address: string, @Query('limit') limit: number) {
     return this.tokenService.getTransactions(network, address, limit);
   }
 
@@ -145,7 +141,7 @@ export class TokenController {
   @ApiOperation({ summary: 'Get price of this token from various exchanges' })
   @ApiParam({ name: 'network', description: 'The token network' })
   @ApiParam({ name: 'address', description: 'Token contract address' })
-  getPriceFromExchanges(@Param('network') network: string, @Param('address') address: string): Promise<ExchangePrice> {
+  getPriceFromExchanges(@Param('network') network: string, @Param('address') address: string) {
     return this.tokenService.getTokenPriceFromExchanges(network, address);
   }
 }

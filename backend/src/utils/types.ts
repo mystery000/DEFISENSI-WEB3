@@ -70,18 +70,20 @@ export type NFTSaleVolumesResponse = {
   }[];
 };
 
-export type ExchangePrice = {
-  tokenName: string;
-  tokenAddress: string;
-  tokenSymbol: string;
-  tokenLogo: string;
-  tokenDecimals: string;
-  usdPrice: {
-    uniswap?: string;
-    kucoin?: string;
-    binance?: string;
-    coinbase?: string;
-  };
+export type ExchangesPriceResponse = {
+  uniswap?: number;
+  kucoin?: number;
+  binance?: number;
+  coinbase?: number;
+};
+
+export type Feedback = {
+  likes: string[];
+  dislikes: string[];
+  comments: {
+    address: string;
+    comment: string;
+  }[];
 };
 
 // Normal Token Transcation Type Definition (ERC-20, BEP-20)
@@ -95,7 +97,9 @@ export type Token = {
   price: string;
 };
 
+// ERC20 Transaction Type
 export type TokenTransaction = {
+  id: string;
   txHash: string;
   blockNumber: string;
   type: TransactionType;
@@ -107,9 +111,8 @@ export type TokenTransaction = {
     token0: Token;
     token1?: Token;
   };
-};
+} & Feedback;
 
-// NFT Transcation Type Definition
 export type ActionType = 'Burn' | 'Transfer' | 'Sale' | 'Mint' | 'Purchase';
 
 export type Action = {
@@ -121,7 +124,9 @@ export type Action = {
   floor?: string;
 };
 
+// ERC721 & ERC1155 Transaction Type
 export type NFTTransaction = {
+  id: string;
   txHash: string;
   blockNumber: string;
   type: TransactionType;
@@ -132,7 +137,10 @@ export type NFTTransaction = {
     to: string;
     actions: Action[];
   };
-};
+} & Feedback;
+
+// Wallet Transaction Type (ERC20, ERC721 & ERC1155)
+export type WalletTransaction = TokenTransaction | NFTTransaction;
 
 export type TopERC20Token = {
   address: string;

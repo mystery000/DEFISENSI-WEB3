@@ -29,6 +29,8 @@ import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
 import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { NFTTransaction, TokenTransaction, TransactionType } from '../../types/transaction';
+import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -71,10 +73,10 @@ export const WalletPortfolio = () => {
     if (!address || !user) return;
     try {
       setFollowing(true);
-      await followWallet(user.address, address);
+      await followWallet(user.address, address, portfolio.transactions);
       mutatePortfolio({
         ...portfolio,
-        followers: [...portfolio.followers, user.id],
+        followers: [...portfolio.followers, user.address],
       });
       setFollowing(false);
       toast.success(`You've followed this wallet ${address}`);
@@ -300,22 +302,32 @@ export const WalletPortfolio = () => {
             })}
           >
             <span className="hidden font-sora text-[32px] 2xl:block">Transactions</span>
-            {portfolio.transactions?.transactions.length ? (
+            {portfolio.transactions.length ? (
               <InfiniteScroll
-                dataLength={portfolio.transactions?.transactions.length}
+                dataLength={portfolio.transactions.length}
                 next={fetchMoreTransactions}
                 hasMore={fetchMore}
                 loader={<h4 className="text-center">Loading...</h4>}
               >
-                {portfolio.transactions?.transactions.map((transaction) => (
-                  <TransactionCard
-                    key={transaction?.txHash}
-                    transaction={transaction}
-                    likes={transaction.likes || []}
-                    dislikes={transaction.dislikes || []}
-                    comments={transaction.comments || []}
-                  />
-                ))}
+                {portfolio.transactions.map((transaction) => {
+                  if (transaction.type === TransactionType.NFT) {
+                    return (
+                      <NFTTransactionCard
+                        key={transaction?.txHash}
+                        txn={transaction as NFTTransaction}
+                        transactionType={TransactionType.WALLET}
+                      />
+                    );
+                  } else if (transaction.type === TransactionType.TOKEN) {
+                    return (
+                      <TransactionCard
+                        key={transaction?.txHash}
+                        txn={transaction as TokenTransaction}
+                        transactionType={TransactionType.WALLET}
+                      />
+                    );
+                  }
+                })}
               </InfiniteScroll>
             ) : (
               <EmptyContainer descirption="no transactions" />

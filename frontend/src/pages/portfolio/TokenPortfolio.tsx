@@ -19,10 +19,10 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
-import usePriceFromExchanges from '../../lib/hooks/usePriceFromExchanges';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
+import { TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -39,35 +39,8 @@ export const TokenPortfolio = () => {
   // Responsive Design
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
-  // Custom Hooks
-  const { portfolio, error, loading, mutate } = useTokenPortfolio();
-  const { exchangePrice, loading: loadingExchangePrice } = usePriceFromExchanges();
 
-  const fetchMoreTransactions = useCallback(async () => {
-    // try {
-    //   if (!address) return;
-    //   const token = await getTokenTransactions(
-    //     'ethereum',
-    //     address,
-    //     transactions.length + 4,
-    //   );
-    //   if (!token) return;
-    //   const txns: Transaction[] = [];
-    //   for (const txn of token.transactions) {
-    //     txns.push({
-    //       ...txn,
-    //       address: token.address,
-    //       comments: token.comments,
-    //       likes: token.likes,
-    //       dislikes: token.dislikes,
-    //     });
-    //   }
-    //   if (transactions.length === txns.length) setFetchMore(false);
-    //   setTimeout(() => mutateTransactions(txns), 1500);
-    // } catch (error) {
-    //   console.log(error);
-    // }
-  }, []);
+  const fetchMoreTransactions = useCallback(async () => {}, []);
 
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
@@ -85,12 +58,15 @@ export const TokenPortfolio = () => {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, [width]);
 
+  // Custom Hooks
+  const { portfolio, loading, mutate } = useTokenPortfolio();
+
   const handleFollow = useCallback(async () => {
     if (!address || !network) return;
     try {
       setFollowing(true);
-      await followToken(user.address, address, network);
-      mutate({ ...portfolio, followers: [...portfolio.followers, user.id] });
+      await followToken(user.address, address, network, portfolio.transactions);
+      mutate({ ...portfolio, followers: [...portfolio.followers, user.address] });
       setFollowing(false);
       toast.success(`You've followed this token: ${address}`);
     } catch (error) {
@@ -101,7 +77,7 @@ export const TokenPortfolio = () => {
 
   if (!address || !network) return;
 
-  if (loading || loadingExchangePrice) {
+  if (loading) {
     return (
       <div className="grid h-screen place-items-center">
         <Spin size="large" />
@@ -260,8 +236,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice?.uniswap
-                          ? `$${Number(exchangePrice.usdPrice.uniswap).toFixed(3)}`
+                        {portfolio.exchangePrices.uniswap
+                          ? `$${Number(portfolio.exchangePrices.uniswap).toFixed(3)}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -279,8 +255,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice?.binance
-                          ? `$${exchangePrice?.usdPrice?.binance}`
+                        {portfolio.exchangePrices.binance
+                          ? `$${portfolio.exchangePrices.binance}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -298,8 +274,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice?.kucoin
-                          ? `$${exchangePrice?.usdPrice?.kucoin}`
+                        {portfolio.exchangePrices.kucoin
+                          ? `$${portfolio.exchangePrices?.kucoin}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -321,8 +297,8 @@ export const TokenPortfolio = () => {
                         </div>
                       </TableCell>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
-                        {exchangePrice?.usdPrice?.coinbase
-                          ? `$${exchangePrice?.usdPrice?.coinbase}`
+                        {portfolio.exchangePrices.coinbase
+                          ? `$${portfolio.exchangePrices.coinbase}`
                           : 'This token is not supported'}
                       </TableCell>
                     </TableRow>
@@ -338,21 +314,15 @@ export const TokenPortfolio = () => {
             })}
           >
             <span className="hidden font-sora text-[32px] 2xl:block">Transactions</span>
-            {portfolio.transactions?.transactions.length ? (
+            {portfolio.transactions.length ? (
               <InfiniteScroll
-                dataLength={portfolio.transactions?.transactions.length}
+                dataLength={portfolio.transactions.length}
                 next={fetchMoreTransactions}
                 hasMore={fetchMore}
                 loader={<h4 className="text-center">Loading...</h4>}
               >
-                {portfolio.transactions?.transactions.map((transaction) => (
-                  <TransactionCard
-                    key={transaction.txHash}
-                    transaction={transaction}
-                    likes={transaction.likes || []}
-                    dislikes={transaction.dislikes || []}
-                    comments={transaction.comments || []}
-                  />
+                {portfolio.transactions.map((transaction) => (
+                  <TransactionCard key={transaction.txHash} txn={transaction} transactionType={TransactionType.TOKEN} />
                 ))}
               </InfiniteScroll>
             ) : (

@@ -1,10 +1,12 @@
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
+import axios from 'axios';
 import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { ServiceConfig } from 'src/config/service.config';
@@ -13,6 +15,7 @@ import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
   Action,
   BalancesResponse,
+  ExchangesPriceResponse,
   NFTTransaction,
   PortfolioResponse,
   TokenPricesResponse,
@@ -76,6 +79,7 @@ export class ArbitrumService {
       }
 
       transactions.push({
+        id: uuidv4(),
         txHash: transaction_hash,
         blockNumber: block_number,
         type: TransactionType.TOKEN,
@@ -94,6 +98,9 @@ export class ArbitrumService {
             price: price.toString(),
           },
         },
+        likes: [],
+        dislikes: [],
+        comments: [],
       });
     }
 
@@ -115,6 +122,7 @@ export class ArbitrumService {
             symbol,
           };
           transactions.push({
+            id: uuidv4(),
             txHash: transaction_hash,
             blockNumber: block_number,
             type: TransactionType.NFT,
@@ -125,6 +133,9 @@ export class ArbitrumService {
               to: to_address,
               actions: [action],
             },
+            likes: [],
+            dislikes: [],
+            comments: [],
           });
         });
     }
@@ -176,6 +187,7 @@ export class ArbitrumService {
               const value = log.decoded_event?.params.find((param) => param.name === 'value').value;
 
               transactions.push({
+                id: uuidv4(),
                 txHash,
                 blockNumber: block_number,
                 type: TransactionType.TOKEN,
@@ -194,13 +206,16 @@ export class ArbitrumService {
                     price: usdPrice.toString(),
                   },
                 },
+                likes: [],
+                dislikes: [],
+                comments: [],
               });
             });
           break;
         }
       }
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     } finally {
       return transactions;
     }
@@ -230,7 +245,6 @@ export class ArbitrumService {
           txHashs.push(transfer.transaction_hash);
         }
       }
-      console.log(txHashs);
       // Get decoded transaction by hash
       for (const txHash of txHashs) {
         const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
@@ -319,6 +333,7 @@ export class ArbitrumService {
 
           if (actions.length) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -329,6 +344,9 @@ export class ArbitrumService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         } else {
@@ -410,6 +428,7 @@ export class ArbitrumService {
 
           if (actions.length > 0) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -420,6 +439,9 @@ export class ArbitrumService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         }
@@ -587,6 +609,40 @@ export class ArbitrumService {
     } catch (error) {
       logger.error(error);
       throw new BadRequestException(`Malformed address provided: ${address}`);
+    }
+  }
+
+  async getPriceFromExchanges(address: string) {
+    let exchangesPrice: ExchangesPriceResponse = {};
+
+    try {
+      const uniswap = await Moralis.EvmApi.token.getTokenPrice({
+        chain: EvmChain.ARBITRUM,
+        address,
+        exchange: 'uniswapv3',
+      });
+      if (!uniswap) return exchangesPrice;
+
+      const { usdPrice, tokenSymbol } = uniswap.toJSON();
+
+      exchangesPrice.uniswap = usdPrice;
+
+      const [binanceResponse, kucoinResponse] = await Promise.all([
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`),
+        axios.get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`),
+      ]);
+
+      if (binanceResponse && binanceResponse.data) {
+        exchangesPrice.binance = Number(binanceResponse.data.price);
+      }
+
+      if (kucoinResponse && kucoinResponse.data) {
+        exchangesPrice.kucoin = Number(kucoinResponse.data.data?.price);
+      }
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return exchangesPrice;
     }
   }
 

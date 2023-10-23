@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import Web3 from 'web3';
 import axios from 'axios';
@@ -7,12 +7,13 @@ import Moralis from 'moralis';
 import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import {
   Action,
   BalancesResponse,
-  ExchangePrice,
+  ExchangesPriceResponse,
   NFTTransaction,
   PortfolioResponse,
   TokenPricesResponse,
@@ -61,6 +62,7 @@ export class PolygonscanService {
         ).toJSON();
 
         transactions.push({
+          id: uuidv4(),
           txHash: txn.hash,
           blockNumber: txn.block_number,
           type: TransactionType.TOKEN,
@@ -79,6 +81,9 @@ export class PolygonscanService {
               price: ((matic_price.usdPrice * Number(txn.value)) / 1e18).toString(),
             },
           },
+          likes: [],
+          dislikes: [],
+          comments: [],
         });
       }
 
@@ -104,6 +109,7 @@ export class PolygonscanService {
         }
 
         transactions.push({
+          id: uuidv4(),
           txHash: txn.transaction_hash,
           blockNumber: txn.block_number,
           type: TransactionType.TOKEN,
@@ -122,6 +128,9 @@ export class PolygonscanService {
               price: (tokenPrice.usdPrice * Number(txn.value_decimal)).toString(),
             },
           },
+          likes: [],
+          dislikes: [],
+          comments: [],
         });
       }
     } catch (error) {
@@ -175,6 +184,7 @@ export class PolygonscanService {
               const value = log.decoded_event?.params.find((param) => param.name === 'value').value;
 
               transactions.push({
+                id: uuidv4(),
                 txHash,
                 blockNumber: block_number,
                 type: TransactionType.TOKEN,
@@ -193,13 +203,16 @@ export class PolygonscanService {
                     price: usdPrice.toString(),
                   },
                 },
+                likes: [],
+                dislikes: [],
+                comments: [],
               });
             });
           break;
         }
       }
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     } finally {
       return transactions;
     }
@@ -317,6 +330,7 @@ export class PolygonscanService {
 
           if (actions.length > 0) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -327,6 +341,9 @@ export class PolygonscanService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         } else {
@@ -407,6 +424,7 @@ export class PolygonscanService {
 
           if (actions.length > 0)
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -417,6 +435,9 @@ export class PolygonscanService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
         }
       }
@@ -428,50 +449,36 @@ export class PolygonscanService {
   }
 
   async getPriceFromExchanges(address: string) {
-    let exchangesPrice: ExchangePrice = {
-      tokenName: '',
-      tokenAddress: '',
-      tokenSymbol: '',
-      tokenLogo: '',
-      tokenDecimals: '',
-      usdPrice: {},
-    };
+    let exchangesPrice: ExchangesPriceResponse = {};
 
     try {
-      // Uniswap V3
       const uniswap = await Moralis.EvmApi.token.getTokenPrice({
         chain: EvmChain.POLYGON,
         address,
+        exchange: 'quickswapv2',
       });
 
       if (!uniswap) return exchangesPrice;
 
-      const { tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } = uniswap.toJSON();
+      const { usdPrice, tokenSymbol } = uniswap.toJSON();
 
-      exchangesPrice.tokenDecimals = tokenDecimals;
-      exchangesPrice.tokenLogo = tokenLogo;
-      exchangesPrice.tokenName = tokenName;
-      exchangesPrice.tokenSymbol = tokenSymbol;
-      exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
-      // Get prices from Binance and Kucoin in parallel
+      exchangesPrice.uniswap = usdPrice;
+
       const [binanceResponse, kucoinResponse] = await Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
-        axios
-          .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
-          .catch((error) => {}),
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`),
+        axios.get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`),
       ]);
 
       if (binanceResponse && binanceResponse.data) {
-        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, binance: binanceResponse.data.price };
+        exchangesPrice.binance = Number(binanceResponse.data.price);
       }
 
       if (kucoinResponse && kucoinResponse.data) {
-        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, kucoin: kucoinResponse.data.data?.price };
+        exchangesPrice.kucoin = Number(kucoinResponse.data.data?.price);
       }
-
-      return exchangesPrice;
     } catch (error) {
       logger.error(error);
+    } finally {
       return exchangesPrice;
     }
   }

@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { getFollowersByNFT, getFollowingsByNFT, getNFTSaleVolumes, getNFTTransactions } from '../api';
 import { useParams } from 'react-router-dom';
-import { NftTransfer } from '../../types/transaction';
+
+import { NFTTransaction } from '../../types/transaction';
 import { NFTSaleVolumesResponse } from '../../types/price';
+import { getFollowersByNFT, getFollowingsByNFT, getNFTSaleVolumes, getNFTTransactions } from '../api';
 
 export type NFTPortfolio = {
   followers: string[];
   followings: string[];
   stats?: NFTSaleVolumesResponse;
-  transactions: NftTransfer[];
+  transactions: NFTTransaction[];
 };
 
 // Get the followers and followings of this token
@@ -26,32 +27,18 @@ export default function useNFTPortfolio() {
       }
       setLoading(true);
       try {
-        const [followers, followings, stats, nft] = await Promise.all([
+        const [followers, followings, stats, transactions] = await Promise.all([
           getFollowersByNFT(network, address),
           getFollowingsByNFT(network, address),
           getNFTSaleVolumes(network, address),
           getNFTTransactions(network, address),
         ]);
 
-        const txns: NftTransfer[] = [];
-
-        if (nft) {
-          for (const txn of nft.transactions) {
-            txns.push({
-              ...txn,
-              address: nft?.address,
-              comments: nft?.comments,
-              likes: nft?.likes,
-              dislikes: nft?.dislikes,
-            });
-          }
-        }
-
         setData({
           followers,
           followings,
           stats,
-          transactions: txns,
+          transactions,
         });
         setLoading(false);
       } catch (error) {

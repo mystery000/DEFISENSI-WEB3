@@ -19,6 +19,7 @@ import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
 
 @Injectable()
 export class TokenService {
@@ -60,8 +61,9 @@ export class TokenService {
   }
 
   async follow(followTokenDto: FollowTokenDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(followTokenDto.address);
-    const foundToken = await this.getOrCreate(followTokenDto.tokenAddress, followTokenDto.network);
+    const { address, network, tokenAddress, transactions } = followTokenDto;
+    const foundUser = await this.userService.getByAddress(address);
+    const foundToken = await this.getOrCreate(tokenAddress, network);
     if (!foundToken.followers.includes(foundUser.id)) {
       await foundToken.updateOne({
         $push: { followers: foundUser.id },
@@ -69,12 +71,7 @@ export class TokenService {
       await foundUser.updateOne({
         $push: { followingTokens: foundToken.id },
       });
-      try {
-        const resp = await this.getTransactions(followTokenDto.network, followTokenDto.tokenAddress);
-        await this.setTransactions(followTokenDto.tokenAddress, followTokenDto.network, resp.transactions);
-      } catch (error) {
-        logger.error(error);
-      }
+      await this.setTransactions(tokenAddress, network, transactions);
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this token');
@@ -93,29 +90,57 @@ export class TokenService {
     }
   }
 
-  async like(likeDto: FollowTokenDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(likeDto.address);
-    const foundToken = await this.getOrCreate(likeDto.tokenAddress, likeDto.network);
-    if (foundToken.dislikes.includes(foundUser.id)) {
-      throw new BadRequestException('You already dislike this token');
+  async like(likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.tokenModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
     }
-    if (!foundToken.likes.includes(foundUser.id)) {
-      await foundToken.updateOne({ $push: { likes: foundUser.id } });
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === likeDto.transactionId);
+
+    if (transaction.likes.includes(likeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+    if (transaction.dislikes.includes(likeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
+    }
+
+    if (!transaction.likes.includes(likeDto.address)) {
+      transaction.likes.push(likeDto.address);
+      await this.tokenModel.updateOne(
+        { 'transactions.id': likeDto.transactionId },
+        { $set: { 'transactions.$.likes': transaction.likes } },
+      );
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already like this token');
     }
   }
 
-  async dislike(dislikeDto: FollowTokenDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(dislikeDto.address);
-    const foundToken = await this.getOrCreate(dislikeDto.tokenAddress, dislikeDto.network);
-
-    if (foundToken.likes.includes(foundUser.id)) {
-      throw new BadRequestException('You already like this token');
+  async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.tokenModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
     }
-    if (!foundToken.dislikes.includes(foundUser.id)) {
-      await foundToken.updateOne({ $push: { dislikes: foundUser.id } });
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === dislikeDto.transactionId);
+
+    if (transaction.dislikes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
+    }
+
+    if (transaction.likes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+
+    if (!transaction.dislikes.includes(dislikeDto.address)) {
+      transaction.dislikes.push(dislikeDto.address);
+      await this.tokenModel.updateOne(
+        { 'transactions.id': dislikeDto.transactionId },
+        { $set: { 'transactions.$.disdlikes': transaction.dislikes } },
+      );
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already dislike this token');
@@ -183,9 +208,9 @@ export class TokenService {
 
   async setTransactions(address: string, network: string, transactions: TokenTransaction[]) {
     try {
-      const foundToken = await this.tokenModel.findOne({ address: address, network });
+      const foundToken = await this.tokenModel.findOne({ address, network });
       if (!foundToken) {
-        throw new BadRequestException('Wallet not found!');
+        throw new BadRequestException('Token not found!');
       }
       await foundToken.updateOne({
         $push: { transactions: { $each: transactions } },
@@ -198,23 +223,15 @@ export class TokenService {
 
   async getTransactions(network: string, address: string, limit: Number = 4) {
     try {
-      const foundToken = await this.tokenModel.findOne({ address, network });
-
-      const { _id, likes, dislikes, comments } = foundToken || { _id: '', likes: [], dislikes: [], comments: [] };
-
       switch (network) {
         case NetworkType.ETHEREUM:
-          const ethereumTxns = await this.etherscanService.getTransactionsByContract(address);
-          return { transactions: ethereumTxns, _id, likes, dislikes, comments };
+          return await this.etherscanService.getTransactionsByContract(address);
         case NetworkType.POLYGON:
-          const polygonTxns = await this.polygonService.getTransactionsByContract(address);
-          return { transactions: polygonTxns, _id, likes, dislikes, comments };
+          return await this.polygonService.getTransactionsByContract(address);
         case NetworkType.BSC:
-          const bscTxns = await this.bscService.getTransactionsByContract(address);
-          return { transactions: bscTxns, _id, likes, dislikes, comments };
+          return await this.bscService.getTransactionsByContract(address);
         case NetworkType.ARBITRUM:
-          const arbitrumTxns = await this.arbitrumService.getTransactionsByContract(address);
-          return { transactions: arbitrumTxns, _id, likes, dislikes, comments };
+          return await this.arbitrumService.getTransactionsByContract(address);
       }
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -224,10 +241,6 @@ export class TokenService {
   async updateTransactions(address: string, network: string) {
     if (!Object.values(NetworkType).includes(network as NetworkType)) return;
     try {
-      let latestBlockNumber = 0;
-      const token = await this.tokenModel.findOne({ address, network });
-      if (token && token.transactions && token.transactions.length > 0)
-        latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
       switch (network) {
         case NetworkType.ETHEREUM:
           const ethereumTxns = await this.etherscanService.getTransactionsByContract(address);
@@ -300,9 +313,9 @@ export class TokenService {
       case NetworkType.BSC:
         return this.bscService.getPriceFromExchanges(address);
       case NetworkType.ARBITRUM:
-        break;
+        return this.arbitrumService.getPriceFromExchanges(address);
       case NetworkType.AVALANCHE:
-        break;
+        return this.avalancheService.getPriceFromExchanges(address);
     }
     return null;
   }

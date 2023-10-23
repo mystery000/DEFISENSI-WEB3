@@ -1,8 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from 'src/utils/logger';
 import { ConfigService } from '@nestjs/config';
 import { CovalenthqChain } from 'src/utils/chains';
@@ -11,6 +12,7 @@ import { ServiceConfig } from 'src/config/service.config';
 import {
   Action,
   BalancesResponse,
+  ExchangesPriceResponse,
   NFTTransaction,
   PortfolioResponse,
   TokenPricesResponse,
@@ -19,6 +21,7 @@ import {
   TopNFT,
   TopWallet,
 } from 'src/utils/types';
+import axios from 'axios';
 import Moralis from 'moralis';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { NetworkType } from 'src/utils/enums/network.enum';
@@ -69,6 +72,7 @@ export class AvalancheService {
       });
 
       transactions.push({
+        id: uuidv4(),
         txHash: transaction_hash,
         blockNumber: block_number,
         type: TransactionType.TOKEN,
@@ -87,6 +91,9 @@ export class AvalancheService {
             price: response?.toJSON().usdPrice.toString() || '0',
           },
         },
+        likes: [],
+        dislikes: [],
+        comments: [],
       });
     }
 
@@ -108,6 +115,7 @@ export class AvalancheService {
             symbol,
           };
           transactions.push({
+            id: uuidv4(),
             txHash: transaction_hash,
             blockNumber: block_number,
             type: TransactionType.NFT,
@@ -118,6 +126,9 @@ export class AvalancheService {
               to: to_address,
               actions: [action],
             },
+            likes: [],
+            dislikes: [],
+            comments: [],
           });
         });
     }
@@ -166,6 +177,7 @@ export class AvalancheService {
               const value = log.decoded_event?.params.find((param) => param.name === 'value').value;
 
               transactions.push({
+                id: uuidv4(),
                 txHash,
                 blockNumber: block_number,
                 type: TransactionType.TOKEN,
@@ -184,6 +196,9 @@ export class AvalancheService {
                     price: usdPrice.toString(),
                   },
                 },
+                likes: [],
+                dislikes: [],
+                comments: [],
               });
             });
           break;
@@ -219,7 +234,6 @@ export class AvalancheService {
           txHashs.push(transfer.transaction_hash);
         }
       }
-      console.log(txHashs);
       // Get decoded transaction by hash
       for (const txHash of txHashs) {
         const transaction = await Moralis.EvmApi.transaction.getTransactionVerbose({
@@ -308,6 +322,7 @@ export class AvalancheService {
 
           if (actions.length) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -318,6 +333,9 @@ export class AvalancheService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         } else {
@@ -399,6 +417,7 @@ export class AvalancheService {
 
           if (actions.length > 0) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -409,6 +428,9 @@ export class AvalancheService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         }
@@ -420,7 +442,40 @@ export class AvalancheService {
     }
   }
 
-  async getPriceFromExchanges(address: string) {}
+  async getPriceFromExchanges(address: string) {
+    let exchangesPrice: ExchangesPriceResponse = {};
+
+    try {
+      const uniswap = await Moralis.EvmApi.token.getTokenPrice({
+        chain: EvmChain.AVALANCHE,
+        address,
+        exchange: 'traderjoe',
+      });
+
+      if (!uniswap) return exchangesPrice;
+
+      const { usdPrice, tokenSymbol } = uniswap.toJSON();
+
+      exchangesPrice.uniswap = usdPrice;
+
+      const [binanceResponse, kucoinResponse] = await Promise.all([
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`),
+        axios.get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`),
+      ]);
+
+      if (binanceResponse && binanceResponse.data) {
+        exchangesPrice.binance = Number(binanceResponse.data.price);
+      }
+
+      if (kucoinResponse && kucoinResponse.data) {
+        exchangesPrice.kucoin = Number(kucoinResponse.data.data?.price);
+      }
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      return exchangesPrice;
+    }
+  }
 
   async getTopERC20Tokens() {
     let topTokens: TopERC20Token[] = [];

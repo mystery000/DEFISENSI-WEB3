@@ -24,7 +24,7 @@ export type WalletPortfolio = {
     arbitrum: PortfolioResponse;
     avalanche: PortfolioResponse;
   };
-  transactions?: WalletTransaction;
+  transactions: WalletTransaction[];
 };
 
 export default function useWalletPortfolio() {
@@ -33,6 +33,7 @@ export default function useWalletPortfolio() {
   const [data, setData] = useState<WalletPortfolio>({
     followers: [],
     followings: [],
+    transactions: [],
   });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);

@@ -1,8 +1,8 @@
-import { FC } from 'react';
+import { FC, useCallback, useState } from 'react';
+
 import cn from 'classnames';
 import { Card } from 'antd';
 import { useAppContext } from '../../context/app';
-import { NftTransfer } from '../../types/transaction';
 import { getAge, convertHex, standardUnit } from '../../lib/utils';
 
 import {
@@ -15,31 +15,43 @@ import {
   BurnIcon,
   SendIcon,
 } from '../icons/defisensi-icons';
+import { NFTTransaction, TransactionType } from '../../types/transaction';
+import { dislikeTransaction, likeTransaction } from '../../lib/api';
+import { toast } from 'react-toastify';
 
 type TransactionCardProps = {
-  transaction: NftTransfer;
-  likes: any[];
-  dislikes: any[];
-  comments: any[];
+  txn: NFTTransaction;
+  transactionType: TransactionType;
 };
 
-export const NFTTransactionCard: FC<TransactionCardProps> = ({
-  transaction,
-  likes,
-  dislikes,
-  comments,
-}) => {
+export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionType }) => {
   const { user } = useAppContext();
-  const age = getAge(transaction.timestamp);
+  const [transaction, setTransaction] = useState<NFTTransaction>(txn);
+  const age = getAge(txn.timestamp);
   const { type, amount, name, symbol } = transaction.details.actions[0];
 
+  const handleLike = useCallback(async () => {
+    try {
+      await likeTransaction(transaction, user.address, transactionType);
+      setTransaction({ ...transaction, likes: [...transaction.likes, user.address] });
+      toast.success('You liked this transaction');
+    } catch (error) {
+      toast.error((error as any).message);
+    }
+  }, [user, transaction, transactionType]);
+
+  const handleDisLike = useCallback(async () => {
+    try {
+      await dislikeTransaction(transaction, user.address, transactionType);
+      setTransaction({ ...transaction, dislikes: [...transaction.dislikes, user.address] });
+      toast.success('You disliked this transaction');
+    } catch (error) {
+      toast.error((error as any).message);
+    }
+  }, [user, transaction, transactionType]);
+
   return (
-    <Card
-      bordered={false}
-      style={{ width: 392 }}
-      className="mb-2 font-inter"
-      key={transaction.txHash}
-    >
+    <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter" key={transaction.txHash}>
       <div className="flex justify-between font-inter text-sm">
         <NFTIcon />
         <span>{age}</span>
@@ -82,46 +94,48 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({
       </div>
       <div className="text-base font-semibold">{`${type} ${amount} of ${name} (${symbol})`}</div>
       <div className="mt-4 flex justify-around text-center text-sm">
-        <div className="flex items-center gap-[3px] hover:cursor-pointer">
+        <div className="flex items-center gap-[3px] hover:cursor-pointer" onClick={handleLike}>
           <ThumbsUpSolid
             className="h-5 w-5 scale-x-[-1]"
-            fill={likes.includes(user.id) ? '#FF5D29' : '#8E98B0'}
+            fill={transaction.likes.includes(user.address) ? '#FF5D29' : '#8E98B0'}
           />
           <span
             className={cn('font-inter', {
-              'text-orange-400': likes.includes(user.id),
-              'text-bali-hai-600': likes.includes(user.id),
+              'text-orange-400': transaction.likes.includes(user.address),
+              'text-bali-hai-600': transaction.likes.includes(user.address),
             })}
           >
-            {standardUnit(likes.length)}
+            {standardUnit(transaction.likes.length)}
           </span>
         </div>
-        <div className="flex items-center gap-[3px] hover:cursor-pointer">
+        <div className="flex items-center gap-[3px] hover:cursor-pointer" onClick={handleDisLike}>
           <ThumbsDownSolid
             className="h-5 w-5"
-            fill={dislikes.includes(user.id) ? '#FF5D29' : '#8E98B0'}
+            fill={transaction.dislikes.includes(user.address) ? '#FF5D29' : '#8E98B0'}
           />
           <span
             className={cn('font-inter', {
-              'text-orange-400': dislikes.includes(user.id),
-              'text-bali-hai-600': dislikes.includes(user.id),
+              'text-orange-400': transaction.dislikes.includes(user.address),
+              'text-bali-hai-600': transaction.dislikes.includes(user.address),
             })}
           >
-            {standardUnit(dislikes.length)}
+            {standardUnit(transaction.dislikes.length)}
           </span>
         </div>
         <div className="flex items-center gap-[3px] hover:cursor-pointer">
           <ChatBubbleSolid
             className="h-5 w-5"
-            fill={comments.includes(user.id) ? '#FF5D29' : '#8E98B0'}
+            fill={
+              transaction.comments.findIndex((comment) => comment.address === user.address) > 0 ? '#FF5D29' : '#8E98B0'
+            }
           />
           <span
             className={cn('font-inter', {
-              'text-orange-400': comments.includes(user.id),
-              'text-bali-hai-600': comments.includes(user.id),
+              'text-orange-400': transaction.comments.findIndex((comment) => comment.address === user.address) > 0,
+              'text-bali-hai-600': transaction.comments.findIndex((comment) => comment.address === user.address) > 0,
             })}
           >
-            {standardUnit(comments.length)}
+            {standardUnit(transaction.comments.length)}
           </span>
         </div>
       </div>

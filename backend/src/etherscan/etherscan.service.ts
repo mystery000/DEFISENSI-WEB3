@@ -8,6 +8,7 @@ import { JSDOM } from 'jsdom';
 import * as moment from 'moment';
 import { ZenRows } from 'zenrows';
 import { UNISWAP_ABI } from './abi';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from 'src/utils/logger';
 import { EvmChain } from '@moralisweb3/common-evm-utils';
 import { isUniswapV2, isUniswapV3 } from 'src/utils/moralis';
@@ -15,7 +16,7 @@ import { TransactionType } from 'src/utils/enums/transaction.enum';
 import {
   Action,
   BalancesResponse,
-  ExchangePrice,
+  ExchangesPriceResponse,
   NFTTransaction,
   PortfolioResponse,
   TokenPricesResponse,
@@ -64,6 +65,7 @@ export class EtherscanService {
           .then((response) => {
             const { tokenAddress, usdPrice } = response.toJSON();
             transactions.push({
+              id: uuidv4(),
               txHash: tx.hash,
               blockNumber: tx.block_number,
               timestamp: new Date(tx.block_timestamp).getTime(),
@@ -82,6 +84,9 @@ export class EtherscanService {
                   price: ((usdPrice * Number(tx.value)) / 1e18).toString(),
                 },
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
             isParsed = true;
           });
@@ -152,6 +157,7 @@ export class EtherscanService {
             });
             if (token0Contract && token1Contract) {
               transactions.push({
+                id: uuidv4(),
                 txHash: tx.hash,
                 blockNumber: tx.block_number,
                 type: TransactionType.TOKEN,
@@ -185,6 +191,9 @@ export class EtherscanService {
                     ).toString(),
                   },
                 },
+                likes: [],
+                dislikes: [],
+                comments: [],
               });
             }
             continue;
@@ -248,6 +257,7 @@ export class EtherscanService {
         });
         if (tokenInContract && tokenOutContract) {
           transactions.push({
+            id: uuidv4(),
             txHash: tx.hash,
             blockNumber: tx.block_number,
             timestamp: new Date(tx.block_timestamp).getTime(),
@@ -281,6 +291,9 @@ export class EtherscanService {
                 ).toString(),
               },
             },
+            likes: [],
+            dislikes: [],
+            comments: [],
           });
         }
       } else {
@@ -306,6 +319,7 @@ export class EtherscanService {
         if (erc20Token) {
           const { tokenName, tokenSymbol, tokenDecimals, tokenLogo, usdPrice } = erc20Token.toJSON();
           transactions.push({
+            id: uuidv4(),
             txHash: tx.hash,
             blockNumber: tx.block_number,
             type: TransactionType.TOKEN,
@@ -324,6 +338,9 @@ export class EtherscanService {
                 price: ((usdPrice * Number(tranfer_value)) / 10 ** Number(tokenDecimals)).toString(),
               },
             },
+            likes: [],
+            dislikes: [],
+            comments: [],
           });
         }
       }
@@ -427,6 +444,7 @@ export class EtherscanService {
               toBlock: Number(tx.block_number),
             });
             transactions.push({
+              id: uuidv4(),
               txHash: tx.hash,
               blockNumber: tx.block_number,
               type: TransactionType.TOKEN,
@@ -460,6 +478,9 @@ export class EtherscanService {
                   ).toString(),
                 },
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
             continue;
           }
@@ -521,6 +542,7 @@ export class EtherscanService {
           toBlock: Number(tx.block_number),
         });
         transactions.push({
+          id: uuidv4(),
           txHash: tx.hash,
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
@@ -554,6 +576,9 @@ export class EtherscanService {
               ).toString(),
             },
           },
+          likes: [],
+          dislikes: [],
+          comments: [],
         });
       } else {
         if (tx.logs.length == 0 && tx.value == '0') continue;
@@ -576,6 +601,7 @@ export class EtherscanService {
         });
 
         transactions.push({
+          id: uuidv4(),
           txHash: tx.hash,
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
@@ -597,6 +623,9 @@ export class EtherscanService {
               ).toString(),
             },
           },
+          likes: [],
+          dislikes: [],
+          comments: [],
         });
       }
     }
@@ -717,6 +746,7 @@ export class EtherscanService {
 
           if (actions.length) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -727,6 +757,9 @@ export class EtherscanService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         } else {
@@ -808,6 +841,7 @@ export class EtherscanService {
 
           if (actions.length > 0) {
             transactions.push({
+              id: uuidv4(),
               txHash,
               blockNumber: block_number,
               type: TransactionType.NFT,
@@ -818,6 +852,9 @@ export class EtherscanService {
                 to: to_address,
                 actions,
               },
+              likes: [],
+              dislikes: [],
+              comments: [],
             });
           }
         }
@@ -830,50 +867,35 @@ export class EtherscanService {
   }
 
   async getPriceFromExchanges(address: string) {
-    let exchangesPrice: ExchangePrice = {
-      tokenName: '',
-      tokenAddress: '',
-      tokenSymbol: '',
-      tokenLogo: '',
-      tokenDecimals: '',
-      usdPrice: {},
-    };
+    let exchangesPrice: ExchangesPriceResponse = {};
 
     try {
-      // Uniswap V3
       const uniswap = await Moralis.EvmApi.token.getTokenPrice({
         chain: EvmChain.ETHEREUM,
         address,
+        exchange: 'uniswapv3',
       });
 
       if (!uniswap) return exchangesPrice;
 
-      const { tokenDecimals, tokenLogo, tokenName, tokenSymbol, usdPrice } = uniswap.toJSON();
+      const { usdPrice, tokenSymbol } = uniswap.toJSON();
 
-      exchangesPrice.tokenDecimals = tokenDecimals;
-      exchangesPrice.tokenLogo = tokenLogo;
-      exchangesPrice.tokenName = tokenName;
-      exchangesPrice.tokenSymbol = tokenSymbol;
-      exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, uniswap: usdPrice.toString() };
-      // Get prices from Binance and Kucoin in parallel
+      exchangesPrice.uniswap = usdPrice;
       const [binanceResponse, kucoinResponse] = await Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`).catch((error) => {}),
-        axios
-          .get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`)
-          .catch((error) => {}),
+        axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tokenSymbol}USDT`),
+        axios.get(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${tokenSymbol}-USDT`),
       ]);
 
       if (binanceResponse && binanceResponse.data) {
-        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, binance: binanceResponse.data.price };
+        exchangesPrice.binance = Number(binanceResponse.data.price);
       }
 
       if (kucoinResponse && kucoinResponse.data) {
-        exchangesPrice.usdPrice = { ...exchangesPrice.usdPrice, kucoin: kucoinResponse.data.data?.price };
+        exchangesPrice.kucoin = Number(kucoinResponse.data.data?.price);
       }
-
-      return exchangesPrice;
     } catch (error) {
       logger.error(error);
+    } finally {
       return exchangesPrice;
     }
   }
@@ -1030,7 +1052,6 @@ export class EtherscanService {
         };
       });
     } catch (error) {
-      console.log(error)
       logger.error(error);
       return [];
     }

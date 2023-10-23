@@ -4,17 +4,13 @@ import cn from 'classnames';
 import { Spin } from 'antd';
 import AppLayout from '../layouts/AppLayout';
 import { useAppContext } from '../context/app';
-import { NftTransfer, Transaction } from '../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { EmptyContainer } from '../components/EmptyContainer';
-import {
-  findFollowingWallets,
-  findFollowingTokens,
-  findFollowingNFTs,
-} from '../lib/api';
 import { TransactionCard } from '../components/transactions/TransactionCard';
 import useFollowingTransactions from '../lib/hooks/useFollowingTransactions';
 import { NFTTransactionCard } from '../components/transactions/NFTTransactionCard';
+import { findFollowingWallets, findFollowingTokens, findFollowingNFTs } from '../lib/api';
+import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../types/transaction';
 
 enum ContentType {
   WALLET = 'wallet',
@@ -50,22 +46,9 @@ export const Transactions = () => {
   const fetchMoreWalletTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: Transaction[] = [];
-        const wallets =
-          (await findFollowingWallets(user.address, walletTxns.length + 4)) ||
-          [];
+        const txns: WalletTransaction[] = [];
+        const wallets = await findFollowingWallets(user.address, walletTxns.length + 4);
 
-        wallets.forEach((wallet) => {
-          for (const tx of wallet.transactions) {
-            txns.push({
-              ...tx,
-              address: wallet.address,
-              comments: wallet.comments,
-              likes: wallet.likes,
-              dislikes: wallet.dislikes,
-            });
-          }
-        });
         if (txns.length === walletTxns.length) mutateFetchMoreWallets(false);
         else mutateFetchMoreWallets(true);
         mutateWalletTxns(txns);
@@ -76,21 +59,8 @@ export const Transactions = () => {
   const fetchMoreTokenTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: Transaction[] = [];
-        const tokens =
-          (await findFollowingTokens(user.address, tokenTxns.length + 4)) || [];
-
-        tokens.forEach((token) => {
-          for (const tx of token.transactions) {
-            txns.push({
-              ...tx,
-              address: token.address,
-              comments: token.comments,
-              likes: token.likes,
-              dislikes: token.dislikes,
-            });
-          }
-        });
+        const txns: TokenTransaction[] = [];
+        const tokens = await findFollowingTokens(user.address, tokenTxns.length + 4);
         if (txns.length === tokenTxns.length) mutateFetchMoreTokens(false);
         else mutateFetchMoreTokens(true);
         mutateTokenTxns(txns);
@@ -101,22 +71,8 @@ export const Transactions = () => {
   const fetchMoreNFTTxns = () => {
     setTimeout(async () => {
       try {
-        const txns: NftTransfer[] = [];
-        const nfts =
-          (await findFollowingNFTs(user.address, nftTxns.length + 4)) || [];
-
-        nfts.forEach((nft) => {
-          for (const tx of nft.transactions) {
-            txns.push({
-              ...tx,
-              address: nft.address,
-              comments: nft.comments,
-              likes: nft.likes,
-              dislikes: nft.dislikes,
-            });
-          }
-        });
-
+        const txns: NFTTransaction[] = [];
+        const nfts = await findFollowingNFTs(user.address, nftTxns.length + 4);
         if (txns.length === nftTxns.length) mutateFetchMoreNFTs(false);
         else mutateFetchMoreNFTs(true);
         mutateNFTTxns(txns);
@@ -127,9 +83,7 @@ export const Transactions = () => {
   // Detect whether screen is mobile or desktop size
   useEffect(() => {
     const breakpoint = 1280;
-    window.innerWidth >= breakpoint
-      ? setSelected(ContentType.ALL)
-      : setSelected(ContentType.WALLET);
+    window.innerWidth >= breakpoint ? setSelected(ContentType.ALL) : setSelected(ContentType.WALLET);
     const handleWindowResize = () => {
       if (width < breakpoint && window.innerWidth >= breakpoint) {
         setSelected(ContentType.ALL);
@@ -143,11 +97,7 @@ export const Transactions = () => {
   }, [width]);
 
   if (error) {
-    return (
-      <div className="grid h-screen place-items-center">
-        Error: {error?.message}
-      </div>
-    );
+    return <div className="grid h-screen place-items-center">Error: {error?.message}</div>;
   }
 
   if (loading) {
@@ -157,129 +107,115 @@ export const Transactions = () => {
       </div>
     );
   }
-
   return (
-    <>
-      <AppLayout>
-        <div className="flex justify-center gap-6 py-8 font-sora text-[32px] xl:hidden">
-          <span
-            className={cn('leading-8', {
-              'text-orange-400': selected === ContentType.WALLET,
-            })}
-            onClick={() => setSelected(ContentType.WALLET)}
-          >
-            Wallets
-          </span>
-          <span
-            className={cn('leading-8', {
-              'text-orange-400': selected === ContentType.TOKEN,
-            })}
-            onClick={() => setSelected(ContentType.TOKEN)}
-          >
-            Tokens
-          </span>
-          <span
-            className={cn('leading-8', {
-              'text-orange-400': selected === ContentType.NFT,
-            })}
-            onClick={() => setSelected(ContentType.NFT)}
-          >
-            NFTs
-          </span>
+    <AppLayout>
+      <div className="flex justify-center gap-6 py-8 font-sora text-[32px] xl:hidden">
+        <span
+          className={cn('leading-8', {
+            'text-orange-400': selected === ContentType.WALLET,
+          })}
+          onClick={() => setSelected(ContentType.WALLET)}
+        >
+          Wallets
+        </span>
+        <span
+          className={cn('leading-8', {
+            'text-orange-400': selected === ContentType.TOKEN,
+          })}
+          onClick={() => setSelected(ContentType.TOKEN)}
+        >
+          Tokens
+        </span>
+        <span
+          className={cn('leading-8', {
+            'text-orange-400': selected === ContentType.NFT,
+          })}
+          onClick={() => setSelected(ContentType.NFT)}
+        >
+          NFTs
+        </span>
+      </div>
+      <div className="flex flex-col items-center gap-4 pt-0 xl:flex-row xl:items-start xl:justify-center xl:pt-8">
+        <div
+          className={cn('items-center', {
+            hidden: selected !== ContentType.WALLET && selected !== ContentType.ALL,
+          })}
+        >
+          <div className="mb-4 hidden font-sora text-[32px] xl:block">Wallets</div>
+          {walletTxns.length ? (
+            <InfiniteScroll
+              dataLength={walletTxns.length}
+              next={fetchMoreWalletTxns}
+              hasMore={fetchMoreWallets}
+              loader={<h4 className="text-center">Loading...</h4>}
+            >
+              {walletTxns.map((txn) => {
+                if (txn.type === TransactionType.NFT) {
+                  return (
+                    <NFTTransactionCard
+                      key={txn.txHash}
+                      txn={txn as NFTTransaction}
+                      transactionType={TransactionType.WALLET}
+                    />
+                  );
+                } else if (txn.type === TransactionType.TOKEN) {
+                  return (
+                    <TransactionCard
+                      key={txn.txHash}
+                      txn={txn as TokenTransaction}
+                      transactionType={TransactionType.WALLET}
+                    />
+                  );
+                }
+              })}
+            </InfiniteScroll>
+          ) : (
+            <EmptyContainer border />
+          )}
         </div>
-        <div className="flex flex-col items-center gap-4 pt-0 xl:flex-row xl:items-start xl:justify-center xl:pt-8">
-          <div
-            className={cn('items-center', {
-              hidden:
-                selected !== ContentType.WALLET && selected !== ContentType.ALL,
-            })}
-          >
-            <div className="mb-4 hidden font-sora text-[32px] xl:block">
-              Wallets
-            </div>
-            {walletTxns.length ? (
-              <InfiniteScroll
-                dataLength={walletTxns.length}
-                next={fetchMoreWalletTxns}
-                hasMore={fetchMoreWallets}
-                loader={<h4 className="text-center">Loading...</h4>}
-              >
-                {walletTxns.map((txn, idx) => (
-                  <TransactionCard
-                    key={`wallet${idx}_${txn.txHash}`}
-                    transaction={txn}
-                    likes={txn.likes}
-                    dislikes={txn.dislikes}
-                    comments={txn.comments}
-                  />
-                ))}
-              </InfiniteScroll>
-            ) : (
-              <EmptyContainer border />
-            )}
-          </div>
-          <div
-            className={cn('items-center', {
-              hidden:
-                selected !== ContentType.TOKEN && selected !== ContentType.ALL,
-            })}
-          >
-            <div className="mb-4 hidden font-sora text-[32px] xl:block">
-              Tokens
-            </div>
-            {tokenTxns.length ? (
-              <InfiniteScroll
-                dataLength={tokenTxns.length}
-                next={fetchMoreTokenTxns}
-                hasMore={fetchMoreTokens}
-                loader={<h4 className="text-center">Loading...</h4>}
-              >
-                {tokenTxns.map((txn, idx) => (
-                  <TransactionCard
-                    key={`token${idx}_${txn.txHash}`}
-                    transaction={txn}
-                    likes={txn.likes}
-                    dislikes={txn.dislikes}
-                    comments={txn.comments}
-                  />
-                ))}
-              </InfiniteScroll>
-            ) : (
-              <EmptyContainer border />
-            )}
-          </div>
-          <div
-            className={cn('items-center', {
-              hidden:
-                selected !== ContentType.NFT && selected !== ContentType.ALL,
-            })}
-          >
-            <div className="mb-4 hidden font-sora text-[32px] xl:block">
-              NFTs
-            </div>
-            {nftTxns.length ? (
-              <InfiniteScroll
-                dataLength={nftTxns.length}
-                next={fetchMoreNFTTxns}
-                hasMore={fetchMoreNFTs}
-                loader={<h4 className="text-center">Loading...</h4>}
-              >
-                {nftTxns.map((txn, idx) => (
-                  <NFTTransactionCard
-                    key={txn.txHash}
-                    transaction={txn}
-                    likes={txn.likes}
-                    dislikes={txn.dislikes}
-                    comments={txn.comments}
-                  />
-                ))}
-              </InfiniteScroll>
-            ) : (
-              <EmptyContainer border />
-            )}
-          </div>
+        <div
+          className={cn('items-center', {
+            hidden: selected !== ContentType.TOKEN && selected !== ContentType.ALL,
+          })}
+        >
+          <div className="mb-4 hidden font-sora text-[32px] xl:block">Tokens</div>
+          {tokenTxns.length ? (
+            <InfiniteScroll
+              dataLength={tokenTxns.length}
+              next={fetchMoreTokenTxns}
+              hasMore={fetchMoreTokens}
+              loader={<h4 className="text-center">Loading...</h4>}
+            >
+              {tokenTxns.map((txn, idx) => (
+                <TransactionCard key={`token${idx}_${txn.txHash}`} txn={txn} transactionType={TransactionType.TOKEN} />
+              ))}
+            </InfiniteScroll>
+          ) : (
+            <EmptyContainer border />
+          )}
         </div>
-      </AppLayout>
-    </>
+        <div
+          className={cn('items-center', {
+            hidden: selected !== ContentType.NFT && selected !== ContentType.ALL,
+          })}
+        >
+          <div className="mb-4 hidden font-sora text-[32px] xl:block">NFTs</div>
+          {nftTxns.length ? (
+            <InfiniteScroll
+              dataLength={nftTxns.length}
+              next={fetchMoreNFTTxns}
+              hasMore={fetchMoreNFTs}
+              loader={<h4 className="text-center">Loading...</h4>}
+            >
+              {nftTxns.map((txn, idx) => (
+                <NFTTransactionCard key={txn.txHash} txn={txn} transactionType={TransactionType.NFT} />
+              ))}
+            </InfiniteScroll>
+          ) : (
+            <EmptyContainer border />
+          )}
+        </div>
+      </div>
+    </AppLayout>
   );
 };

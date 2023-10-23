@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getFollowersByToken, getFollowingsByToken, getTokenPrices, getTokenTransactions } from '../api';
+import {
+  getFollowersByToken,
+  getFollowingsByToken,
+  getPriceFromExchanges,
+  getTokenPrices,
+  getTokenTransactions,
+} from '../api';
 import moment from 'moment';
-import { TokenTransaction, Transaction } from '../../types/transaction';
-import { TokenPricesResponse } from '../../types/price';
+import { TokenTransaction } from '../../types/transaction';
+import { ExchangesPriceResponse, TokenPricesResponse } from '../../types/price';
 
 export type TokenPortfolio = {
   followers: string[];
   followings: string[];
   tokenPrices: TokenPricesResponse | null;
-  transactions?: TokenTransaction;
+  transactions: TokenTransaction[];
+  exchangePrices: ExchangesPriceResponse;
 };
 
 // Get the followers and followings of this token
@@ -20,6 +27,8 @@ export default function useTokenPortfolio() {
     followers: [],
     followings: [],
     tokenPrices: null,
+    transactions: [],
+    exchangePrices: {},
   });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -27,17 +36,17 @@ export default function useTokenPortfolio() {
   useEffect(() => {
     (async () => {
       if (!network || !address) return;
-
       try {
         setLoading(true);
         const from = moment().format('YYYY-MM-DD');
         const to = moment().subtract(3, 'years').format('YYYY-MM-DD');
 
-        const [followers, followings, tokenPrices, transactions] = await Promise.all([
+        const [followers, followings, tokenPrices, transactions, exchangePrices] = await Promise.all([
           getFollowersByToken(network, address),
           getFollowingsByToken(network, address),
           getTokenPrices(network, address, from, to),
           getTokenTransactions(network, address),
+          getPriceFromExchanges(network, address),
         ]);
 
         setData({
@@ -45,6 +54,7 @@ export default function useTokenPortfolio() {
           followings: followings || [],
           tokenPrices: tokenPrices,
           transactions,
+          exchangePrices,
         });
         setLoading(false);
       } catch (error) {

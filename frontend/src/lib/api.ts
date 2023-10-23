@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { API_BASE_URL } from '../config/app';
 import { TopNFT, TopERC20Token, TopWallet } from '../types/discover';
-import { NFTTransaction, TokenTransaction, WalletTransaction } from '../types/transaction';
+import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../types/transaction';
 
 import {
   Notification,
@@ -12,7 +12,7 @@ import {
   WalletNotificationType,
 } from '../types/notification';
 
-import { ExchangePrice, NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
+import { ExchangesPriceResponse, NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
 import { BalancesResponse, PortfolioResponse } from '../types/balance';
 
 export const findFollowingWallets = async (address: string, limit: number = 4) => {
@@ -57,27 +57,30 @@ export const findWalletTransactions = async (address: string, limit?: number) =>
 export const getTokenTransactions = async (network: string, address: string, limit: number = 4) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/token/${network}/${address}/transactions?limit=${limit}`);
-    return res.data as TokenTransaction;
+    return res.data as TokenTransaction[];
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
 export const getWalletTransactions = async (address: string, limit: number = 4) => {
   try {
     const resp = await axios.get(`${API_BASE_URL}/wallet/${address}/transactions?limit=${limit}`);
-    return resp.data as WalletTransaction;
+    return resp.data as WalletTransaction[];
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
 export const getNFTTransactions = async (network: string, address: string, limit: number = 4) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/transactions?limit=${limit}`);
-    return res.data as NFTTransaction;
+    return res.data as NFTTransaction[];
   } catch (error) {
     console.error(error);
+    return [];
   }
 };
 
@@ -94,9 +97,10 @@ export const login = async (address: string) => {
 export const getPriceFromExchanges = async (network: string, contractAddress: string) => {
   try {
     const resp = await axios.get(`${API_BASE_URL}/token/${network}/${contractAddress}/price/exchanges`);
-    return resp.data as ExchangePrice;
+    return resp.data as ExchangesPriceResponse;
   } catch (error) {
     console.error(error);
+    return {};
   }
 };
 
@@ -140,11 +144,12 @@ export const getFollowingsByWallet = async (address: string) => {
   }
 };
 
-export const followWallet = async (address: string, walletAddress: string) => {
+export const followWallet = async (address: string, walletAddress: string, transactions: WalletTransaction[] = []) => {
   try {
     const res = await axios.post(`${API_BASE_URL}/wallet/follow`, {
       address,
       walletAddress,
+      transactions,
     });
     return res.data;
   } catch (error) {
@@ -152,12 +157,18 @@ export const followWallet = async (address: string, walletAddress: string) => {
   }
 };
 
-export const followToken = async (address: string, tokenAddress: string, network: string) => {
+export const followToken = async (
+  address: string,
+  tokenAddress: string,
+  network: string,
+  transactions: TokenTransaction[] = [],
+) => {
   try {
     const res = await axios.post(`${API_BASE_URL}/token/follow`, {
       address,
       tokenAddress,
       network,
+      transactions,
     });
     return res.data;
   } catch (error) {
@@ -165,12 +176,18 @@ export const followToken = async (address: string, tokenAddress: string, network
   }
 };
 
-export const followNFT = async (address: string, nftAddress: string, network: string) => {
+export const followNFT = async (
+  address: string,
+  nftAddress: string,
+  network: string,
+  transactions: NFTTransaction[] = [],
+) => {
   try {
     const res = await axios.post(`${API_BASE_URL}/nft/follow`, {
       address,
       nftAddress,
       network,
+      transactions,
     });
     return res.data;
   } catch (error) {
@@ -318,6 +335,60 @@ export const getNFTSaleVolumes = async (network: string, address: string) => {
   try {
     const resp = await axios.get(`${API_BASE_URL}/nft/${network}/${address}/sale-volumes`);
     return resp.data as NFTSaleVolumesResponse;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const likeTransaction = async (transaction: WalletTransaction, address: string, type: TransactionType) => {
+  try {
+    if (type === TransactionType.TOKEN) {
+      await axios.post(`${API_BASE_URL}/token/like`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.NFT) {
+      await axios.post(`${API_BASE_URL}/nft/like`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.WALLET) {
+      await axios.post(`${API_BASE_URL}/wallet/like`, {
+        address,
+        transactionId: transaction.id,
+      });
+    }
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};
+
+export const dislikeTransaction = async (transaction: WalletTransaction, address: string, type: TransactionType) => {
+  try {
+    if (type === TransactionType.TOKEN) {
+      await axios.post(`${API_BASE_URL}/token/dislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.NFT) {
+      await axios.post(`${API_BASE_URL}/nft/dislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.WALLET) {
+      await axios.post(`${API_BASE_URL}/wallet/dislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    }
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};
+
+export const commentsTransaction = async (transaction: WalletTransaction, address: string, content: string) => {
+  try {
+    await axios.post(`${API_BASE_URL}/token/like`);
   } catch (error) {
     console.error(error);
   }

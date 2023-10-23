@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
+import { NFTTransaction } from 'src/utils/types';
 import { NetworkType } from '../../utils/enums/network.enum';
+import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class FollowNftDto {
   @ApiProperty({ description: 'The address of the user' })
@@ -18,4 +19,8 @@ export class FollowNftDto {
   @IsNotEmpty()
   @IsEnum(NetworkType)
   network: string;
+
+  @ApiProperty({ description: 'The transactions of the nft' })
+  @IsArray()
+  transactions: NFTTransaction[];
 }

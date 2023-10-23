@@ -23,6 +23,7 @@ import { SuccessResponse } from '../utils/dtos/success-response';
 import { EtherscanService } from 'src/etherscan/etherscan.service';
 import { AvalancheService } from 'src/avalanche/avalanche.service';
 import { PolygonscanService } from 'src/polygonscan/polygonscan.service';
+import { FeedbackTransactionDto } from './dto/feedback-transaction.dto';
 @Injectable()
 export class NftService {
   private readonly serviceConfig: ServiceConfig;
@@ -68,19 +69,14 @@ export class NftService {
   }
 
   async follow(followNftDto: FollowNftDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(followNftDto.address);
-    const foundNft = await this.getOrCreate(followNftDto.nftAddress, followNftDto.network);
+    const { address, network, nftAddress, transactions } = followNftDto;
+    const foundUser = await this.userService.getByAddress(address);
+    const foundNft = await this.getOrCreate(nftAddress, network);
 
     if (!foundNft.followers.includes(foundUser.id)) {
       await foundNft.updateOne({ $push: { followers: foundUser.id } });
       await foundUser.updateOne({ $push: { followingNfts: foundNft.id } });
-
-      try {
-        const resp = await this.getTransactions(followNftDto.network, followNftDto.nftAddress);
-        await this.setTransactions(followNftDto.nftAddress, followNftDto.network, resp.transactions);
-      } catch (error) {
-        logger.error(error);
-      }
+      await this.setTransactions(nftAddress, network, transactions);
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already follow this nft');
@@ -99,28 +95,57 @@ export class NftService {
     }
   }
 
-  async like(likeDto: FollowNftDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(likeDto.address);
-    const foundNft = await this.getOrCreate(likeDto.nftAddress, likeDto.network);
-    if (foundNft.dislikes.includes(foundUser.id)) {
-      throw new BadRequestException('You already dislike this nft');
+  async like(likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.nftModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
     }
-    if (!foundNft.likes.includes(foundUser.id)) {
-      await foundNft.updateOne({ $push: { likes: foundUser.id } });
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === likeDto.transactionId);
+
+    if (transaction.likes.includes(likeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+    if (transaction.dislikes.includes(likeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
+    }
+
+    if (!transaction.likes.includes(likeDto.address)) {
+      transaction.likes.push(likeDto.address);
+      await this.nftModel.updateOne(
+        { 'transactions.id': likeDto.transactionId },
+        { $set: { 'transactions.$.likes': transaction.likes } },
+      );
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already like this token');
     }
   }
 
-  async dislike(dislikeDto: FollowNftDto): Promise<SuccessResponse> {
-    const foundUser = await this.userService.getByAddress(dislikeDto.address);
-    const foundNft = await this.getOrCreate(dislikeDto.nftAddress, dislikeDto.network);
-    if (foundNft.likes.includes(foundUser.id)) {
-      throw new BadRequestException('You already like this nft');
+  async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const token = await this.nftModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
     }
-    if (!foundNft.dislikes.includes(foundUser.id)) {
-      await foundNft.updateOne({ $push: { dislikes: foundUser.id } });
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === dislikeDto.transactionId);
+
+    if (transaction.dislikes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already dislike this transaction');
+    }
+
+    if (transaction.likes.includes(dislikeDto.address)) {
+      throw new BadRequestException('You already like this transaction');
+    }
+
+    if (!transaction.dislikes.includes(dislikeDto.address)) {
+      transaction.dislikes.push(dislikeDto.address);
+      await this.nftModel.updateOne(
+        { 'transactions.id': dislikeDto.transactionId },
+        { $set: { 'transactions.$.dislikes': transaction.dislikes } },
+      );
       return new SuccessResponse(true);
     } else {
       throw new BadRequestException('You already dislike this token');
@@ -201,23 +226,15 @@ export class NftService {
 
   async getTransactions(network: string, address: string, limit: Number = 4) {
     try {
-      const foundToken = await this.nftModel.findOne({ address, network });
-
-      const { _id, likes, dislikes, comments } = foundToken || { _id: '', likes: [], dislikes: [], comments: [] };
-
       switch (network) {
         case NetworkType.ETHEREUM:
-          const ethereumTxns = await this.etherscanService.getTransactionsByNFT(address);
-          return { transactions: ethereumTxns, _id, likes, dislikes, comments };
+          return await this.etherscanService.getTransactionsByNFT(address);
         case NetworkType.POLYGON:
-          const polygonTxns = await this.polygonService.getTransactionsByNFT(address);
-          return { transactions: polygonTxns, _id, likes, dislikes, comments };
+          return await this.polygonService.getTransactionsByNFT(address);
         case NetworkType.BSC:
-          const bscTxns = await this.bscService.getTransactionsByNFT(address);
-          return { transactions: bscTxns, _id, likes, dislikes, comments };
+          return await this.bscService.getTransactionsByNFT(address);
         case NetworkType.ARBITRUM:
-          const arbitrumTxns = await this.arbitrumService.getTransactionsByNFT(address);
-          return { transactions: arbitrumTxns, _id, likes, dislikes, comments };
+          return await this.arbitrumService.getTransactionsByNFT(address);
       }
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -242,12 +259,6 @@ export class NftService {
   async updateTransactions(address: string, network: string) {
     if (!Object.values(NetworkType).includes(network as NetworkType)) return;
     try {
-      // Get the latest block number
-      let latestBlockNumber = 0;
-      const token = await this.nftModel.findOne({ address: address, network: network });
-      if (token && token.transactions && token.transactions.length > 0)
-        latestBlockNumber = Number(token.transactions.at(-1).blockNumber);
-
       switch (network) {
         case NetworkType.ETHEREUM:
           const ethereumTxns = await this.etherscanService.getTransactionsByNFT(address);

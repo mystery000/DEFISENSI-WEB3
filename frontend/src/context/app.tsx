@@ -2,12 +2,11 @@ import { ReactNode, createContext, useContext } from 'react';
 import useLocalStorage from '../lib/hooks/useLocalStroage';
 
 export type User = {
-  id: string;
   address: string;
 };
 
 const initialState: { user: User; setUser: (user: User) => void } = {
-  user: { id: '', address: '' },
+  user: { address: '' },
   setUser: () => {},
 };
 
@@ -24,15 +23,10 @@ AppContext.displayName = 'AppContext';
 
 const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useLocalStorage<User>('user', {
-    id: '',
     address: '',
   });
 
-  return (
-    <AppContext.Provider value={{ user, setUser }}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={{ user, setUser }}>{children}</AppContext.Provider>;
 };
 
 export const ManagedAppContext = ({ children }: { children: ReactNode }) => {

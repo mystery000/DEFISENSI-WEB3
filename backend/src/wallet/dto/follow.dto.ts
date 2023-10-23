@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { WalletTransaction } from 'src/utils/types';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class FollowWalletDto {
   @ApiProperty({ description: 'The address of the user' })
@@ -11,4 +12,8 @@ export class FollowWalletDto {
   @IsNotEmpty()
   @IsString()
   walletAddress: string;
+
+  @ApiProperty({ description: 'The transactions of the wallet' })
+  @IsArray()
+  transactions: WalletTransaction[];
 }

@@ -5,12 +5,7 @@ import { useDisconnect } from 'wagmi';
 import { AlignJustifyIcon } from 'lucide-react';
 import { useAppContext } from '../../context/app';
 
-import {
-  MailOutlined,
-  LoginOutlined,
-  LogoutOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { MailOutlined, LoginOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { useCallback } from 'react';
 
 const Header = () => {
@@ -20,16 +15,13 @@ const Header = () => {
 
   const logout = useCallback(() => {
     disconnect();
-    setUser({ address: '', id: '' });
+    setUser({ address: '' });
   }, [setUser]);
 
   const items = [
     {
       label: (
-        <div
-          className="flex cursor-pointer items-center gap-2"
-          onClick={() => navigate('/transactions')}
-        >
+        <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/transactions')}>
           <MailOutlined />
           <span>Transactions</span>
         </div>
@@ -63,10 +55,7 @@ const Header = () => {
       children: [
         {
           label: (
-            <div
-              className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/wallets')}
-            >
+            <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/discover/wallets')}>
               <MailOutlined />
               <span>Top Wallets</span>
             </div>
@@ -75,10 +64,7 @@ const Header = () => {
         },
         {
           label: (
-            <div
-              className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/tokens')}
-            >
+            <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/discover/tokens')}>
               <MailOutlined />
               <span>Top tokens</span>
             </div>
@@ -87,10 +73,7 @@ const Header = () => {
         },
         {
           label: (
-            <div
-              className="flex cursor-pointer items-center gap-2"
-              onClick={() => navigate('/discover/nfts')}
-            >
+            <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/discover/nfts')}>
               <MailOutlined />
               <span>Top NFTs</span>
             </div>
@@ -101,10 +84,7 @@ const Header = () => {
     },
     {
       label: (
-        <div
-          className="flex cursor-pointer items-center gap-2"
-          onClick={() => navigate('/notifications')}
-        >
+        <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/notifications')}>
           <MailOutlined />
           <span>Notifications</span>
         </div>
@@ -127,10 +107,7 @@ const Header = () => {
         !user.address
           ? {
               label: (
-                <div
-                  className="flex cursor-pointer items-center gap-2"
-                  onClick={() => navigate('/login')}
-                >
+                <div className="flex cursor-pointer items-center gap-2" onClick={() => navigate('/login')}>
                   <LoginOutlined />
                   <span>Login</span>
                 </div>
@@ -139,10 +116,7 @@ const Header = () => {
             }
           : {
               label: (
-                <div
-                  className="flex cursor-pointer items-center gap-2"
-                  onClick={logout}
-                >
+                <div className="flex cursor-pointer items-center gap-2" onClick={logout}>
                   <LogoutOutlined />
                   <span>Logout</span>
                 </div>
@@ -163,16 +137,11 @@ const Header = () => {
         {items.map((item) => {
           if (item.children) {
             return (
-              <div
-                key={item.key}
-                className="flex cursor-pointer items-center gap-2"
-              >
+              <div key={item.key} className="flex cursor-pointer items-center gap-2">
                 {item.icon}
                 <Dropdown menu={{ items: item.children }} placement="bottom">
                   {item.key === 'User' ? (
-                    <span title={item.address}>
-                      {item.address?.slice(0, 5)}
-                    </span>
+                    <span title={item.address}>{item.address?.slice(0, 5)}</span>
                   ) : (
                     <span>{item.key}</span>
                   )}
@@ -184,12 +153,7 @@ const Header = () => {
         })}
       </div>
 
-      <Dropdown
-        menu={{ items }}
-        placement="bottom"
-        className="block cursor-pointer md:hidden"
-        arrow={false}
-      >
+      <Dropdown menu={{ items }} placement="bottom" className="block cursor-pointer md:hidden" arrow={false}>
         <AlignJustifyIcon />
       </Dropdown>
     </div>
