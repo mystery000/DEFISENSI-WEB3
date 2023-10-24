@@ -13,8 +13,8 @@ import { TokenTransaction } from '../../types/transaction';
 import { ExchangesPriceResponse, TokenPricesResponse } from '../../types/price';
 
 export type TokenPortfolio = {
-  followers: string[];
-  followings: string[];
+  followers: { address: string }[];
+  followings: { address: string }[];
   tokenPrices: TokenPricesResponse | null;
   transactions: TokenTransaction[];
   exchangePrices: ExchangesPriceResponse;

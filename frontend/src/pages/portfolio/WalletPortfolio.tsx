@@ -78,7 +78,7 @@ export const WalletPortfolio = () => {
       await followWallet(user.address, address, portfolio.transactions);
       mutatePortfolio({
         ...portfolio,
-        followers: [...portfolio.followers, user.address],
+        followers: [...portfolio.followers, { address: user.address }],
       });
       setFollowing(false);
       toast.success(`You've followed this wallet ${address}`);
@@ -138,15 +138,26 @@ export const WalletPortfolio = () => {
             </div>
           </div>
           <div className="mt-5 text-white">
-            <button
-              className={cn('rounded bg-orange-400 px-4 py-[10px] font-bold', {
-                hidden: user.address === address,
-              })}
-              onClick={handleFollow}
-              disabled={following}
-            >
-              {following ? 'Following...' : 'Follow'}
-            </button>
+            {portfolio.followers.findIndex((follower) => follower.address === user.address) > -1 ? (
+              <button
+                className={cn('rounded bg-orange-400 px-4 py-[10px] font-bold', {
+                  hidden: user.address === address,
+                })}
+                disabled
+              >
+                Following
+              </button>
+            ) : (
+              <button
+                className={cn('rounded bg-orange-400 px-4 py-[10px] font-bold', {
+                  hidden: user.address === address,
+                })}
+                onClick={handleFollow}
+                disabled={following}
+              >
+                {following ? 'Following...' : 'Follow'}
+              </button>
+            )}
           </div>
 
           <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>

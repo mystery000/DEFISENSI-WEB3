@@ -163,8 +163,7 @@ export class TokenService {
   async getFollowers(dto: FindOneParams) {
     const foundToken = await this.tokenModel.findOne(dto);
     if (!foundToken) {
-      // throw new BadRequestException('Token not found!');
-      return [];
+      throw new BadRequestException('Token not found!');
     }
     return this.userService.getByIds(foundToken.followers);
   }

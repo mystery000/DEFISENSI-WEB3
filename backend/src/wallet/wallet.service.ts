@@ -90,12 +90,12 @@ export class WalletService {
 
   async like(likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     // Retrieve the token document containing the transaction
-    const token = await this.walletModel.findOne({ 'transactions.id': likeDto.transactionId });
-    if (!token) {
+    const wallet = await this.walletModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!wallet) {
       throw new BadRequestException('Invalid transaction Id');
     }
     // Find the specific transaction within the token document's transactions array
-    const transaction = token.transactions.find((t) => t.id === likeDto.transactionId);
+    const transaction = wallet.transactions.find((t) => t.id === likeDto.transactionId);
 
     if (transaction.likes.includes(likeDto.address)) {
       throw new BadRequestException('You already like this transaction');
@@ -112,18 +112,18 @@ export class WalletService {
       );
       return new SuccessResponse(true);
     } else {
-      throw new BadRequestException('You already like this token');
+      throw new BadRequestException('You already like this transaction');
     }
   }
 
   async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     // Retrieve the token document containing the transaction
-    const token = await this.walletModel.findOne({ 'transactions.id': dislikeDto.transactionId });
-    if (!token) {
+    const wallet = await this.walletModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!wallet) {
       throw new BadRequestException('Invalid transaction Id');
     }
     // Find the specific transaction within the token document's transactions array
-    const transaction = token.transactions.find((t) => t.id === dislikeDto.transactionId);
+    const transaction = wallet.transactions.find((t) => t.id === dislikeDto.transactionId);
 
     if (transaction.dislikes.includes(dislikeDto.address)) {
       throw new BadRequestException('You already dislike this transaction');
@@ -141,7 +141,7 @@ export class WalletService {
       );
       return new SuccessResponse(true);
     } else {
-      throw new BadRequestException('You already dislike this token');
+      throw new BadRequestException('You already dislike this transaction');
     }
   }
 

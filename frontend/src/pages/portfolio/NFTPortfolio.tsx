@@ -45,7 +45,7 @@ export const NFTPortfolio = () => {
       await followNFT(user.address, address, network, portfolio.transactions);
       mutatePortfolio({
         ...portfolio,
-        followers: [...portfolio.followers, user.address],
+        followers: [...portfolio.followers, { address: user.address }],
       });
       setFollowing(false);
       toast.success(`You've followed this nft: ${address}`);
@@ -123,9 +123,15 @@ export const NFTPortfolio = () => {
             </div>
           </div>
           <div className="mt-5 text-white">
-            <button className="rounded bg-orange-400 px-4 py-[10px]" onClick={handleFollow} disabled={following}>
-              {following ? 'Following...' : 'Follow'}
-            </button>
+            {portfolio.followers.findIndex((follower) => follower.address === user.address) > -1 ? (
+              <button className="rounded bg-orange-400 px-4 py-[10px]" disabled>
+                Following
+              </button>
+            ) : (
+              <button className="rounded bg-orange-400 px-4 py-[10px]" onClick={handleFollow} disabled={following}>
+                {following ? 'Following...' : 'Follow'}
+              </button>
+            )}
           </div>
 
           <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>

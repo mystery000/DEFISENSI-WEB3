@@ -14,8 +14,8 @@ import { NetworkType } from '../../types';
 import { WalletTransaction } from '../../types/transaction';
 
 export type WalletPortfolio = {
-  followers: any[];
-  followings: any[];
+  followers: { address: string }[];
+  followings: { address: string }[];
   ens?: string;
   historicalBalances?: {
     ethereum: PortfolioResponse;

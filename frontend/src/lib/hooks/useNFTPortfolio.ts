@@ -6,8 +6,8 @@ import { NFTSaleVolumesResponse } from '../../types/price';
 import { getFollowersByNFT, getFollowingsByNFT, getNFTSaleVolumes, getNFTTransactions } from '../api';
 
 export type NFTPortfolio = {
-  followers: string[];
-  followings: string[];
+  followers: { address: string }[];
+  followings: { address: string }[];
   stats?: NFTSaleVolumesResponse;
   transactions: NFTTransaction[];
 };

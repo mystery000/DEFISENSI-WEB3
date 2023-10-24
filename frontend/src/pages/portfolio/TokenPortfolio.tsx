@@ -41,7 +41,6 @@ export const TokenPortfolio = () => {
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
   // Custom Hooks
   const { portfolio, loading, mutate } = useTokenPortfolio();
-
   const fetchMoreTransactions = useCallback(async () => {}, []);
 
   // Detect whether screen is mobile or desktop size
@@ -65,7 +64,7 @@ export const TokenPortfolio = () => {
     try {
       setFollowing(true);
       await followToken(user.address, address, network, portfolio.transactions);
-      mutate({ ...portfolio, followers: [...portfolio.followers, user.address] });
+      mutate({ ...portfolio, followers: [...portfolio.followers, { address: user.address }] });
       setFollowing(false);
       toast.success(`You've followed this token: ${address}`);
     } catch (error) {
@@ -135,13 +134,19 @@ export const TokenPortfolio = () => {
             </div>
           </div>
           <div className="mt-5 text-white">
-            <button
-              className="text-inter rounded bg-orange-400 px-4 py-2 font-bold"
-              onClick={handleFollow}
-              disabled={following}
-            >
-              {following ? 'Following...' : 'Follow'}
-            </button>
+            {portfolio.followers.findIndex((follower) => follower.address === user.address) > -1 ? (
+              <button className="text-inter rounded bg-orange-400 px-4 py-2 font-bold" disabled>
+                Following
+              </button>
+            ) : (
+              <button
+                className="text-inter rounded bg-orange-400 px-4 py-2 font-bold"
+                onClick={handleFollow}
+                disabled={following}
+              >
+                {following ? 'Following...' : 'Follow'}
+              </button>
+            )}
           </div>
 
           <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>
