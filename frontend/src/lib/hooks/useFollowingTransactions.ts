@@ -25,11 +25,11 @@ export default function useFollowingTransactions(address: string) {
           getTransactionsByFollowingTokens(address),
           getTransactionsByFollowingNFTs(address),
         ]);
-        if (walletTxns.length % 4 === 0) setFetchMoreWallets(true);
+        if (walletTxns.length % 5 === 0) setFetchMoreWallets(true);
         setWalletTxns(walletTxns);
-        if (tokenTxns.length % 4 === 0) setFetchMoreTokens(true);
+        if (tokenTxns.length % 5 === 0) setFetchMoreTokens(true);
         setTokenTxns(tokenTxns);
-        if (nftTxns.length % 4 === 0) setFetchMoreNFTs(true);
+        if (nftTxns.length % 5 === 0) setFetchMoreNFTs(true);
         setNFTTxns(nftTxns);
         setLoading(false);
       } catch (error) {

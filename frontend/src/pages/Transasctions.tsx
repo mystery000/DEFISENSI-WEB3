@@ -50,7 +50,7 @@ export const Transactions = () => {
   const fetchMoreWalletTxns = () => {
     setTimeout(async () => {
       try {
-        const txns = await getTransactionsByFollowingWallets(user.address, walletTxns.length + 4);
+        const txns = await getTransactionsByFollowingWallets(user.address, walletTxns.length + 5);
         if (txns.length === walletTxns.length) mutateFetchMoreWallets(false);
         else mutateFetchMoreWallets(true);
         mutateWalletTxns(txns);
@@ -61,7 +61,7 @@ export const Transactions = () => {
   const fetchMoreTokenTxns = () => {
     setTimeout(async () => {
       try {
-        const txns = await getTransactionsByFollowingTokens(user.address, tokenTxns.length + 4);
+        const txns = await getTransactionsByFollowingTokens(user.address, tokenTxns.length + 5);
         if (txns.length === tokenTxns.length) mutateFetchMoreTokens(false);
         else mutateFetchMoreTokens(true);
         mutateTokenTxns(txns);
@@ -72,7 +72,7 @@ export const Transactions = () => {
   const fetchMoreNFTTxns = () => {
     setTimeout(async () => {
       try {
-        const txns = await getTransactionsByFollowingNFTs(user.address, nftTxns.length + 4);
+        const txns = await getTransactionsByFollowingNFTs(user.address, nftTxns.length + 5);
         if (txns.length === nftTxns.length) mutateFetchMoreNFTs(false);
         else mutateFetchMoreNFTs(true);
         mutateNFTTxns(txns);

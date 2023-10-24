@@ -15,7 +15,7 @@ import {
 import { ExchangesPriceResponse, NFTSaleVolumesResponse, TokenPricesResponse } from '../types/price';
 import { BalancesResponse, PortfolioResponse } from '../types/balance';
 
-export const getTransactionsByFollowingWallets = async (address: string, limit: number = 4) => {
+export const getTransactionsByFollowingWallets = async (address: string, limit: number = 5) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/user/${address}/wallet/transactions?limit=${limit}`);
     return res.data as WalletTransaction[];
@@ -24,7 +24,7 @@ export const getTransactionsByFollowingWallets = async (address: string, limit: 
   }
 };
 
-export const getTransactionsByFollowingTokens = async (address: string, limit: number = 4) => {
+export const getTransactionsByFollowingTokens = async (address: string, limit: number = 5) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/user/${address}/token/transactions?limit=${limit}`);
     return res.data as TokenTransaction[];
@@ -34,7 +34,7 @@ export const getTransactionsByFollowingTokens = async (address: string, limit: n
   }
 };
 
-export const getTransactionsByFollowingNFTs = async (address: string, limit: number = 4) => {
+export const getTransactionsByFollowingNFTs = async (address: string, limit: number = 5) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/user/${address}/nft/transactions?limit=${limit}`);
     return res.data as NFTTransaction[];
@@ -53,7 +53,7 @@ export const findWalletTransactions = async (address: string, limit?: number) =>
   }
 };
 
-export const getTokenTransactions = async (network: string, address: string, limit: number = 4) => {
+export const getTokenTransactions = async (network: string, address: string, limit: number = 8) => {
   try {
     const res = await axios.get(`${API_BASE_URL}/token/${network}/${address}/transactions?limit=${limit}`);
     return res.data as TokenTransaction[];
