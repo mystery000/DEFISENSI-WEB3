@@ -1,4 +1,6 @@
 import { FC } from 'react';
+
+import { Image } from 'antd';
 import Select from 'react-select';
 import { NetworkType } from '../types';
 
@@ -7,10 +9,7 @@ interface ChainSelectionProps {
   value: NetworkType;
 }
 
-export const ChainSelection: FC<ChainSelectionProps> = ({
-  onChange,
-  value,
-}) => {
+export const ChainSelection: FC<ChainSelectionProps> = ({ onChange, value }) => {
   const options = [
     {
       value: NetworkType.ETHEREUM,
@@ -44,22 +43,9 @@ export const ChainSelection: FC<ChainSelectionProps> = ({
     },
   ];
 
-  const formatOptionLabel = ({
-    label,
-    logo,
-  }: {
-    label: string;
-    logo: string;
-  }) => (
+  const formatOptionLabel = ({ label, logo }: { label: string; logo: string }) => (
     <div className="flex items-center gap-2">
-      <img
-        src={logo}
-        width={24}
-        height={24}
-        alt="noimg"
-        className="rounded-full"
-        loading="lazy"
-      />
+      <Image src={logo} width={24} height={24} className="rounded-full" loading="lazy" alt="#" />
       <div className="grow text-center">{label}</div>
     </div>
   );

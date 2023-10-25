@@ -1,8 +1,4 @@
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from 'react';
-import cn from 'classnames';
-import { Card, Modal, Input } from 'antd';
-import { toast } from 'react-toastify';
-import { convertDecimals, convertHex, getAge, getTransferType, standardUnit } from '../../lib/utils';
+import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
 
 import {
   ChatBubbleSolid,
@@ -13,10 +9,15 @@ import {
   TokenIcon,
 } from '../icons/defisensi-icons';
 
+import cn from 'classnames';
+import { toast } from 'react-toastify';
 import { TransferType } from '../../types';
+import { Card, Modal, Input, Image } from 'antd';
 import { useAppContext } from '../../context/app';
 import { TokenTransaction, TransactionType } from '../../types/transaction';
 import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
+import { convertDecimals, convertHex, getAge, getTransferType, standardUnit } from '../../lib/utils';
+
 const { TextArea } = Input;
 
 type TransactionCardProps = {
@@ -129,31 +130,26 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
               {convertHex(transaction.details.to).substring(0, 5)}
             </span>
           </div>
-          <div>
-            <img
-              src={`/images/network/${transaction.network}.png`}
-              width={32}
-              height={32}
-              className="rounded-full border"
-              alt="platform_icon"
-            ></img>
-          </div>
+          <Image
+            width={32}
+            height={32}
+            className="rounded-full"
+            alt="#"
+            src={`/images/network/${transaction.network}.png`}
+            loading="lazy"
+          />
         </div>
         {transaction.details.token0 && (
-          <div className="my-2 flex items-center font-inter">
-            <span className="pr-2">
-              <img
-                src={
-                  transaction.details.token0.logo
-                    ? transaction.details.token0.logo
-                    : `/images/tokens/empty-${transaction.network}.png`
-                }
-                width={24}
-                height={24}
-                alt="token-icon"
-                className="rounded-full"
-              />
-            </span>
+          <div className="my-2 flex items-center space-x-2 font-inter">
+            <Image
+              width={24}
+              height={24}
+              className="rounded-full"
+              alt="#"
+              src={`/images/tokens/${transaction.details.token0.symbol.toUpperCase()}.png`}
+              fallback={`/images/tokens/default/empty-${transaction.network}.png`}
+              loading="lazy"
+            />
             <span>
               {`${convertDecimals(transaction.details.token0.amount, transaction.details.token0.decimals)} ${
                 transaction.details.token0.symbol
@@ -167,16 +163,14 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
         {transaction.details.token1 && (
           <div className="flex items-center">
             <span className="pr-2">
-              <img
-                src={
-                  transaction.details.token0.logo
-                    ? transaction.details.token0.logo
-                    : `/images/tokens/empty-${transaction.network}.png`
-                }
+              <Image
                 width={24}
                 height={24}
-                alt="token-icon"
                 className="rounded-full"
+                alt="#"
+                src={`/images/tokens/${transaction.details.token1?.symbol.toUpperCase()}.png`}
+                fallback={`/images/tokens/default/empty-${transaction.network}.png`}
+                loading="lazy"
               />
             </span>
             <span>{`${convertDecimals(transaction.details.token1.amount, transaction.details.token1.decimals)} ${

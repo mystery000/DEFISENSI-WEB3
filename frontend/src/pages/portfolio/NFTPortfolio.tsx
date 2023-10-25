@@ -1,25 +1,23 @@
 import { useParams } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 
-import AppLayout from '../../layouts/AppLayout';
-import InfiniteScroll from 'react-infinite-scroll-component';
-
-import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
-
 import cn from 'classnames';
-import { Spin } from 'antd';
 import moment from 'moment';
+import { Image, Spin } from 'antd';
 import { toast } from 'react-toastify';
 import { followNFT } from '../../lib/api';
 import { keyFormatter } from '../../lib/utils';
+import AppLayout from '../../layouts/AppLayout';
 import { useAppContext } from '../../context/app';
+import { TransactionType } from '../../types/transaction';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import useNFTPortfolio from '../../lib/hooks/useNFTPortfolio';
 import { NFTAsset } from '../../components/portfolio/NFTAsset';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { FollowerIcon, FollowingIcon } from '../../components/icons/defisensi-icons';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { NFTTransaction, TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -33,7 +31,6 @@ export const NFTPortfolio = () => {
   const [following, setFollowing] = useState(false);
   const [fetchMore, setFetchMore] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
-  const [noticationOn, setNotificationOn] = useState(false);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
 
   const { data: portfolio, loading: loadingPortfolio, mutate: mutatePortfolio } = useNFTPortfolio();
@@ -96,13 +93,14 @@ export const NFTPortfolio = () => {
             <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
               <span>{portfolio.stats?.name}</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
-                <img
+                <Image
                   src={`/images/network/${network}.png`}
                   width={32}
                   height={32}
                   alt="noicon"
+                  loading="lazy"
                   className="rounded-full"
-                ></img>
+                ></Image>
                 <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
               </span>
             </h2>
@@ -134,8 +132,8 @@ export const NFTPortfolio = () => {
             )}
           </div>
 
-          <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>
-            {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
+          <div className="flex justify-end hover:cursor-pointer" onClick={() => {}}>
+            <NotificationsIcon />
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">

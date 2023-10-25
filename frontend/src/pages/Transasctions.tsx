@@ -9,7 +9,7 @@ import { EmptyContainer } from '../components/EmptyContainer';
 import { TransactionCard } from '../components/transactions/TransactionCard';
 import useFollowingTransactions from '../lib/hooks/useFollowingTransactions';
 import { NFTTransactionCard } from '../components/transactions/NFTTransactionCard';
-import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../types/transaction';
+import { NFTTransaction, TokenTransaction, TransactionType } from '../types/transaction';
 import {
   getTransactionsByFollowingNFTs,
   getTransactionsByFollowingTokens,

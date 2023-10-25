@@ -2,8 +2,8 @@ import { useParams } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 
 import cn from 'classnames';
-import { Spin } from 'antd';
 import moment from 'moment';
+import { Image, Spin } from 'antd';
 import { toast } from 'react-toastify';
 import Table from '@mui/material/Table';
 import { followToken } from '../../lib/api';
@@ -15,14 +15,14 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import { useAppContext } from '../../context/app';
+import { TransactionType } from '../../types/transaction';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useTokenPortfolio from '../../lib/hooks/useTokenPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
+import { FollowerIcon, FollowingIcon } from '../../components/icons/defisensi-icons';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
-import { TokenTransaction, TransactionType } from '../../types/transaction';
 
 enum ContentType {
   INFO = 'info',
@@ -35,7 +35,6 @@ export const TokenPortfolio = () => {
   const { address, network } = useParams();
   const [following, setFollowing] = useState(false);
   const [fetchMore, setFetchMore] = useState(false);
-  const [noticationOn, setNotificationOn] = useState(false);
   // Responsive Design
   const [width, setWidth] = useState(window.innerWidth);
   const [selected, setSelected] = useState<ContentType>(ContentType.INFO);
@@ -105,14 +104,14 @@ export const TokenPortfolio = () => {
             <h2 className="flex items-center justify-center gap-1 font-sora text-4xl font-semibold">
               <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
               <span className="flex items-center gap-2 rounded-lg bg-black px-2 py-[3px] text-sm font-light text-white">
-                <img
+                <Image
                   src={`/images/network/${network}.png`}
                   width={32}
                   height={32}
                   alt="noicon"
                   className="rounded-full"
                   loading="lazy"
-                ></img>
+                />
                 <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
               </span>
             </h2>
@@ -149,8 +148,8 @@ export const TokenPortfolio = () => {
             )}
           </div>
 
-          <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>
-            {noticationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
+          <div className="flex justify-end hover:cursor-pointer" onClick={() => {}}>
+            <NotificationsIcon />
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
@@ -217,7 +216,7 @@ export const TokenPortfolio = () => {
                       <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-2 rounded-lg bg-bali-hai-600/20 px-2 py-1">
-                            <img src={`/images/network/${network}.png`} width={24} height={24} alt="noicon"></img>
+                            <Image src={`/images/network/${network}.png`} width={24} height={24} alt="noicon" />
                             <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
                           </span>
                           <span className="text-bali-hai-600">USD value</span>
@@ -229,13 +228,14 @@ export const TokenPortfolio = () => {
                     <TableRow>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
-                          <img
+                          <Image
+                            alt="#"
                             src="/images/exchanges/uniswap.png"
                             width={32}
                             height={32}
+                            loading="lazy"
                             className="rounded-full border"
-                            alt="platform_icon"
-                          ></img>
+                          ></Image>
                           <span>Uniswap</span>
                         </div>
                       </TableCell>
@@ -248,13 +248,14 @@ export const TokenPortfolio = () => {
                     <TableRow>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
-                          <img
+                          <Image
+                            alt="#"
                             src="/images/exchanges/binance.png"
                             width={32}
                             height={32}
+                            loading="lazy"
                             className="rounded-full border"
-                            alt="platform_icon"
-                          ></img>
+                          ></Image>
                           <span>Binance</span>
                         </div>
                       </TableCell>
@@ -267,13 +268,14 @@ export const TokenPortfolio = () => {
                     <TableRow>
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
-                          <img
+                          <Image
+                            alt="#"
                             src="/images/exchanges/kucoin.png"
                             width={32}
                             height={32}
+                            loading="lazy"
                             className="rounded-full border"
-                            alt="platform_icon"
-                          ></img>
+                          ></Image>
                           <span>Kucoin</span>
                         </div>
                       </TableCell>
@@ -290,13 +292,14 @@ export const TokenPortfolio = () => {
                     >
                       <TableCell style={{ fontWeight: 600, fontSize: '18px' }}>
                         <div className="flex items-center gap-2">
-                          <img
+                          <Image
+                            alt="#"
                             src="/images/exchanges/coinbase.png"
                             width={32}
                             height={32}
+                            loading="lazy"
                             className="rounded-full border"
-                            alt="platform_icon"
-                          ></img>
+                          ></Image>
                           <span>Coinbase</span>
                         </div>
                       </TableCell>

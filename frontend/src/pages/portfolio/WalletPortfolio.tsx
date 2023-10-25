@@ -1,20 +1,18 @@
 import { useParams } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 
-import AppLayout from '../../layouts/AppLayout';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import AppLayout from '../../layouts/AppLayout';
 import TableContainer from '@mui/material/TableContainer';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 import cn from 'classnames';
 import moment from 'moment';
-import * as Antd from 'antd';
+import { Image, Spin } from 'antd';
 import { Box } from '@mui/material';
 import { toast } from 'react-toastify';
 import { NetworkType } from '../../types';
@@ -27,10 +25,10 @@ import { EmptyContainer } from '../../components/EmptyContainer';
 import useWalletBalances from '../../lib/hooks/useWalletBalances';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
-import { FollowerIcon, FollowingIcon, NotificationOnIcon } from '../../components/icons/defisensi-icons';
-import { Area, AreaChart, CartesianGrid, Cross, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { NFTTransaction, TokenTransaction, TransactionType, WalletTransaction } from '../../types/transaction';
+import { FollowerIcon, FollowingIcon } from '../../components/icons/defisensi-icons';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
+import { NFTTransaction, TokenTransaction, TransactionType } from '../../types/transaction';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
@@ -44,7 +42,6 @@ export const WalletPortfolio = () => {
   const [fetchMore, setFetchMore] = useState(false);
   const [following, setFollowing] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
-  const [notificationOn, setNotificationOn] = useState(false);
   const [chain, setChain] = useState<NetworkType>(NetworkType.ETHEREUM);
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
@@ -91,7 +88,7 @@ export const WalletPortfolio = () => {
   if (portfolioLoading || balancesLoading) {
     return (
       <div className="grid h-screen place-items-center">
-        <Antd.Spin size="large" />
+        <Spin size="large" />
       </div>
     );
   }
@@ -158,10 +155,6 @@ export const WalletPortfolio = () => {
                 {following ? 'Following...' : 'Follow'}
               </button>
             )}
-          </div>
-
-          <div className="flex justify-end hover:cursor-pointer" onClick={() => setNotificationOn((state) => !state)}>
-            {notificationOn ? <NotificationOnIcon /> : <NotificationsIcon />}
           </div>
         </div>
         <div className="mt-2 flex justify-start gap-6 bg-white px-4 py-6 font-sora text-[32px] 2xl:hidden ">
@@ -272,8 +265,9 @@ export const WalletPortfolio = () => {
                         >
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <img
-                                src={'/images/tokens/empty-ethereum.png'}
+                              <Image
+                                src={`/images/tokens/${token.contract_ticker_symbol}.png`}
+                                fallback={`/images/tokens/default/empty-ethereum.png`}
                                 width={32}
                                 height={32}
                                 alt="no icon"

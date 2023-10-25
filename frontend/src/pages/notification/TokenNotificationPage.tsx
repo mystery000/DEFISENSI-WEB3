@@ -3,20 +3,13 @@ import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { isValid } from '../../lib/utils';
 import TextArea from 'antd/es/input/TextArea';
+import { Checkbox, Input, Select } from 'antd';
 import AppLayout from '../../layouts/AppLayout';
 import { useAppContext } from '../../context/app';
-import { Button, Checkbox, Input, Select } from 'antd';
-import { createNotification, updateNotification } from '../../lib/api';
-
-import {
-  TokenNotificationType,
-  FilterNotification,
-  NotificationType,
-  Notification,
-} from '../../types/notification';
 import { CheckboxChangeEvent } from 'antd/es/checkbox';
+import { createNotification, updateNotification } from '../../lib/api';
+import { TokenNotificationType, FilterNotification, NotificationType, Notification } from '../../types/notification';
 
 const initialValue = { address: '', name: '', network: [] };
 
@@ -27,10 +20,7 @@ interface TokenNotificationPageProps {
   handleEditAlert?: Function;
 }
 
-export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
-  data,
-  handleEditAlert,
-}) => {
+export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, handleEditAlert }) => {
   const navigate = useNavigate();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
@@ -76,13 +66,10 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
 
       setUpdating(true);
       try {
-        const updatedNotification = await updateNotification(
-          (data as any)._id,
-          {
-            ...data,
-            ...notification,
-          },
-        );
+        const updatedNotification = await updateNotification((data as any)._id, {
+          ...data,
+          ...notification,
+        });
         toast.success('Updated the notification successfully');
         setUpdating(false);
         setTimeout(() => handleEditAlert(updatedNotification), 500);
@@ -98,13 +85,9 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
   return (
     <AppLayout noLayout={!!data}>
       <div className="min-w-sm m-4 max-w-5xl bg-white p-6 font-inter lg:mx-auto">
-        <div className="font-sora text-2xl font-semibold lg:text-center">
-          Create Token Alert
-        </div>
+        <div className="font-sora text-2xl font-semibold lg:text-center">Create Token Alert</div>
         <hr className="my-2"></hr>
-        <form
-          onSubmit={data ? handleUpdateNotification : handleCreateNotification}
-        >
+        <form onSubmit={data ? handleUpdateNotification : handleCreateNotification}>
           <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
             <div className="w-full lg:w-[49%]">
               <label className="text-sm text-bali-hai-600">Alert name</label>
@@ -135,9 +118,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
               />
             </div>
             <div className="w-full">
-              <label className="text-sm text-bali-hai-600">
-                Alert description
-              </label>
+              <label className="text-sm text-bali-hai-600">Alert description</label>
               <TextArea
                 placeholder="Alert description"
                 style={{ fontSize: '14px' }}
@@ -152,9 +133,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                Whose alerts do you want to see?
-              </label>
+              <label className="text-sm text-bali-hai-600">Whose alerts do you want to see?</label>
               <Input
                 placeholder="Add addresses"
                 style={{ fontSize: '14px' }}
@@ -194,9 +173,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                What % Change?
-              </label>
+              <label className="text-sm text-bali-hai-600">What % Change?</label>
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="% Above"
@@ -242,9 +219,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
               </div>
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                What token Value?
-              </label>
+              <label className="text-sm text-bali-hai-600">What token Value?</label>
               <div className="flex items-center gap-[10px]">
                 <Select
                   placeholder="Above"
@@ -293,9 +268,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({
               </div>
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                What USD Value?
-              </label>
+              <label className="text-sm text-bali-hai-600">What USD Value?</label>
               <div className="flex items-center gap-[10px]">
                 <Input
                   placeholder="Min value"

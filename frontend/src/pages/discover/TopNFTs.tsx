@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Spin } from 'antd';
+import { Image, Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';
@@ -33,12 +33,14 @@ export const TopNFTs = () => {
         return tokens.map((token: any) => ({
           label: (
             <a href={`/portfolio/nft/${chain}/${token.address}`} className="flex items-center gap-3">
-              <img
-                src={token.img || `/images/tokens/empty-${chain}.png`}
-                className="rounded-full"
+              <Image
+                alt="#"
+                src={token.img}
                 width={24}
                 height={24}
                 loading="lazy"
+                className="rounded-full"
+                fallback={`/images/tokens/default/empty-${chain}.png`}
               />
               <div className="flex flex-col">
                 <div className="truncate">{token.title}</div>

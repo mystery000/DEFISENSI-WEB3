@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Spin } from 'antd';
+import { Image, Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';
@@ -12,9 +12,9 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import useTopTokens from '../../lib/hooks/useTopTokens';
 import TableContainer from '@mui/material/TableContainer';
+import DebounceSelect from '../../components/DebounceSelect';
 import { EmptyContainer } from '../../components/EmptyContainer';
 import { ChainSelection } from '../../components/ChainSelection';
-import DebounceSelect from '../../components/DebounceSelect';
 
 interface TokenValue {
   label: string | React.ReactNode;
@@ -33,8 +33,10 @@ export const TopTokens = () => {
         return tokens.map((token: any) => ({
           label: (
             <a href={`/portfolio/token/${chain}/${token.address}`} className="flex items-center gap-3">
-              <img
-                src={token.img || `/images/tokens/empty-${chain}.png`}
+              <Image
+                src={token.img}
+                fallback={`/images/tokens/default/empty-${chain}.png`}
+                alt="#"
                 className="rounded-full"
                 width={24}
                 height={24}

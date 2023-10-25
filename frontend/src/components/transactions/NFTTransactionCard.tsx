@@ -1,7 +1,7 @@
 import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
 
 import cn from 'classnames';
-import { Card, Modal } from 'antd';
+import { Card, Image, Modal } from 'antd';
 import { useAppContext } from '../../context/app';
 import { getAge, convertHex, standardUnit } from '../../lib/utils';
 
@@ -17,8 +17,8 @@ import {
 } from '../icons/defisensi-icons';
 import { toast } from 'react-toastify';
 import TextArea from 'antd/es/input/TextArea';
-import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
 import { NFTTransaction, TransactionType } from '../../types/transaction';
+import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
 
 type TransactionCardProps = {
   txn: NFTTransaction;
@@ -148,15 +148,14 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
               {convertHex(transaction.details.to).substring(0, 5)}
             </span>
           </div>
-          <div>
-            <img
-              src={`/images/network/${transaction.network}.png`}
-              width={32}
-              height={32}
-              className="rounded-full border"
-              alt="platform_icon"
-            ></img>
-          </div>
+          <Image
+            width={32}
+            height={32}
+            className="rounded-full"
+            alt="#"
+            src={`/images/network/${transaction.network}.png`}
+            loading="lazy"
+          />
         </div>
         <div className="text-base font-semibold">{`${type} ${amount} of ${name} (${symbol})`}</div>
         <div className="mt-4 flex justify-around text-center text-sm">
