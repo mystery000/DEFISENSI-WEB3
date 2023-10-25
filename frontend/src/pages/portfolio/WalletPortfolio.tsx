@@ -266,11 +266,11 @@ export const WalletPortfolio = () => {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Image
-                                src={`/images/tokens/${token.contract_ticker_symbol}.png`}
+                                alt="#"
+                                src={`/images/tokens/${token.contract_ticker_symbol.toUpperCase()}.png`}
                                 fallback={`/images/tokens/default/empty-ethereum.png`}
-                                width={32}
-                                height={32}
-                                alt="no icon"
+                                width={24}
+                                height={24}
                                 loading="lazy"
                               />
                               {token.contract_ticker_symbol}

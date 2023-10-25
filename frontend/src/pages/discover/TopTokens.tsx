@@ -33,9 +33,8 @@ export const TopTokens = () => {
         return tokens.map((token: any) => ({
           label: (
             <a href={`/portfolio/token/${chain}/${token.address}`} className="flex items-center gap-3">
-              <Image
-                src={token.img}
-                fallback={`/images/tokens/default/empty-${chain}.png`}
+              <img
+                src={token.img || `/images/tokens/default/empty-${chain}.png`}
                 alt="#"
                 className="rounded-full"
                 width={24}

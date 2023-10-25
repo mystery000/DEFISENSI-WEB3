@@ -33,14 +33,13 @@ export const TopNFTs = () => {
         return tokens.map((token: any) => ({
           label: (
             <a href={`/portfolio/nft/${chain}/${token.address}`} className="flex items-center gap-3">
-              <Image
+              <img
                 alt="#"
-                src={token.img}
+                src={token.img || `/images/tokens/default/empty-${chain}.png`}
                 width={24}
                 height={24}
                 loading="lazy"
                 className="rounded-full"
-                fallback={`/images/tokens/default/empty-${chain}.png`}
               />
               <div className="flex flex-col">
                 <div className="truncate">{token.title}</div>
