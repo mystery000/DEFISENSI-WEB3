@@ -1,9 +1,10 @@
 import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import cn from 'classnames';
 import { Card, Image, Modal } from 'antd';
 import { useAppContext } from '../../context/app';
-import { getAge, convertHex, standardUnit } from '../../lib/utils';
+import { getAge, convertHex, standardUnit, getExplorerLink } from '../../lib/utils';
 
 import {
   ChatBubbleSolid,
@@ -116,7 +117,7 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
   }, [user, transaction, transactionType, content]);
 
   return (
-    <div>
+    <Link className="cursor-pointer" target="_blank" to={getExplorerLink(transaction)}>
       <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter" key={transaction.txHash}>
         <div className="flex justify-between font-inter text-sm">
           <NFTIcon />
@@ -226,6 +227,6 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
           value={content}
         />
       </Modal>
-    </div>
+    </Link>
   );
 };

@@ -1,4 +1,5 @@
 import { Dispatch, FC, SetStateAction, useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   ChatBubbleSolid,
@@ -16,7 +17,7 @@ import { Card, Modal, Input, Image } from 'antd';
 import { useAppContext } from '../../context/app';
 import { TokenTransaction, TransactionType } from '../../types/transaction';
 import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
-import { convertDecimals, convertHex, getAge, getTransferType, standardUnit } from '../../lib/utils';
+import { convertDecimals, convertHex, getAge, getExplorerLink, getTransferType, standardUnit } from '../../lib/utils';
 
 const { TextArea } = Input;
 
@@ -29,8 +30,8 @@ type TransactionCardProps = {
 export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType, mutate }) => {
   const [transaction, setTransaction] = useState<TokenTransaction>(txn);
   const { user } = useAppContext();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [content, setContent] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const age = getAge(transaction.timestamp);
 
   const handleLike = useCallback(async () => {
@@ -114,7 +115,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
   }, [user, transaction, transactionType, content]);
 
   return (
-    <>
+    <Link className="cursor-pointer" to={getExplorerLink(transaction)} target="_blank">
       <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter">
         <div className="flex justify-between font-inter text-sm">
           <TokenIcon />
@@ -246,6 +247,6 @@ export const TransactionCard: FC<TransactionCardProps> = ({ txn, transactionType
           value={content}
         />
       </Modal>
-    </>
+    </Link>
   );
 };

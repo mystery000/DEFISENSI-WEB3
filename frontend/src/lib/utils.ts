@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { TransferType } from '../types';
-import { TokenTransaction } from '../types/transaction';
+import { NetworkType, TransferType } from '../types';
+import { NFTTransaction, TokenTransaction } from '../types/transaction';
 
 // Function getting age of transaction
 export const getAge = (timestamp: number) => {
@@ -86,4 +86,19 @@ export const isValid = (value: any) => {
   }
 
   return true;
+};
+
+export const getExplorerLink = (tx: TokenTransaction | NFTTransaction) => {
+  switch (tx.network) {
+    case NetworkType.ETHEREUM:
+      return `https://etherscan.io/tx/${tx.txHash}`;
+    case NetworkType.POLYGON:
+      return `https://polygonscan.com/tx/${tx.txHash}`;
+    case NetworkType.ARBITRUM:
+      return `https://arbiscan.io/tx/${tx.txHash}`;
+    case NetworkType.AVALANCHE:
+      return `https://avascan.info/blockchain/c/tx/${tx.txHash}`;
+    case NetworkType.BSC:
+      return `https://bscscan.com/tx/${tx.txHash}`;
+  }
 };

@@ -26,15 +26,27 @@ import useWalletBalances from '../../lib/hooks/useWalletBalances';
 import useWalletPortfolio from '../../lib/hooks/useWalletPortfolio';
 import { TransactionCard } from '../../components/transactions/TransactionCard';
 import { FollowerIcon, FollowingIcon } from '../../components/icons/defisensi-icons';
+import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { NFTTransactionCard } from '../../components/transactions/NFTTransactionCard';
 import { NFTTransaction, TokenTransaction, TransactionType } from '../../types/transaction';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts';
 
 enum ContentType {
   PORTFOLIO = 'portfolio',
   TRANSACTIONS = 'transactions',
   ALL = 'all',
 }
+const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="border-gray-300 bg-white p-4">
+        <p>{label}</p>
+        <p className="text-indigo-400">{`${payload?.[0].value}`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export const WalletPortfolio = () => {
   const { address } = useParams();
@@ -211,7 +223,7 @@ export const WalletPortfolio = () => {
                   />
                   <YAxis orientation="right" axisLine={false} tickLine={false} tickFormatter={keyFormatter} />
                   <CartesianGrid strokeDasharray="3 3" />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Area type="monotone" dataKey="total_quote" stroke="#8884d8" fillOpacity={1} fill="url(#quote)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -267,7 +279,7 @@ export const WalletPortfolio = () => {
                             <div className="flex items-center gap-1">
                               <Image
                                 alt="#"
-                                src={`/images/tokens/${token.contract_ticker_symbol.toUpperCase()}.png`}
+                                src={`/images/tokens/${token.contract_ticker_symbol?.toUpperCase()}.png`}
                                 fallback={`/images/tokens/default/empty-ethereum.png`}
                                 width={24}
                                 height={24}

@@ -4,5 +4,4 @@ export enum NetworkType {
   ARBITRUM = 'arbitrum',
   POLYGON = 'polygon',
   AVALANCHE = 'avalanche',
-  UNISWAP = 'uniswap', // Temporary property
 }

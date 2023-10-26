@@ -161,7 +161,7 @@ export class EtherscanService {
                 txHash: tx.hash,
                 blockNumber: tx.block_number,
                 type: TransactionType.TOKEN,
-                network: NetworkType.UNISWAP,
+                network: NetworkType.ETHEREUM,
                 timestamp: new Date(tx.block_timestamp).getTime(),
                 details: {
                   from: tx.from_address,
@@ -262,7 +262,7 @@ export class EtherscanService {
             blockNumber: tx.block_number,
             timestamp: new Date(tx.block_timestamp).getTime(),
             type: TransactionType.TOKEN,
-            network: NetworkType.UNISWAP,
+            network: NetworkType.ETHEREUM,
             details: {
               from: tx.from_address,
               to: to,
@@ -449,7 +449,7 @@ export class EtherscanService {
               blockNumber: tx.block_number,
               type: TransactionType.TOKEN,
               timestamp: new Date(tx.block_timestamp).getTime(),
-              network: NetworkType.UNISWAP,
+              network: NetworkType.ETHEREUM,
               details: {
                 from: tx.from_address,
                 to: toAddress,
@@ -547,7 +547,7 @@ export class EtherscanService {
           blockNumber: tx.block_number,
           type: TransactionType.TOKEN,
           timestamp: new Date(tx.block_timestamp).getTime(),
-          network: NetworkType.UNISWAP,
+          network: NetworkType.ETHEREUM,
           details: {
             from: tx.from_address,
             to: to,
