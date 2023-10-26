@@ -50,17 +50,31 @@ export class NftController {
   }
 
   @Post('like')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @ApiOperation({ summary: 'Like the NFT' })
   @ApiOkResponse({ type: SuccessResponse })
-  likeWallet(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+  likeNFT(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.nftService.like(likeDto);
   }
 
-  @Post('dislike')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @Post('unlike')
+  @ApiOperation({ summary: 'Unlike the NFT' })
   @ApiOkResponse({ type: SuccessResponse })
-  dislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+  unlikeNFT(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.nftService.unlike(likeDto);
+  }
+
+  @Post('dislike')
+  @ApiOperation({ summary: 'Dislike the NFT' })
+  @ApiOkResponse({ type: SuccessResponse })
+  dislikeNFT(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.nftService.dislike(dislikeDto);
+  }
+
+  @Post('unDislike')
+  @ApiOperation({ summary: 'unDislike the NFT' })
+  @ApiOkResponse({ type: SuccessResponse })
+  unDislikeNFT(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.nftService.unDislike(dislikeDto);
   }
 
   @Get('top-nfts/:network')

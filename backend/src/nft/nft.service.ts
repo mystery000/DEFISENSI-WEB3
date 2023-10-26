@@ -124,6 +124,23 @@ export class NftService {
     }
   }
 
+  async unlike(likeDto: FeedbackTransactionDto) {
+    // Retrieve the token document containing the transaction
+    const token = await this.nftModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === likeDto.transactionId);
+    if (transaction.likes.includes(likeDto.address)) {
+      await this.nftModel.updateOne(
+        { 'transactions.id': likeDto.transactionId },
+        { $set: { 'transactions.$.likes': transaction.likes.filter((address) => address !== likeDto.address) } },
+      );
+    }
+    return new SuccessResponse(true);
+  }
+
   async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     // Retrieve the token document containing the transaction
     const token = await this.nftModel.findOne({ 'transactions.id': dislikeDto.transactionId });
@@ -151,6 +168,25 @@ export class NftService {
     } else {
       throw new BadRequestException('You already dislike this token');
     }
+  }
+
+  async unDislike(dislikeDto: FeedbackTransactionDto) {
+    // Retrieve the token document containing the transaction
+    const token = await this.nftModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!token) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = token.transactions.find((t) => t.id === dislikeDto.transactionId);
+    if (transaction.dislikes.includes(dislikeDto.address)) {
+      await this.nftModel.updateOne(
+        { 'transactions.id': dislikeDto.transactionId },
+        {
+          $set: { 'transactions.$.dislikes': transaction.dislikes.filter((address) => address !== dislikeDto.address) },
+        },
+      );
+    }
+    return new SuccessResponse(true);
   }
 
   async get(dto: FindOneParams) {

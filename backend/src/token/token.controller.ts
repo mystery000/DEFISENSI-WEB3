@@ -43,17 +43,31 @@ export class TokenController {
   }
 
   @Post('like')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @ApiOperation({ summary: 'Like the token' })
   @ApiOkResponse({ type: SuccessResponse })
-  likeWallet(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+  likeToken(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.tokenService.like(likeDto);
   }
 
-  @Post('dislike')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @Post('unlike')
+  @ApiOperation({ summary: 'Unlike the token' })
   @ApiOkResponse({ type: SuccessResponse })
-  dislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+  unlikeToken(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.tokenService.unlike(likeDto);
+  }
+
+  @Post('dislike')
+  @ApiOperation({ summary: 'Dislike the token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  dislikeToken(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.tokenService.dislike(dislikeDto);
+  }
+
+  @Post('unDislike')
+  @ApiOperation({ summary: 'Undislike the token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  unDislikeToken(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.tokenService.undDislike(dislikeDto);
   }
 
   @Get('top-tokens/:network')

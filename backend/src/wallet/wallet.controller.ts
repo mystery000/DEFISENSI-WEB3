@@ -36,17 +36,31 @@ export class WalletController {
   }
 
   @Post('like')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @ApiOperation({ summary: 'Like the token' })
   @ApiOkResponse({ type: SuccessResponse })
   likeWallet(@Body() likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.walletService.like(likeDto);
   }
 
+  @Post('unlike')
+  @ApiOperation({ summary: 'Unlike the token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  unlikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.walletService.unlike(dislikeDto);
+  }
+
   @Post('dislike')
-  @ApiOperation({ summary: 'Follow wallet' })
+  @ApiOperation({ summary: 'Dislike the token' })
   @ApiOkResponse({ type: SuccessResponse })
   dislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     return this.walletService.dislike(dislikeDto);
+  }
+
+  @Post('unDislike')
+  @ApiOperation({ summary: 'Undislike the token' })
+  @ApiOkResponse({ type: SuccessResponse })
+  unDislikeWallet(@Body() dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    return this.walletService.unDislike(dislikeDto);
   }
 
   @Post('cancel-follow')

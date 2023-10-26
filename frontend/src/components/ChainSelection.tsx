@@ -45,7 +45,7 @@ export const ChainSelection: FC<ChainSelectionProps> = ({ onChange, value }) => 
 
   const formatOptionLabel = ({ label, logo }: { label: string; logo: string }) => (
     <div className="flex items-center gap-2">
-      <Image src={logo} width={24} height={24} className="rounded-full" loading="lazy" alt="#" />
+      <Image src={logo} width={24} height={24} className="rounded-full" loading="lazy" alt="#" preview={false} />
       <div className="grow text-center">{label}</div>
     </div>
   );

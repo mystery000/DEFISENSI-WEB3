@@ -100,6 +100,7 @@ export const NFTPortfolio = () => {
                   alt="noicon"
                   loading="lazy"
                   className="rounded-full"
+                  preview={false}
                 ></Image>
                 <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
               </span>

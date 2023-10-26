@@ -111,6 +111,7 @@ export const TokenPortfolio = () => {
                   alt="noicon"
                   className="rounded-full"
                   loading="lazy"
+                  preview={false}
                 />
                 <span>{`on ${network[0].toUpperCase() + network.slice(1)}`}</span>
               </span>
@@ -216,7 +217,13 @@ export const TokenPortfolio = () => {
                       <TableCell style={{ fontWeight: 600, fontSize: '14px' }}>
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-2 rounded-lg bg-bali-hai-600/20 px-2 py-1">
-                            <Image src={`/images/network/${network}.png`} width={24} height={24} alt="noicon" />
+                            <Image
+                              src={`/images/network/${network}.png`}
+                              width={24}
+                              height={24}
+                              alt="#"
+                              preview={false}
+                            />
                             <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
                           </span>
                           <span className="text-bali-hai-600">USD value</span>
@@ -235,6 +242,7 @@ export const TokenPortfolio = () => {
                             height={32}
                             loading="lazy"
                             className="rounded-full border"
+                            preview={false}
                           ></Image>
                           <span>Uniswap</span>
                         </div>
@@ -255,6 +263,7 @@ export const TokenPortfolio = () => {
                             height={32}
                             loading="lazy"
                             className="rounded-full border"
+                            preview={false}
                           ></Image>
                           <span>Binance</span>
                         </div>
@@ -275,6 +284,7 @@ export const TokenPortfolio = () => {
                             height={32}
                             loading="lazy"
                             className="rounded-full border"
+                            preview={false}
                           ></Image>
                           <span>Kucoin</span>
                         </div>
@@ -299,6 +309,7 @@ export const TokenPortfolio = () => {
                             height={32}
                             loading="lazy"
                             className="rounded-full border"
+                            preview={false}
                           ></Image>
                           <span>Coinbase</span>
                         </div>

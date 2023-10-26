@@ -284,6 +284,7 @@ export const WalletPortfolio = () => {
                                 width={24}
                                 height={24}
                                 loading="lazy"
+                                preview={false}
                               />
                               {token.contract_ticker_symbol}
                             </div>

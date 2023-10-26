@@ -116,6 +116,23 @@ export class WalletService {
     }
   }
 
+  async unlike(likeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const wallet = await this.walletModel.findOne({ 'transactions.id': likeDto.transactionId });
+    if (!wallet) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = wallet.transactions.find((t) => t.id === likeDto.transactionId);
+    if (transaction.likes.includes(likeDto.address)) {
+      await this.walletModel.updateOne(
+        { 'transactions.id': likeDto.transactionId },
+        { $set: { 'transactions.$.likes': transaction.likes.filter((address) => address !== likeDto.address) } },
+      );
+    }
+    return new SuccessResponse(true);
+  }
+
   async dislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
     // Retrieve the token document containing the transaction
     const wallet = await this.walletModel.findOne({ 'transactions.id': dislikeDto.transactionId });
@@ -143,6 +160,25 @@ export class WalletService {
     } else {
       throw new BadRequestException('You already dislike this transaction');
     }
+  }
+
+  async unDislike(dislikeDto: FeedbackTransactionDto): Promise<SuccessResponse> {
+    // Retrieve the token document containing the transaction
+    const wallet = await this.walletModel.findOne({ 'transactions.id': dislikeDto.transactionId });
+    if (!wallet) {
+      throw new BadRequestException('Invalid transaction Id');
+    }
+    // Find the specific transaction within the token document's transactions array
+    const transaction = wallet.transactions.find((t) => t.id === dislikeDto.transactionId);
+    if (transaction.dislikes.includes(dislikeDto.address)) {
+      await this.walletModel.updateOne(
+        { 'transactions.id': dislikeDto.transactionId },
+        {
+          $set: { 'transactions.$.dislikes': transaction.dislikes.filter((address) => address !== dislikeDto.address) },
+        },
+      );
+    }
+    return new SuccessResponse(true);
   }
 
   async get(address: string) {

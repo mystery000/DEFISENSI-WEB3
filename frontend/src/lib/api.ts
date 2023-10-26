@@ -353,6 +353,29 @@ export const likeTransaction = async (transaction: WalletTransaction, address: s
   }
 };
 
+export const unlikeTransaction = async (transaction: WalletTransaction, address: string, type: TransactionType) => {
+  try {
+    if (type === TransactionType.TOKEN) {
+      await axios.post(`${API_BASE_URL}/token/unlike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.NFT) {
+      await axios.post(`${API_BASE_URL}/nft/unlike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.WALLET) {
+      await axios.post(`${API_BASE_URL}/wallet/unlike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    }
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};
+
 export const dislikeTransaction = async (transaction: WalletTransaction, address: string, type: TransactionType) => {
   try {
     if (type === TransactionType.TOKEN) {
@@ -367,6 +390,29 @@ export const dislikeTransaction = async (transaction: WalletTransaction, address
       });
     } else if (type === TransactionType.WALLET) {
       await axios.post(`${API_BASE_URL}/wallet/dislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    }
+  } catch (error) {
+    throw new Error((error as any).response.data.message);
+  }
+};
+
+export const unDislikeTransaction = async (transaction: WalletTransaction, address: string, type: TransactionType) => {
+  try {
+    if (type === TransactionType.TOKEN) {
+      await axios.post(`${API_BASE_URL}/token/unDislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.NFT) {
+      await axios.post(`${API_BASE_URL}/nft/unDislike`, {
+        address,
+        transactionId: transaction.id,
+      });
+    } else if (type === TransactionType.WALLET) {
+      await axios.post(`${API_BASE_URL}/wallet/unDislike`, {
         address,
         transactionId: transaction.id,
       });

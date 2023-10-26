@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Image, Spin } from 'antd';
+import { Spin } from 'antd';
 import { Box } from '@mui/material';
 import Table from '@mui/material/Table';
 import { NetworkType } from '../../types';

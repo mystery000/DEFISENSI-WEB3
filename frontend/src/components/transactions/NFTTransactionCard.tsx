@@ -19,7 +19,13 @@ import {
 import { toast } from 'react-toastify';
 import TextArea from 'antd/es/input/TextArea';
 import { NFTTransaction, TransactionType } from '../../types/transaction';
-import { commentTransaction, dislikeTransaction, likeTransaction } from '../../lib/api';
+import {
+  commentTransaction,
+  dislikeTransaction,
+  likeTransaction,
+  unDislikeTransaction,
+  unlikeTransaction,
+} from '../../lib/api';
 
 type TransactionCardProps = {
   txn: NFTTransaction;
@@ -38,7 +44,19 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
   const handleLike = useCallback(async () => {
     try {
       if (transaction.likes.includes(user.address)) {
-        toast.error('You already like this transaction');
+        if (!mutate) {
+          await unlikeTransaction(transaction, user.address, transactionType);
+        } else {
+          mutate((prev: any) => {
+            const txns = prev.transactions.map((txn: any) =>
+              txn.id === transaction.id
+                ? { ...transaction, likes: transaction.likes.filter((address) => address !== user.address) }
+                : txn,
+            );
+            return { ...prev, transactions: txns };
+          });
+        }
+        setTransaction({ ...transaction, likes: transaction.likes.filter((address) => address !== user.address) });
         return;
       } else if (transaction.dislikes.includes(user.address)) {
         toast.error('You already dislike this transaction');
@@ -56,7 +74,6 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
         });
       }
       setTransaction({ ...transaction, likes: [...transaction.likes, user.address] });
-      toast.success('You liked this transaction');
     } catch (error) {
       toast.error((error as any).message);
     }
@@ -65,7 +82,22 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
   const handleDisLike = useCallback(async () => {
     try {
       if (transaction.dislikes.includes(user.address)) {
-        toast.error('You already dislike this transaction');
+        if (!mutate) {
+          await unDislikeTransaction(transaction, user.address, transactionType);
+        } else {
+          mutate((prev: any) => {
+            const txns = prev.transactions.map((txn: any) =>
+              txn.id === transaction.id
+                ? { ...transaction, dislikes: transaction.dislikes.filter((address) => address !== user.address) }
+                : txn,
+            );
+            return { ...prev, transactions: txns };
+          });
+        }
+        setTransaction({
+          ...transaction,
+          dislikes: transaction.dislikes.filter((address) => address !== user.address),
+        });
         return;
       } else if (transaction.likes.includes(user.address)) {
         toast.error('You already likes this transaction');
@@ -82,7 +114,6 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
         });
       }
       setTransaction({ ...transaction, dislikes: [...transaction.dislikes, user.address] });
-      toast.success('You disliked this transaction');
     } catch (error) {
       toast.error((error as any).message);
     }
@@ -117,48 +148,51 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
   }, [user, transaction, transactionType, content]);
 
   return (
-    <Link className="cursor-pointer" target="_blank" to={getExplorerLink(transaction)}>
+    <>
       <Card bordered={false} style={{ width: 392 }} className="mb-2 font-inter" key={transaction.txHash}>
-        <div className="flex justify-between font-inter text-sm">
-          <NFTIcon />
-          <span>{age}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="font-bold" title={transaction.details.from}>
-              {convertHex(transaction.details.from).substring(0, 5)}
-            </span>
-            <span>
-              {transaction.details.actions.map((action, idx) => {
-                if (idx > 0) return;
-                switch (action.type) {
-                  case 'Mint':
-                    return <MintIcon key={'mint-icon'} />;
-                  case 'Burn':
-                    return <BurnIcon key={'burn-icon'} />;
-                  case 'Purchase':
-                    return <PurchaseIcon key={'purchase-icon'} />;
-                  case 'Transfer':
-                    return <SendIcon key={'send-icon'} />;
-                  case 'Sale':
-                    return <PurchaseIcon key={'sale-icon'} />;
-                }
-              })}
-            </span>
-            <span className="font-bold" title={transaction.details.to}>
-              {convertHex(transaction.details.to).substring(0, 5)}
-            </span>
+        <Link className="cursor-pointer" target="_blank" to={getExplorerLink(transaction)}>
+          <div className="flex justify-between font-inter text-sm">
+            <NFTIcon />
+            <span>{age}</span>
           </div>
-          <Image
-            width={32}
-            height={32}
-            className="rounded-full"
-            alt="#"
-            src={`/images/network/${transaction.network}.png`}
-            loading="lazy"
-          />
-        </div>
-        <div className="text-base font-semibold">{`${type} ${amount} of ${name} (${symbol})`}</div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span className="font-bold" title={transaction.details.from}>
+                {convertHex(transaction.details.from).substring(0, 5)}
+              </span>
+              <span>
+                {transaction.details.actions.map((action, idx) => {
+                  if (idx > 0) return;
+                  switch (action.type) {
+                    case 'Mint':
+                      return <MintIcon key={'mint-icon'} />;
+                    case 'Burn':
+                      return <BurnIcon key={'burn-icon'} />;
+                    case 'Purchase':
+                      return <PurchaseIcon key={'purchase-icon'} />;
+                    case 'Transfer':
+                      return <SendIcon key={'send-icon'} />;
+                    case 'Sale':
+                      return <PurchaseIcon key={'sale-icon'} />;
+                  }
+                })}
+              </span>
+              <span className="font-bold" title={transaction.details.to}>
+                {convertHex(transaction.details.to).substring(0, 5)}
+              </span>
+            </div>
+            <Image
+              width={32}
+              height={32}
+              className="rounded-full"
+              alt="#"
+              src={`/images/network/${transaction.network}.png`}
+              loading="lazy"
+              preview={false}
+            />
+          </div>
+          <div className="text-base font-semibold">{`${type} ${amount} of ${name} (${symbol})`}</div>
+        </Link>
         <div className="mt-4 flex justify-around text-center text-sm">
           <div className="flex items-center gap-[3px] hover:cursor-pointer" onClick={handleLike}>
             <ThumbsUpSolid
@@ -227,6 +261,6 @@ export const NFTTransactionCard: FC<TransactionCardProps> = ({ txn, transactionT
           value={content}
         />
       </Modal>
-    </Link>
+    </>
   );
 };
