@@ -272,9 +272,9 @@ export class WalletService {
       const [ethereumTxns, polygonTxns, bscTxns, avalancheTxns, arbitrumTxns] = await Promise.all([
         this.etherscanService.getTransactionsByAccount(address),
         this.polygonscanService.getTransactionsByAccount(address),
-        [],
-        [],
-        [],
+        this.bscService.getTransactionsByAccount(address),
+        this.avalancheService.getTransactionsByAccount(address),
+        this.arbitrumService.getTransactionsByAccount(address),
       ]);
 
       const transactions = [...ethereumTxns, ...polygonTxns, ...bscTxns, ...avalancheTxns, ...arbitrumTxns];
@@ -282,6 +282,21 @@ export class WalletService {
       return transactions.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  async getTransactionsByChain(address: string, network: string, limit: number = 4) {
+    switch (network) {
+      case NetworkType.ETHEREUM:
+        return this.etherscanService.getTransactionsByAccount(address);
+      case NetworkType.POLYGON:
+        return this.polygonscanService.getTransactionsByAccount(address);
+      case NetworkType.ARBITRUM:
+        return this.arbitrumService.getTransactionsByAccount(address);
+      case NetworkType.AVALANCHE:
+        return this.avalancheService.getTransactionsByAccount(address);
+      case NetworkType.BSC:
+        return this.bscService.getTransactionsByAccount(address);
     }
   }
 

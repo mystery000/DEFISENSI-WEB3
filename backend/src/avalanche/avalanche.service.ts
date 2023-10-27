@@ -43,7 +43,7 @@ export class AvalancheService {
       Moralis.EvmApi.token.getWalletTokenTransfers({
         chain: EvmChain.AVALANCHE,
         address,
-        limit: 2,
+        limit: 4,
       }),
       Moralis.EvmApi.nft.getWalletNFTTransfers({
         chain: EvmChain.AVALANCHE,

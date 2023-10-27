@@ -44,7 +44,7 @@ export class ArbitrumService {
       Moralis.EvmApi.token.getWalletTokenTransfers({
         chain: EvmChain.ARBITRUM,
         address,
-        limit: 2,
+        limit: 4,
       }),
       Moralis.EvmApi.nft.getWalletNFTTransfers({
         chain: EvmChain.ARBITRUM,

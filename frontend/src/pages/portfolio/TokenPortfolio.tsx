@@ -82,13 +82,14 @@ export const TokenPortfolio = () => {
     );
   }
 
-  const data = portfolio.tokenPrices?.prices
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map((price) => ({
-      date: new Date(price.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-      price: price.price,
-      pretty_price: price.pretty_price,
-    }));
+  const data =
+    portfolio.tokenPrices?.prices
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((price) => ({
+        date: new Date(price.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+        price: price.price,
+        pretty_price: price.pretty_price,
+      })) || [];
 
   return (
     <AppLayout>
@@ -195,7 +196,7 @@ export const TokenPortfolio = () => {
                   </defs>
                   <XAxis
                     dataKey="date"
-                    interval={365}
+                    interval={Math.round(data.length / 3)}
                     tickFormatter={(date) => moment(date).format('YYYY')}
                     axisLine={false}
                   />
@@ -223,6 +224,7 @@ export const TokenPortfolio = () => {
                               height={24}
                               alt="#"
                               preview={false}
+                              className="rounded-lg"
                             />
                             <span>{portfolio.tokenPrices?.contract_ticker_symbol}</span>
                           </span>

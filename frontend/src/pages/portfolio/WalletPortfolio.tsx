@@ -58,7 +58,7 @@ export const WalletPortfolio = () => {
   const [selected, setSelected] = useState<ContentType>(ContentType.PORTFOLIO);
 
   const { balances, loading: balancesLoading } = useWalletBalances(chain);
-  const { data: portfolio, loading: portfolioLoading, mutate: mutatePortfolio } = useWalletPortfolio();
+  const { data: portfolio, loading: portfolioLoading, mutate: mutatePortfolio } = useWalletPortfolio(chain);
 
   // Responsive Design
   useEffect(() => {
@@ -104,13 +104,30 @@ export const WalletPortfolio = () => {
       </div>
     );
   }
-  const data = portfolio.historicalBalances?.[`${chain}`]
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .map((price) => ({
-      date: new Date(price.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
-      total_quote: Number(price?.total_quote || 0),
-      pretty_total_quote: price?.pretty_total_quote || '0',
-    }));
+  let data =
+    portfolio.historicalBalances?.[`${chain}`]
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .map((price) => ({
+        date: new Date(price.timestamp).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+        }),
+        total_quote: Number(price?.total_quote || 0),
+        pretty_total_quote: price?.pretty_total_quote || '0',
+      })) || [];
+
+  if (!data.length) {
+    data = Array(1095)
+      .fill({})
+      .map((_, offset) => ({
+        date: moment()
+          .subtract(1095 - offset, 'days')
+          .format('MMM DD, YYYY'),
+        total_quote: 0,
+        pretty_total_quote: '0',
+      }));
+  }
 
   const arrays = Object.values(portfolio.historicalBalances || {}).map((balances) => balances);
   const maxLength = arrays.length > 0 ? Math.max(...arrays.map((arr) => arr.length)) : 0;
@@ -217,7 +234,7 @@ export const WalletPortfolio = () => {
                   </defs>
                   <XAxis
                     dataKey="date"
-                    interval={365}
+                    interval={Math.round(data.length / 3)}
                     tickFormatter={(date) => moment(date).format('YYYY')}
                     axisLine={false}
                   />
@@ -237,23 +254,23 @@ export const WalletPortfolio = () => {
                 <Asset chainName="All" data={sum} />
                 <Asset
                   chainName="ETH"
-                  data={portfolio.historicalBalances?.ethereum.map((balance) => Number(balance.total_quote))}
+                  data={portfolio.historicalBalances?.ethereum.map((balance) => Number(balance.total_quote)) || []}
                 />
                 <Asset
                   chainName="Polygon"
-                  data={portfolio.historicalBalances?.polygon.map((balance) => Number(balance.total_quote))}
+                  data={portfolio.historicalBalances?.polygon.map((balance) => Number(balance.total_quote)) || []}
                 />
                 <Asset
                   chainName="BNB Smart Chain"
-                  data={portfolio.historicalBalances?.binance.map((balance) => Number(balance.total_quote))}
+                  data={portfolio.historicalBalances?.binance.map((balance) => Number(balance.total_quote)) || []}
                 />
                 <Asset
                   chainName="Arbitrum"
-                  data={portfolio.historicalBalances?.arbitrum.map((balance) => Number(balance.total_quote))}
+                  data={portfolio.historicalBalances?.arbitrum.map((balance) => Number(balance.total_quote)) || []}
                 />
                 <Asset
                   chainName="Avalanche"
-                  data={portfolio.historicalBalances?.avalanche.map((balance) => Number(balance.total_quote))}
+                  data={portfolio.historicalBalances?.avalanche.map((balance) => Number(balance.total_quote)) || []}
                 />
               </div>
               <TableContainer>

@@ -124,12 +124,17 @@ export class WalletController {
     return this.walletService.getComments(address);
   }
 
-  @Get(':address/transactions')
+  @Get(':address/:network/transactions')
   @ApiOperation({ summary: 'Get transactions of this wallet' })
   @ApiParam({ name: 'address', description: 'The address of wallet' })
+  @ApiParam({ name: 'network', description: 'The network of wallet' })
   @ApiQuery({ name: 'limit', description: 'Limit of transactions returned', required: false })
-  getWalletTransactions(@Param('address') address: string, @Query('limit') limit: number) {
-    return this.walletService.getTransactions(address, limit);
+  getWalletTransactions(
+    @Param('address') address: string,
+    @Param('network') network: string,
+    @Query('limit') limit: number,
+  ) {
+    return this.walletService.getTransactionsByChain(address, network, limit);
   }
 
   @Get(':network/address/:address/balances')

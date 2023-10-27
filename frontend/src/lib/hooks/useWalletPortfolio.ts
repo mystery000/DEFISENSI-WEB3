@@ -27,7 +27,7 @@ export type WalletPortfolio = {
   transactions: WalletTransaction[];
 };
 
-export default function useWalletPortfolio() {
+export default function useWalletPortfolio(network: string) {
   const { address } = useParams();
 
   const [data, setData] = useState<WalletPortfolio>({
@@ -37,24 +37,23 @@ export default function useWalletPortfolio() {
   });
   const [error, setError] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingTxns, setLoadingTxns] = useState(false);
 
   useEffect(() => {
     (async () => {
       if (!address) return;
       try {
         setLoading(true);
-        const [followers, followings, ens, ethereum, polygon, arbitrum, avalanche, binance, transactions] =
-          await Promise.all([
-            getFollowersByWallet(address),
-            getFollowingsByWallet(address),
-            getENS(address),
-            getHistoricalPortfolioForWalletAddress(NetworkType.ETHEREUM, address),
-            getHistoricalPortfolioForWalletAddress(NetworkType.POLYGON, address),
-            getHistoricalPortfolioForWalletAddress(NetworkType.ARBITRUM, address),
-            getHistoricalPortfolioForWalletAddress(NetworkType.AVALANCHE, address),
-            getHistoricalPortfolioForWalletAddress(NetworkType.BSC, address),
-            getWalletTransactions(address),
-          ]);
+        const [followers, followings, ens, ethereum, polygon, arbitrum, avalanche, binance] = await Promise.all([
+          getFollowersByWallet(address),
+          getFollowingsByWallet(address),
+          getENS(address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.ETHEREUM, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.POLYGON, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.ARBITRUM, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.AVALANCHE, address),
+          getHistoricalPortfolioForWalletAddress(NetworkType.BSC, address),
+        ]);
 
         setData({
           followers,
@@ -67,7 +66,7 @@ export default function useWalletPortfolio() {
             avalanche,
             binance,
           },
-          transactions,
+          transactions: [],
         });
         setLoading(false);
       } catch (error) {
@@ -78,5 +77,21 @@ export default function useWalletPortfolio() {
     })();
   }, [address]);
 
-  return { data, error, loading, mutate: setData };
+  useEffect(() => {
+    (async () => {
+      if (!address) return;
+      try {
+        setLoadingTxns(true);
+        const [txns] = await Promise.all([getWalletTransactions(address, network)]);
+        setData((prev) => ({ ...prev, transactions: txns }));
+        setLoadingTxns(false);
+      } catch (error) {
+        console.error(error);
+        setError(error);
+        setLoadingTxns(false);
+      }
+    })();
+  }, [address, network]);
+
+  return { data, error, loading: loading || loadingTxns, mutate: setData };
 }

@@ -5,11 +5,11 @@ import { Sparklines, SparklinesLine } from 'react-sparklines';
 
 interface AssetProps {
   chainName: string;
-  data?: number[];
+  data: number[];
 }
 
 export const Asset: FC<AssetProps> = ({ chainName, data }) => {
-  if (!data) return <div></div>;
+  if (!data.length) data = Array(1095).fill(0);
   const quote = keyFormatter(Number(data.at(-1) || 0));
   return (
     <div className="w-full rounded-lg border border-bali-hai-600/30 p-3 2xl:w-[48%]">

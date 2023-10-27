@@ -46,7 +46,7 @@ export class PolygonscanService {
       const nativeTxns = await Moralis.EvmApi.transaction.getWalletTransactions({
         chain: EvmChain.POLYGON,
         address,
-        limit: 3,
+        limit: 4,
         fromBlock,
       });
 

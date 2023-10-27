@@ -62,9 +62,9 @@ export const getTokenTransactions = async (network: string, address: string, lim
   }
 };
 
-export const getWalletTransactions = async (address: string, limit: number = 4) => {
+export const getWalletTransactions = async (address: string, network: string, limit: number = 4) => {
   try {
-    const resp = await axios.get(`${API_BASE_URL}/wallet/${address}/transactions?limit=${limit}`);
+    const resp = await axios.get(`${API_BASE_URL}/wallet/${address}/${network}/transactions?limit=${limit}`);
     return resp.data as WalletTransaction[];
   } catch (error) {
     return [];
