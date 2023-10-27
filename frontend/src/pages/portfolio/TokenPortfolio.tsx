@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 
 import cn from 'classnames';
@@ -31,6 +31,7 @@ enum ContentType {
 }
 
 export const TokenPortfolio = () => {
+  const navigate = useNavigate();
   const { user } = useAppContext();
   const { address, network } = useParams();
   const [following, setFollowing] = useState(false);
@@ -150,7 +151,14 @@ export const TokenPortfolio = () => {
             )}
           </div>
 
-          <div className="flex justify-end hover:cursor-pointer" onClick={() => {}}>
+          <div
+            className="flex justify-end hover:cursor-pointer"
+            onClick={() =>
+              navigate('/notification/token/create', {
+                state: { address: user.address, tokenAddress: address, network },
+              })
+            }
+          >
             <NotificationsIcon />
           </div>
         </div>

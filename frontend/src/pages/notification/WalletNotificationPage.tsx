@@ -1,11 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
-import {
-  WalletNotificationType,
-  Notification,
-  NotificationType,
-} from '../../types/notification';
+import { WalletNotificationType, Notification, NotificationType } from '../../types/notification';
 import { Input, Select } from 'antd';
 import { toast } from 'react-toastify';
 import TextArea from 'antd/es/input/TextArea';
@@ -20,10 +16,7 @@ interface WalletNotificationPageProps {
   handleEditAlert?: Function;
 }
 
-export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
-  data,
-  handleEditAlert,
-}) => {
+export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({ data, handleEditAlert }) => {
   const navigate = useNavigate();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
@@ -67,13 +60,10 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
 
       setUpdating(true);
       try {
-        const updatedNotification = await updateNotification(
-          (data as any)._id,
-          {
-            ...data,
-            ...notification,
-          },
-        );
+        const updatedNotification = await updateNotification((data as any)._id, {
+          ...data,
+          ...notification,
+        });
         toast.success('Updated the notification successfully');
         setUpdating(false);
         setTimeout(() => handleEditAlert(updatedNotification), 500);
@@ -93,9 +83,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
           {data ? 'Edit Wallet Alert' : 'Create Wallet Alert'}
         </div>
         <hr className="my-2"></hr>
-        <form
-          onSubmit={data ? handleUpdateNotification : handleCreateNotification}
-        >
+        <form onSubmit={data ? handleUpdateNotification : handleCreateNotification}>
           <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
             <div className="w-full lg:w-[49%]">
               <label className="text-sm text-bali-hai-600">Alert name</label>
@@ -123,6 +111,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
                   { value: 'polygon', label: 'Polygon' },
                   { value: 'binance', label: 'BNB Smart Chain' },
                   { value: 'arbitrum', label: 'Arbitrum' },
+                  { value: 'avalanche', label: 'Avalanche' },
                 ]}
                 size="large"
                 mode="multiple"
@@ -136,9 +125,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                Whose alerts do you want to see?
-              </label>
+              <label className="text-sm text-bali-hai-600">Whose alerts do you want to see?</label>
               <Input
                 placeholder="Add addresses"
                 style={{ fontSize: '14px' }}
@@ -154,9 +141,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                Receiving from?
-              </label>
+              <label className="text-sm text-bali-hai-600">Receiving from?</label>
               <Input
                 placeholder="Add addresses"
                 style={{ fontSize: '14px' }}
@@ -186,9 +171,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                What USD Value?
-              </label>
+              <label className="text-sm text-bali-hai-600">What USD Value?</label>
               <div className="flex items-center gap-[10px]">
                 <Input
                   placeholder="Min value"
@@ -237,9 +220,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
               />
             </div>
             <div className="w-full lg:w-[49%]">
-              <label className="text-sm text-bali-hai-600">
-                What token Value?
-              </label>
+              <label className="text-sm text-bali-hai-600">What token Value?</label>
               <div className="flex items-center gap-[10px]">
                 <Input
                   placeholder="Min value"
@@ -273,9 +254,7 @@ export const WalletNotificationPage: FC<WalletNotificationPageProps> = ({
               </div>
             </div>
             <div className="w-full">
-              <label className="text-sm text-bali-hai-600">
-                Alert description
-              </label>
+              <label className="text-sm text-bali-hai-600">Alert description</label>
               <TextArea
                 placeholder="Alert description"
                 style={{ fontSize: '14px' }}

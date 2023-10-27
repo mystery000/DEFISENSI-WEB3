@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Plus } from 'lucide-react';
@@ -21,16 +21,26 @@ interface TokenNotificationPageProps {
 }
 
 export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, handleEditAlert }) => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [notification, setNotification] = useState<TokenNotificationType>(
-    data ? (data as TokenNotificationType) : initialValue,
+    data
+      ? (data as TokenNotificationType)
+      : location?.state
+      ? {
+          address: location.state.address,
+          network: [location.state.network],
+          name: '',
+          tokens: [location.state.tokenAddress],
+          subscribeTo: [location.state.address],
+        }
+      : initialValue,
   );
 
   const [filter, setFilter] = useState<FilterNotification>(initialFilterValue);
-
   useEffect(() => {
     if (!user.address) return;
     setNotification((prev) => ({ ...prev, address: user.address }));
@@ -40,7 +50,10 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, ha
     async (e: any) => {
       e.preventDefault();
       if (!notification.network.length) {
-        toast.error('You must select at least one chain');
+        toast.error('You must specify at least one network');
+        return;
+      } else if (!notification.name) {
+        toast.error('The notifcation name is required');
         return;
       }
       setCreating(true);
@@ -161,6 +174,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, ha
                   { value: 'polygon', label: 'Polygon' },
                   { value: 'binance', label: 'BNB Smart Chain' },
                   { value: 'arbitrum', label: 'Arbitrum' },
+                  { value: 'avalanche', label: 'Avalanche' },
                 ]}
                 size="large"
                 mode="multiple"
@@ -170,6 +184,7 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, ha
                     network: [...networks],
                   }))
                 }
+                value={notification.network}
               />
             </div>
             <div className="w-full lg:w-[49%]">
@@ -228,8 +243,8 @@ export const TokenNotificationPage: FC<TokenNotificationPageProps> = ({ data, ha
                     width: '100%',
                   }}
                   options={[
-                    { value: 'ETH', label: 'ETH' },
-                    { value: 'TRON', label: 'Tether USD' },
+                    { value: 'above', label: 'Above' },
+                    { value: 'below', label: 'Below' },
                   ]}
                   size="large"
                   onChange={(network) =>

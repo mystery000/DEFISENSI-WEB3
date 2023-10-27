@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 
 import { Plus } from 'lucide-react';
@@ -10,12 +10,7 @@ import AppLayout from '../../layouts/AppLayout';
 import { useAppContext } from '../../context/app';
 import { createNotification, updateNotification } from '../../lib/api';
 
-import {
-  FilterNotification,
-  NotificationType,
-  NFTNotificationType,
-  Notification,
-} from '../../types/notification';
+import { FilterNotification, NotificationType, NFTNotificationType, Notification } from '../../types/notification';
 
 const initialValue = { address: '', name: '', network: [] };
 
@@ -26,16 +21,23 @@ interface NFTNotificationPageProps {
   handleEditAlert?: Function;
 }
 
-export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
-  data,
-  handleEditAlert,
-}) => {
+export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({ data, handleEditAlert }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAppContext();
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [notification, setNotification] = useState<NFTNotificationType>(
-    data ? (data as NFTNotificationType) : initialValue,
+    data
+      ? (data as NFTNotificationType)
+      : location.state
+      ? {
+          address: location.state.address,
+          name: '',
+          network: [location.state.network],
+          subscribeTo: [location.state.collection],
+        }
+      : initialValue,
   );
 
   const [floor, setFloor] = useState<FilterNotification>(initialFilterValue);
@@ -48,8 +50,11 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
   }, [user]);
 
   const handleCreateNotification = useCallback(async () => {
-    if (!isValid(notification)) {
-      toast.error('You must fill out all fields');
+    if (!notification.name) {
+      toast.error('The notifcation name is required');
+      return;
+    } else if (!notification.network.length) {
+      toast.error('You must specify at least one network');
       return;
     }
     setCreating(true);
@@ -88,9 +93,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
   return (
     <AppLayout noLayout={!!data}>
       <div className="min-w-sm m-4 max-w-5xl bg-white p-6 font-inter lg:mx-auto">
-        <div className="font-sora text-2xl font-semibold lg:text-center">
-          Create NFT Alert
-        </div>
+        <div className="font-sora text-2xl font-semibold lg:text-center">Create NFT Alert</div>
         <hr className="my-2"></hr>
         <div className="flex flex-col flex-wrap justify-between gap-4 lg:flex-row">
           <div className="w-full lg:w-[49%]">
@@ -116,18 +119,18 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
               options={[
                 { value: 'ethereum', label: 'Ethereum' },
                 { value: 'polygon', label: 'Polygon' },
+                { value: 'binance', label: 'BNB Smart Chain' },
+                { value: 'arbitrum', label: 'Arbitrum' },
+                { value: 'avalanche', label: 'Avalanche' },
               ]}
               size="large"
               mode="multiple"
-              onChange={(networks) =>
-                setNotification((prev) => ({ ...prev, network: [...networks] }))
-              }
+              value={notification.network}
+              onChange={(networks) => setNotification((prev) => ({ ...prev, network: [...networks] }))}
             />
           </div>
           <div className="w-full">
-            <label className="text-sm text-bali-hai-600">
-              Alert description
-            </label>
+            <label className="text-sm text-bali-hai-600">Alert description</label>
             <TextArea
               placeholder="Alert description"
               style={{ fontSize: '14px' }}
@@ -142,9 +145,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
             />
           </div>
           <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              Whose alerts do you want to see?
-            </label>
+            <label className="text-sm text-bali-hai-600">Whose alerts do you want to see?</label>
             <Input
               placeholder="Add NFT Collection"
               style={{ fontSize: '14px' }}
@@ -159,9 +160,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
             />
           </div>
           <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              Notify when daily floor
-            </label>
+            <label className="text-sm text-bali-hai-600">Notify when daily floor</label>
             <div className="flex items-center gap-[10px]">
               <Select
                 placeholder="Greater than"
@@ -212,9 +211,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
             </div>
           </div>
           <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              Notify when daily volume
-            </label>
+            <label className="text-sm text-bali-hai-600">Notify when daily volume</label>
             <div className="flex items-center gap-[10px]">
               <Select
                 placeholder="Greater than"
@@ -265,9 +262,7 @@ export const NFTNotificationPage: FC<NFTNotificationPageProps> = ({
             </div>
           </div>
           <div className="w-full lg:w-[49%]">
-            <label className="text-sm text-bali-hai-600">
-              Notify when daily sales
-            </label>
+            <label className="text-sm text-bali-hai-600">Notify when daily sales</label>
             <div className="flex items-center gap-[10px]">
               <Select
                 placeholder="Greater than"

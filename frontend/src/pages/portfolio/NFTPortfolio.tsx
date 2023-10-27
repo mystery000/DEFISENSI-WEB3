@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 
 import cn from 'classnames';
@@ -26,6 +26,7 @@ enum ContentType {
 }
 
 export const NFTPortfolio = () => {
+  const navigate = useNavigate();
   const { user } = useAppContext();
   const { network, address } = useParams();
   const [following, setFollowing] = useState(false);
@@ -133,7 +134,14 @@ export const NFTPortfolio = () => {
             )}
           </div>
 
-          <div className="flex justify-end hover:cursor-pointer" onClick={() => {}}>
+          <div
+            className="flex justify-end hover:cursor-pointer"
+            onClick={() =>
+              navigate('/notification/nft/create', {
+                state: { address: user.address, network, collection: portfolio.stats?.name },
+              })
+            }
+          >
             <NotificationsIcon />
           </div>
         </div>
