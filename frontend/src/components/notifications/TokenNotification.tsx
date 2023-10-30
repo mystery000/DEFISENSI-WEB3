@@ -28,7 +28,7 @@ export const TokenNotification: FC<TokenNotificationProps> = ({ notification, se
         status: !status,
       });
       setStatus((prev) => !prev);
-      toast.success(status ? 'Off' : 'On', { hideProgressBar: true });
+      toast.success(status ? 'Turn off' : 'Turn on', { hideProgressBar: true });
     } catch (error) {
       console.error(error);
       toast.error('Sorry, failed to switch notification', {
